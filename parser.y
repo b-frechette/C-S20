@@ -5,8 +5,9 @@
 
 #define YYDEBUG 1
 
-extern int yylex();
-extern FILE *yyin;
+  extern int yylex();
+  extern int yyparse();
+  extern FILE *yyin;
 
 void yyerror(const char *msg)
 {
@@ -24,9 +25,8 @@ void yyerror(const char *msg)
 
 %%
 
-statementlist : statement 
-              | statement statementlist '\n' statementlist
-              | statement '\n' statementlist
+statementlist : statement statementlist
+              | statement
               ;
 
 statement : NUMCONST    { printf("line: %d type: NUMCONST value: %d\n", $1->linenum, $1->numValue); }
@@ -36,12 +36,26 @@ statement : NUMCONST    { printf("line: %d type: NUMCONST value: %d\n", $1->line
           | STRINGCONST { printf("line: %d type: STRINGCONST value: %s\n", $1->linenum, $1->tokenstr); }
           | BOOLCONST   { printf("line: %d type: BOOLCONST value: %s  internal value: %d\n", $1->linenum, $1->tokenstr, $1->numValue); }
           | OPERATOR    { printf("line: %d type: OPERATOR value: %s\n", $1->linenum, $1->tokenstr); }
+          | '\n'
           ;
 
 %%
 
-int main()
+int main(int argc, char **argv)
 {
+    FILE *filename;
+    //yydebug = 1;
+
+    if(argc > 1)
+    {
+        filename  = fopen(argv[1], "r");
+        yyin = filename; 
+    }
+    else
+    {
+        yyin = stdin;
+    }
+
     yyparse();
     
     return 0;

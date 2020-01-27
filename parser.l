@@ -91,7 +91,7 @@ STRINGCONST \"[^\n\0]*\"
 
 \n              { line++ ; return setValue(line, yytext[0], yytext); }
 
-.               ;//{printf("line:%d ERROR \n",line);} //Error -> Return an error message
+.               ;{printf("line:%d ERROR \n",line);} //Error -> Return an error message
 
 %%
 
