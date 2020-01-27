@@ -43,6 +43,36 @@ STRINGCONST \"[^\n\0]*\"
 
 %%
 
+\; |
+\, |
+\[ |
+\] |
+\: |
+\( |
+\) |
+\{ |
+\} |
+\= |
+\> |
+\< |
+\+ |
+\- |
+\* |
+\/ |
+\% |
+\? |
+\.\. |
+\+\= |
+\-\= |
+\*\= |
+\/\= |
+\+\+ |
+\-\- |
+\<\= |
+\>\= |
+\=\= |
+\!\=            { return setValue(line, OPERATOR, yytext); }
+
 "static"|"int"|"bool"|"char"|"elsif"|"then"|"if"|"else"|"while"|"do"|"loop forever"|"loop"|"return"|"break"|"or"|"and"|"not"         { return setValue(line, KEYWORD, yytext); }
 
 "true"|"false"  { return setValue(line, BOOLCONST, yytext); }

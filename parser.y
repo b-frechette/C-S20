@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include "scanType.h"
 
-#ifdef CPLUSPLUS
+#define YYDEBUG 1
+
 extern int yylex();
-#endif
+extern FILE *yyin;
 
 void yyerror(const char *msg)
 {
@@ -19,11 +20,12 @@ void yyerror(const char *msg)
     double value;
 }
 
-%token <tokenData> ID NUMCONST CHARCONST STRINGCONST BOOLCONST KEYWORD
+%token <tokenData> ID NUMCONST CHARCONST STRINGCONST BOOLCONST KEYWORD OPERATOR
 
 %%
 
-statementlist : statement '\n'
+statementlist : statement 
+              | statement statementlist '\n' statementlist
               | statement '\n' statementlist
               ;
 
@@ -33,14 +35,14 @@ statement : NUMCONST    { printf("line: %d type: NUMCONST value: %d\n", $1->line
           | CHARCONST   { printf("line: %d type: CHARCONST value: %s\n", $1->linenum, $1->tokenstr); }
           | STRINGCONST { printf("line: %d type: STRINGCONST value: %s\n", $1->linenum, $1->tokenstr); }
           | BOOLCONST   { printf("line: %d type: BOOLCONST value: %s  internal value: %d\n", $1->linenum, $1->tokenstr, $1->numValue); }
+          | OPERATOR    { printf("line: %d type: OPERATOR value: %s\n", $1->linenum, $1->tokenstr); }
           ;
 
 %%
 
 int main()
 {
-
-        yyparse();   // call the parser
-
-        return 0;
+    yyparse();
+    
+    return 0;
 }
