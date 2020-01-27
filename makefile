@@ -8,7 +8,7 @@ OBJS = lex.yy.o $(BIN).tab.o
 LIBS = -lm 
 
 $(BIN): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(BIN)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o c-
 
 $(BIN).tab.h $(BIN).tab.c: $(BIN).y
 	bison -v -t -d $(BIN).y  
@@ -21,7 +21,7 @@ all:
 	make
 
 clean:
-	rm -f $(OBJS) $(BIN) lex.yy.c $(BIN).tab.h $(BIN).tab.c $(BIN).tar $(BIN).output *~
+	rm -f $(OBJS) c- lex.yy.c $(BIN).tab.h $(BIN).tab.c $(BIN).tar $(BIN).output *~
 
 tar:
 	tar -cvf $(BIN).tar $(SRCS) $(HDRS) makefile 

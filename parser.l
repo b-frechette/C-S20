@@ -15,12 +15,30 @@
         yylval.tokenData = new TokenData;
         yylval.tokenData->tokenclass = tokClass;
         yylval.tokenData->linenum = lineNum;
-        yylval.tokenData->tokenstr = strdup(value);
+        yylval.tokenData->tokenstr = strdup(value); 
 
         // handle special conversions
         switch (tokClass) {
         case NUMCONST:
             yylval.tokenData->numValue = atof(value); 
+            break;
+        case CHARCONST:
+            // if a char literal 
+            if(value[1] == '\\')
+            { 
+                //If not \t, \n, or \0 then grab the char 
+                if(value[2] == 't')
+                { yylval.tokenData->charValue = '\t'; }
+                else if(value[2] == 'n')
+                { yylval.tokenData->charValue = '\n'; }
+                else if(value[2] == '0')
+                { yylval.tokenData->charValue = '\0'; }
+                else // otherwise switch into those escape values
+                { yylval.tokenData->charValue = value[2]; }
+            }
+            else //otherwise strip character outright
+            { yylval.tokenData->charValue = value[1]; }
+            yylval.tokenData->numValue = yylval.tokenData->charValue;
             break;
         case BOOLCONST:
             if(strcmp(value, "true") == 0)
@@ -38,7 +56,7 @@
 
 ID          [a-z|A-Z|_][a-z|A-Z|_|0-9]*
 NUMCONST    [0-9]+
-CHARCONST   \'[\\]*[^\n\0]\' 
+CHARCONST   \'[\\]*[^\n]\' 
 STRINGCONST \"[^\n\0]*\"   
 
 %%
