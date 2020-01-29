@@ -29,13 +29,13 @@ statementlist : statement statementlist
               | statement
               ;
 
-statement : NUMCONST    { printf("line: %d type: NUMCONST value: %d\n", $1->linenum, $1->numValue); }
-          | KEYWORD     { printf("line: %d type: KEYWORD value: %s\n", $1->linenum, $1->tokenstr); }
-          | ID          { printf("line: %d type: ID value: %s\n", $1->linenum, $1->tokenstr); }
-          | CHARCONST   { printf("line: %d type: CHARCONST value: %s, internal value: %c check: %d\n", $1->linenum, $1->tokenstr, $1->charValue, $1->numValue); }
-          | STRINGCONST { printf("line: %d type: STRINGCONST value: %s\n", $1->linenum, $1->tokenstr); }
-          | BOOLCONST   { printf("line: %d type: BOOLCONST value: %s  internal value: %d\n", $1->linenum, $1->tokenstr, $1->numValue); }
-          | OPERATOR    { printf("line: %d type: OPERATOR value: %s\n", $1->linenum, $1->tokenstr); }
+statement : NUMCONST    { printf("Line %d Token: %s Value: %d Input: %s\n", $1->linenum, $1->tokenname, $1->numValue, $1->tokenstr); }
+          | KEYWORD     { printf("Line %d Token: %s\n", $1->linenum, $1->tokenname); }
+          | ID          { printf("Line %d Token: %s Value: %s\n", $1->linenum, $1->tokenname, $1->tokenstr); }
+          | CHARCONST   { printf("Line %d Token: %s Value: '%c' Input: %s\n", $1->linenum, $1->tokenname, $1->charValue, $1->tokenstr); }
+          | STRINGCONST { printf("Line %d Token: STRINGCONST Value: %s  Input: %s\n", $1->linenum, $1->stringValue, $1->tokenstr); }
+          | BOOLCONST   { printf("Line %d Token: %s Value: %d  Input: %s\n", $1->linenum, $1->tokenname, $1->numValue, $1->tokenstr); }
+          | OPERATOR    { printf("Line %d Token: %s\n", $1->linenum, $1->tokenname); }
           | '\n'
           ;
 
@@ -49,7 +49,14 @@ int main(int argc, char **argv)
     if(argc > 1)
     {
         filename  = fopen(argv[1], "r");
-        yyin = filename; 
+        if(filename == NULL)
+        {
+            printf("ERROR: Invalid file\n");
+        }
+        else
+        {
+           yyin = filename; 
+        } 
     }
     else
     {

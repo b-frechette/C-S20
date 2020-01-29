@@ -1,6 +1,7 @@
 BIN  = parser
 CC   = g++
 CFLAGS = -DCPLUSPLUS -g     # for use with C++ if file ext is .c
+TAR = frechette.tar
 
 SRCS = $(BIN).y $(BIN).l
 HDRS = scanType.h
@@ -21,8 +22,8 @@ all:
 	make
 
 clean:
-	rm -f $(OBJS) c- lex.yy.c $(BIN).tab.h $(BIN).tab.c $(BIN).tar $(BIN).output *~
+	rm -f $(OBJS) c- lex.yy.c $(BIN).tab.h $(BIN).tab.c $(BIN).tar $(BIN).output $(TAR) *~
 
 tar:
-	tar -cvf $(BIN).tar $(SRCS) $(HDRS) makefile 
-	ls -l $(BIN).tar
+	tar -cvf $(TAR) $(SRCS) $(HDRS) makefile 
+	ls -l $(TAR)
