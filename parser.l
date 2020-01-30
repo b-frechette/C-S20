@@ -147,8 +147,8 @@
 
 ID          [a-z|A-Z|_][a-z|A-Z|_|0-9]*
 NUMCONST    [0-9]+
-CHARCONST   \'[\\]?[^\n\0]\' 
-STRINGCONST \"([^\n\0"]*)\"   
+CHARCONST   \'[\\]?[^\n]\' 
+STRINGCONST \"(\\.|[^"\\\n])*\"  
 
 %%
 
