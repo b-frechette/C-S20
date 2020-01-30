@@ -6,6 +6,7 @@
     #include <stdlib.h>
     #include <stdio.h> 
     #include <ctype.h> 
+    #include <string.h>
     #include "scanType.h"
     #include "parser.tab.h"
 
@@ -18,6 +19,43 @@
         {
             s[i] =  (toupper(s[i]));
             i++;
+        }
+    }
+
+    void parseString(char *s)
+    {
+        int i = 0, curr = 0, len = strlen(s);
+        char *temp = strdup(s);
+        memset(s, '\0', len);
+
+        while(temp[i])
+        {
+            if(temp[i] == '\"')
+            { i++; } //Do nothing
+            else if(temp[i] == '\\' && temp[i+1] == 'n')
+            {
+                s[curr] = '\n';
+                curr++;
+                i += 2;
+            }
+            else if(temp[i] == '\\' && temp[i+1] == '0')
+            {
+                s[curr] = '\0';
+                curr++;
+                i += 2;
+            }
+            else if(temp[i] == '\\')
+            {
+                s[curr] = temp[i+1];
+                curr++;
+                i += 2;
+            }
+            else
+            {
+                s[curr] = temp[i];
+                curr++;
+                i++;
+            }
         }
     }
 
@@ -55,7 +93,9 @@
             yylval.tokenData->tokenname = "CHARCONST";
             break;
         case STRINGCONST:
-            //strncpy(yylval.tokenData->stringValue, value + 1, strlen(value) - 2);
+            parseString(value);
+            yylval.tokenData->stringValue = strdup(value);
+            yylval.tokenData->tokenname = "STRINGCONST";
             break;
         case BOOLCONST:
             if(strcmp(value, "true") == 0)
@@ -75,6 +115,8 @@
                 { yylval.tokenData->tokenname = "RANGE"; }
                 else if(strcmp(value, "+=") == 0)
                 { yylval.tokenData->tokenname = "ADDASS"; }
+                else if(strcmp(value, "-=") == 0)
+                { yylval.tokenData->tokenname = "SUBASS"; }
                 else if(strcmp(value, "*=") == 0)
                 { yylval.tokenData->tokenname = "MULASS"; }
                 else if(strcmp(value, "/=") == 0)
@@ -105,8 +147,8 @@
 
 ID          [a-z|A-Z|_][a-z|A-Z|_|0-9]*
 NUMCONST    [0-9]+
-CHARCONST   \'[\\]?[^\n]\' 
-STRINGCONST \"[^\n\0]*\"   
+CHARCONST   \'[\\]?[^\n\0]\' 
+STRINGCONST \"([^\n\0"]*)\"   
 
 %%
 
@@ -158,6 +200,6 @@ STRINGCONST \"[^\n\0]*\"
 
 \n              { line++ ; return setValue(line, yytext[0], yytext); } //NEWLINE -> grab character for grammar
 
-.               ;{printf("line:%d ERROR \n",line);} //Error -> Return an error message
+.               { printf("Error(%d): Invalid or misplaced input character: \"%s\"\n", line, yytext); } //ERROR -> Throw line number are erroneous charcter
 
 %%
