@@ -5,6 +5,7 @@ parser.output
 parser.tab.c
 parser.tab.h
 parser.tab.o 
+frechette.tar
 
 cprogram.c-
 everythingS20.c-
