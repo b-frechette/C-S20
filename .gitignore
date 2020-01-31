@@ -1,4 +1,11 @@
 c-
+lex.yy.c
+lex.yy.o
+parser.output
+parser.tab.c
+parser.tab.h
+parser.tab.o 
+
 cprogram.c-
 everythingS20.c-
 lex.yy.c

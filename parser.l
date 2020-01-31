@@ -1,6 +1,9 @@
 %{
-    /*
-    *   parser.l
+    /* 
+    *  parser.l
+    *
+    *  Flex file used to match with the stream of characters
+    *  in a given file or stdin.
     */
 
     #include <stdlib.h>
@@ -12,6 +15,12 @@
 
     static int line = 1;
 
+    /* descr: Convert the given char * to uppercase. Used
+    *  for KEYWORDs for the tokenname.
+    *
+    * param: char *s -> yytext
+    * return: void -> alters the char *s as a return
+    */
     void toUpper(char *s)
     {
         int i = 0;
@@ -22,6 +31,12 @@
         }
     }
 
+    /* descr: Parse the STRINGCONST value. Removing the
+    *  quotes and converting the meta-characters.
+    *
+    * param: char *s -> yytext
+    * return: void -> alters the char *s as a return
+    */
     void parseString(char *s)
     {
         int i = 0, curr = 0, len = strlen(s);
@@ -59,15 +74,23 @@
         }
     }
 
+    /* descr: Parse the STRINGCONST value. Removing the
+    *  quotes and converting the meta-characters.
+    *
+    * param: int lineNum -> line number of the token
+    * param: int tokClass -> given bison number of the token value
+    * param: char *value -> yytext the input of the given token
+    * return: int - returns the token value for bison
+    */
     static int setValue(int lineNum, int tokClass, char *value)
     {
-        // create and handle default data storage
+        // Create and handle default data storage
         yylval.tokenData = new TokenData;
         yylval.tokenData->tokenclass = tokClass;
         yylval.tokenData->linenum = lineNum;
         yylval.tokenData->tokenstr = strdup(value); 
 
-        // handle special conversions
+        // Handle special conversions
         switch (tokClass) {
         case ID:
             yylval.tokenData->tokenname = "ID";
@@ -77,7 +100,7 @@
             yylval.tokenData->tokenname = "NUMCONST";
             break;
         case CHARCONST:
-            // if a char literal 
+            // Catch meta-character charconst
             if(value[1] == '\\')
             { 
                 //If \n or \0 then grab the char 
@@ -85,7 +108,7 @@
                 { yylval.tokenData->charValue = '\n'; }
                 else if(value[2] == '0')
                 { yylval.tokenData->charValue = '\0'; }
-                else // otherwise switch into those escape values
+                else 
                 { yylval.tokenData->charValue = value[2]; }
             }
             else //otherwise strip character outright
@@ -147,8 +170,8 @@
 
 ID          [a-z|A-Z|_][a-z|A-Z|_|0-9]*
 NUMCONST    [0-9]+
-CHARCONST   \'[\\]?[^\n]\' 
-STRINGCONST \"(\\.|[^"\\\n])*\"  
+CHARCONST   \'(\\.|[^'\n])\' 
+STRINGCONST \"(\\.|[^"\n])*\"  
 
 %%
 
@@ -180,19 +203,19 @@ STRINGCONST \"(\\.|[^"\\\n])*\"
 \<\= | //LESSEQ
 \>\= | //GRTEQ
 \=\= | //EQ
-\!\=            { return setValue(line, OPERATOR, yytext); } //TESTING PHASE - Confirm solution or possibilities with Heckendorn
+\!\=            { return setValue(line, OPERATOR, yytext); } //OPERATOR -> Catches all operators (will probably need to change)
 
-"static"|"int"|"bool"|"char"|"elsif"|"then"|"if"|"else"|"while"|"do"|"forever"|"loop"|"return"|"break"|"or"|"and"|"not"         { return setValue(line, KEYWORD, yytext); } //TESTING PHASE - NOT PRETTY
+"static"|"int"|"bool"|"char"|"elsif"|"then"|"if"|"else"|"while"|"do"|"forever"|"loop"|"return"|"break"|"or"|"and"|"not"         { return setValue(line, KEYWORD, yytext); } //KEYWORD -> Catches all keywords
 
-"true"|"false"  { return setValue(line, BOOLCONST, yytext); } //TESTING PHASE
+"true"|"false"  { return setValue(line, BOOLCONST, yytext); } //BOOLCONST -> Catches the keyword of true or false, but recognized as BOOLCONST
 
-{ID}            { return setValue(line, ID, yytext); } //TESTING PHASE
+{ID}            { return setValue(line, ID, yytext); } //ID -> Catches all IDs
 
-{NUMCONST}      { return setValue(line, NUMCONST, yytext); } //TESTING PHASE
+{NUMCONST}      { return setValue(line, NUMCONST, yytext); } //NUMCONST -> Catches all valid numbers
 
-{CHARCONST}     { return setValue(line, CHARCONST, yytext); } //TESTING PHASE
+{CHARCONST}     { return setValue(line, CHARCONST, yytext); } //CHARCONST -> Catches all CHARCONST (Watch regular expression and parsing for charValue)
 
-{STRINGCONST}   { return setValue(line, STRINGCONST, yytext); } //Need to fix - maybe parse out the string?
+{STRINGCONST}   { return setValue(line, STRINGCONST, yytext); } //STRINGCONST -> Catches string (Watch the regular expression and parsing for stringValue)
 
 [ \t]           ; //WHITESPACE -> Discard
 

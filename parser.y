@@ -1,19 +1,25 @@
 %{ 
-#include <stdio.h>
-#include <stdlib.h>
-#include "scanType.h"
+    /* 
+    *  parser.y
+    *
+    *  Flex file used to match with the stream of characters
+    *  in a given file or stdin.
+    */
 
-#define YYDEBUG 1
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include "scanType.h"
 
-  extern int yylex();
-  extern int yyparse();
-  extern FILE *yyin;
+    #define YYDEBUG 1
 
-void yyerror(const char *msg)
-{
-      printf("ERROR(PARSER): %s\n", msg);
-}
+    extern int yylex();
+    extern int yyparse();
+    extern FILE *yyin;
 
+    void yyerror(const char *msg)
+    {   
+        printf("ERROR(PARSER): %s\n", msg);
+    }
 %}
 
 %union {
@@ -46,9 +52,12 @@ int main(int argc, char **argv)
     FILE *filename;
     //yydebug = 1;
 
+    //Check if a filename was passed
     if(argc > 1)
     {
         filename  = fopen(argv[1], "r");
+
+        //Check if file is valid
         if(filename == NULL)
         {
             printf("ERROR(ARGLIST): file \"%s\" could not be opened.\n", argv[1]);
@@ -59,6 +68,7 @@ int main(int argc, char **argv)
            yyin = filename; 
         } 
     }
+    //Otherwise use stdin
     else
     {
         yyin = stdin;
