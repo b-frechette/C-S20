@@ -13,7 +13,7 @@
 struct TokenData {
     int tokenclass;     // Token class
     int linenum;        // Line number where token found
-    char *tokenname;    // Token name for output (i.e. ID, STRINGCONST, etc.)
+    const char *tokenname;    // Token name for output (i.e. ID, STRINGCONST, etc.)
     char *tokenstr;     // Stores yytext value
     int numValue;       // Stores value of a NUMCONST or BOOLCONST
     char *stringValue;  // Stores value of a STRINGCONST

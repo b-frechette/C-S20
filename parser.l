@@ -223,6 +223,6 @@ STRINGCONST \"(\\.|[^"\n])*\"
 
 \n              { line++ ; return setValue(line, yytext[0], yytext); } //NEWLINE -> grab character for grammar
 
-.               { printf("Error(%d): Invalid or misplaced input character: \"%s\"\n", line, yytext); } //ERROR -> Throw line number are erroneous charcter
+.               { printf("ERROR(%d): Invalid or misplaced input character: \"%s\"\n", line, yytext); } //ERROR -> Throw line number are erroneous charcter
 
 %%
