@@ -27,7 +27,7 @@
     double value;
 }
 
-%token <tokenData> ID NUMCONST CHARCONST STRINGCONST BOOLCONST KEYWORD OPERATOR
+%token <tokenData> ID NUMCONST CHARCONST STRINGCONST BOOLCONST KEYWORD OPERATOR INVALIDCHAR
 
 %%
 
@@ -39,7 +39,8 @@ statement : NUMCONST    { printf("Line %d Token: %s Value: %d Input: %s\n", $1->
           | KEYWORD     { printf("Line %d Token: %s\n", $1->linenum, $1->tokenname); }
           | ID          { printf("Line %d Token: %s Value: %s\n", $1->linenum, $1->tokenname, $1->tokenstr); }
           | CHARCONST   { printf("Line %d Token: %s Value: '%c' Input: %s\n", $1->linenum, $1->tokenname, $1->charValue, $1->tokenstr); }
-          | STRINGCONST { printf("Line %d Token: STRINGCONST Value: \'%s\'  Input: %s\n", $1->linenum, $1->stringValue, $1->tokenstr); }
+          | INVALIDCHAR { printf("Line %d Token: %s Value: '%c' Input: %s\n", $1->linenum, $1->tokenname, $1->charValue, $1->tokenstr); }
+          | STRINGCONST { printf("Line %d Token: %s Value: \'%s\'  Input: %s\n", $1->linenum, $1->tokenname, $1->stringValue, $1->tokenstr); }
           | BOOLCONST   { printf("Line %d Token: %s Value: %d  Input: %s\n", $1->linenum, $1->tokenname, $1->numValue, $1->tokenstr); }
           | OPERATOR    { printf("Line %d Token: %s\n", $1->linenum, $1->tokenname); }
           | '\n'

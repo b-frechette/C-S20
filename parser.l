@@ -74,6 +74,27 @@
         }
     }
 
+    int parseChar(char *s)
+    {
+        int i = 0, curr = 0, len = strlen(s);
+        char *temp = strdup(s);
+        memset(s, '\0', len);
+
+        while(temp[i])
+        {
+            if(temp[i] == '\'')
+            { i++; } //Do nothing
+            else
+            {
+                s[curr] = temp[i];
+                curr++;
+                i++;
+            }
+        }
+
+        return curr;
+    }
+
     /* descr: Parse the STRINGCONST value. Removing the
     *  quotes and converting the meta-characters.
     *
@@ -160,6 +181,11 @@
             else
             { yylval.tokenData->tokenname = strdup(value); }
             break;
+        case INVALIDCHAR:
+            printf("ERROR(%d): character is %d characters and not a single character: \'%s\'. F\n", lineNum, parseChar(value), value);
+            yylval.tokenData->charValue = value[0];
+            yylval.tokenData->tokenname = "CHARCONST";
+            break;
     }
 
     return tokClass;
@@ -170,7 +196,8 @@
 
 ID          [a-z|A-Z|_][a-z|A-Z|_|0-9]*
 NUMCONST    [0-9]+
-CHARCONST   \'(\\.|[^'\n])\' 
+CHARCONST   \'(\\.|[^'\n])\'
+INVALIDCHAR \'[^'\n]*\' 
 STRINGCONST \"(\\.|[^"\n])*\"  
 
 %%
@@ -214,6 +241,8 @@ STRINGCONST \"(\\.|[^"\n])*\"
 {NUMCONST}      { return setValue(line, NUMCONST, yytext); } //NUMCONST -> Catches all valid numbers
 
 {CHARCONST}     { return setValue(line, CHARCONST, yytext); } //CHARCONST -> Catches all CHARCONST (Watch regular expression and parsing for charValue)
+
+{INVALIDCHAR}   { return setValue(line, INVALIDCHAR, yytext); } //INVALIDCHAR -> Catches all INVALID CHAR 
 
 {STRINGCONST}   { return setValue(line, STRINGCONST, yytext); } //STRINGCONST -> Catches string (Watch the regular expression and parsing for stringValue)
 
