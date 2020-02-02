@@ -74,6 +74,12 @@
         }
     }
 
+    /* descr: Parse an invalid CHARCONST value. Removing the
+    *  quotes and counting the amount of characters.
+    *
+    * param: char *s -> yytext
+    * return: int -> returns the number of characters in the CHARCONST
+    */
     int parseChar(char *s)
     {
         int i = 0, curr = 0, len = strlen(s);
