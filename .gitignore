@@ -1,0 +1,14 @@
+c-
+lex.yy.c
+lex.yy.o
+parser.output
+parser.tab.c
+parser.tab.h
+parser.tab.o 
+frechette.tar
+
+cprogram.c-
+everythingS20.c-
+lex.yy.c
+quoteTest.c-
+texttest.c-
