@@ -211,7 +211,7 @@
             { yylval.tokenData->tokenname = strdup(value); }
             break;
         case INVALIDCHAR:
-            printf("ERROR(%d): character is %d characters and not a single character: %s. F\n", lineNum, parseChar(value), yylval.tokenData->tokenstr);
+            printf("ERROR(%d): character is %d characters and not a single character: %s. F\n", lineNum, parseChar(value), yylval.tokenData->tokenstr); //Error copied from test output exactly -> Still getting mismatch symbol
             yylval.tokenData->charValue = value[0];
             yylval.tokenData->tokenname = "CHARCONST";
             break;
