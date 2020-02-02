@@ -75,14 +75,15 @@
     }
 
     /* descr: Parse an invalid CHARCONST value. Removing the
-    *  quotes and counting the amount of characters.
+    *  quotes, counting the amount of characters, and checking
+    *  for/handling meta-charcters.
     *
     * param: char *s -> yytext
     * return: int -> returns the number of characters in the CHARCONST
     */
     int parseChar(char *s)
     {
-        int i = 0, curr = 0, len = strlen(s);
+        int i = 0, curr = 0, errlen = 0, len = strlen(s);
         char *temp = strdup(s);
         memset(s, '\0', len);
 
@@ -90,15 +91,37 @@
         {
             if(temp[i] == '\'')
             { i++; } //Do nothing
+            else if(temp[i] == '\\' && temp[i+1] == 'n')
+            {
+                s[curr] = '\n';
+                curr++;
+                i += 2;
+                errlen += 2;
+            }
+            else if(temp[i] == '\\' && temp[i+1] == '0')
+            {
+                s[curr] = '\0';
+                curr++;
+                i += 2;
+                errlen += 2;
+            }
+            else if(temp[i] == '\\')
+            {
+                s[curr] = temp[i+1];
+                curr++;
+                i += 2;
+                errlen += 2;
+            }
             else
             {
                 s[curr] = temp[i];
                 curr++;
                 i++;
+                errlen++;
             }
         }
 
-        return curr;
+        return errlen;
     }
 
     /* descr: Parse the STRINGCONST value. Removing the
@@ -188,7 +211,7 @@
             { yylval.tokenData->tokenname = strdup(value); }
             break;
         case INVALIDCHAR:
-            printf("ERROR(%d): character is %d characters and not a single character: \'%s\'. F\n", lineNum, parseChar(value), value);
+            printf("ERROR(%d): character is %d characters and not a single character: \'%s\'. F\n", lineNum, parseChar(value), yylval.tokenData->tokenstr);
             yylval.tokenData->charValue = value[0];
             yylval.tokenData->tokenname = "CHARCONST";
             break;
