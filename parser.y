@@ -133,10 +133,12 @@ iterationRange          : ID ASSIGN simpleExpression RANGE simpleExpression
 
 matchediterationStmt    : WHILE simpleExpression DO matched
                         | LOOP FOREVER matched
+                        | LOOP iterationRange DO matched
                         ;
 
 unmatchediterationStmt  : WHILE simpleExpression DO unmatched
                         | LOOP FOREVER unmatched
+                        | LOOP iterationRange DO unmatched
                         ;
 
 returnStmt              : RETURN SEMI
