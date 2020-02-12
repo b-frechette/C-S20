@@ -84,7 +84,18 @@ paramId                 : ID
                         | ID LBRACKET RBRACKET
                         ;
 
-statement               : selectionStmt
+statement               : matched
+                        | unmatched
+                        ;
+
+matched                 : ifmatched
+                        | expressionStmt
+                        | compoundStmt
+                        | returnStmt
+                        | breakStmt
+                        ;
+
+unmatched               : ifunmatched
                         ;
 
 expressionStmt          : expression SEMI
@@ -106,22 +117,12 @@ elsifList               : elsifList ELSIF simpleExpression THEN statement
                         | /* epsilon */
                         ;
 
-selectionStmt           : matched
-                        | unmatched
+ifmatched               : IF simpleExpression THEN matched ELSE matched
                         ;
 
-matched                 : other_statements
-                        | IF simpleExpression THEN matched ELSE matched
-                        ;
-
-unmatched               : IF simpleExpression THEN matched 
+ifunmatched             : IF simpleExpression THEN matched 
                         | IF simpleExpression THEN unmatched 
                         | IF simpleExpression THEN matched ELSE unmatched
-                        ;
-
-other_statements        : expressionStmt
-                        | returnStmt
-                        | breakStmt
                         ;
 
 iterationRange          : ID ASSIGN simpleExpression RANGE simpleExpression
