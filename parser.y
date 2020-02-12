@@ -1,59 +1,244 @@
 %{ 
-    /* 
-    *  parser.y
-    *
-    *  Flex file used to match with the stream of characters
-    *  in a given file or stdin.
-    */
+#include <stdio.h>
+#include <stdlib.h>
+#include "scanType.h"
 
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include "scanType.h"
+#define YYDEBUG 1
 
-    #define YYDEBUG 1
+extern int yylex();
+extern int yyparse();
+extern FILE *yyin;
 
-    extern int yylex();
-    extern int yyparse();
-    extern FILE *yyin;
-
-    void yyerror(const char *msg)
-    {   
-        printf("ERROR(PARSER): %s\n", msg);
-    }
-%}
-
-%union {
-    TokenData *tokenData;
-    double value;
+void yyerror(const char *msg)
+{
+      printf("ERROR(PARSER): %s\n", msg);
 }
 
-%token <tokenData> ID NUMCONST CHARCONST STRINGCONST BOOLCONST KEYWORD OPERATOR INVALIDCHAR
+%}
+
+// token specifies the token classes from the scanner
+%token NUMCONST CHARCONST STRINGCONST TRUE FALSE ID
+%token STATIC INT BOOL CHAR ELSIF THEN IF ELSE WHILE DO FOREVER LOOP RETURN BREAK OR AND NOT
+%token SEMI COMMA LBRACKET RBRACKET COLON LPAREN RPAREN LCURL RCURL ASSIGN
+%token GRT LESS PLUS MINUS MUL DIV RAND TRUNC RANGE ADDASS SUBASS MULASS DIVASS INC DEC LESSEQ GRTEQ EQ NOTEQ
 
 %%
+program                 : declarationList
+                        ;
 
-statementlist : statement statementlist
-              | statement
-              ;
+declarationList         : declarationList declaration
+                        | declaration
+                        ;
 
-statement : NUMCONST    { printf("Line %d Token: %s Value: %d Input: %s\n", $1->linenum, $1->tokenname, $1->numValue, $1->tokenstr); }
-          | KEYWORD     { printf("Line %d Token: %s\n", $1->linenum, $1->tokenname); }
-          | ID          { printf("Line %d Token: %s Value: %s\n", $1->linenum, $1->tokenname, $1->tokenstr); }
-          | CHARCONST   { printf("Line %d Token: %s Value: '%c' Input: %s\n", $1->linenum, $1->tokenname, $1->charValue, $1->tokenstr); }
-          | INVALIDCHAR { printf("Line %d Token: %s Value: '%c' Input: %s\n", $1->linenum, $1->tokenname, $1->charValue, $1->tokenstr); }
-          | STRINGCONST { printf("Line %d Token: %s Value: \'%s\'  Input: %s\n", $1->linenum, $1->tokenname, $1->stringValue, $1->tokenstr); }
-          | BOOLCONST   { printf("Line %d Token: %s Value: %d  Input: %s\n", $1->linenum, $1->tokenname, $1->numValue, $1->tokenstr); }
-          | OPERATOR    { printf("Line %d Token: %s\n", $1->linenum, $1->tokenname); }
-          | '\n'
-          ;
+declaration             : varDeclaration
+                        | funDeclaration
+                        ;
+        
+varDeclaration          : typeSpecifier varDeclList SEMI
+                        ;
+
+scopedVarDeclaration    : scopedTypeSpecifier varDeclList SEMI
+                        ;
+
+varDeclList             : varDeclList COMMA varDeclInitialize
+                        | varDeclInitialize
+                        ;
+
+varDeclInitialize       : varDeclId
+                        | varDeclId COLON simpleExpression
+                        ;
+
+varDeclId               : ID 
+                        | ID LBRACKET NUMCONST RBRACKET
+                        ;
+
+scopedTypeSpecifier     : STATIC typeSpecifier
+                        | typeSpecifier
+                        ;
+
+typeSpecifier           : INT
+                        | BOOL
+                        | CHAR
+                        ;
+
+funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
+                        | ID LPAREN params RPAREN statement
+                        ;
+
+params                  : paramList
+                        | /* epsilon */
+                        ;
+
+paramList               : paramList SEMI paramTypeList
+                        | paramTypeList
+                        ;
+
+paramTypeList           : typeSpecifier paramIdList
+                        ;
+
+paramIdList             : paramIdList COMMA paramId 
+                        | paramId
+                        ;
+
+paramId                 : ID
+                        | ID LBRACKET RBRACKET
+                        ;
+
+statement               : selectionStmt
+                        ;
+
+expressionStmt          : expression SEMI
+                        | SEMI
+                        ;
+
+compoundStmt            : LCURL localDeclarations statementList RCURL
+                        ;
+
+localDeclarations       : localDeclarations scopedVarDeclaration
+                        | /* epsilon */
+                        ;
+
+statementList           : statementList statement
+                        | /* epsilon */
+                        ;
+
+elsifList               : elsifList ELSIF simpleExpression THEN statement
+                        | /* epsilon */
+                        ;
+
+selectionStmt           : matched
+                        | unmatched
+                        ;
+
+matched                 : other_statements
+                        | IF simpleExpression THEN matched ELSE matched
+                        ;
+
+unmatched               : IF simpleExpression THEN matched 
+                        | IF simpleExpression THEN unmatched 
+                        | IF simpleExpression THEN matched ELSE unmatched
+                        ;
+
+other_statements        : expressionStmt
+                        | returnStmt
+                        | breakStmt
+                        ;
+
+iterationRange          : ID ASSIGN simpleExpression RANGE simpleExpression
+                        | ID ASSIGN simpleExpression RANGE simpleExpression COLON simpleExpression
+                        ;
+
+iterationStmt           : WHILE simpleExpression DO statement
+                        | LOOP FOREVER statement
+                        | LOOP iterationRange DO statement
+                        ;
+
+returnStmt              : RETURN SEMI
+                        | RETURN expression SEMI
+                        ;
+
+breakStmt               : BREAK SEMI
+                        ;
+
+expression              : mutable ASSIGN expression
+                        | mutable ADDASS expression
+                        | mutable SUBASS expression
+                        | mutable MULASS expression
+                        | mutable DIVASS expression
+                        | mutable INC
+                        | mutable DEC 
+                        | simpleExpression
+                        ;
+
+simpleExpression        : simpleExpression OR andExpression
+                        | andExpression
+                        ;
+
+andExpression           : andExpression AND unaryRelExpression
+                        | unaryRelExpression
+                        ;
+
+unaryRelExpression      : NOT unaryRelExpression
+                        | relExpression 
+                        ;
+
+relExpression           : relExpression relop sumExpression
+                        | sumExpression
+                        ;
+
+relop                   : LESSEQ
+                        | LESS
+                        | GRT
+                        | GRTEQ
+                        | EQ
+                        | NOTEQ
+                        ;
+
+sumExpression           : sumExpression sumop mulExpression
+                        | mulExpression
+                        ;
+
+sumop                   : PLUS
+                        | MINUS
+                        ;
+
+mulExpression           : mulExpression mulop unaryExpression
+                        | unaryExpression
+                        ;
+
+mulop                   : MUL
+                        | DIV
+                        | TRUNC
+                        ;
+
+unaryExpression         : unaryop unaryExpression 
+                        | factor
+                        ;
+
+unaryop                 : MINUS
+                        | MUL
+                        | RAND
+                        ;
+
+factor                  : immutable
+                        | mutable
+                        ;
+
+mutable                 : ID 
+                        | mutable LBRACKET expression RBRACKET
+                        ;
+
+immutable               : LPAREN expression RPAREN
+                        | ID call
+                        | constant
+                        ;
+
+call                    : LPAREN args RPAREN
+                        ;
+
+args                    : argList
+                        ;
+
+argList                 : argList COMMA expression
+                        | expression
+                        ;
+
+constant                : NUMCONST
+                        | CHARCONST
+                        | STRINGCONST
+                        | TRUE
+                        | FALSE
+                        ;
 
 %%
 
 int main(int argc, char **argv)
 {
-    FILE *filename;
-    //yydebug = 1;
+    int i;
 
-    //Check if a filename was passed
+    yydebug = 1;
+
+    FILE *filename;
     if(argc > 1)
     {
         filename  = fopen(argv[1], "r");
@@ -74,8 +259,7 @@ int main(int argc, char **argv)
     {
         yyin = stdin;
     }
+    yyparse();   // call the parser
 
-    yyparse();
-    
     return 0;
 }
