@@ -93,9 +93,11 @@ matched                 : ifmatched
                         | compoundStmt
                         | returnStmt
                         | breakStmt
+                        | matchediterationStmt
                         ;
 
 unmatched               : ifunmatched
+                        | unmatchediterationStmt
                         ;
 
 expressionStmt          : expression SEMI
@@ -129,9 +131,12 @@ iterationRange          : ID ASSIGN simpleExpression RANGE simpleExpression
                         | ID ASSIGN simpleExpression RANGE simpleExpression COLON simpleExpression
                         ;
 
-iterationStmt           : WHILE simpleExpression DO statement
-                        | LOOP FOREVER statement
-                        | LOOP iterationRange DO statement
+matchediterationStmt    : WHILE simpleExpression DO matched
+                        | LOOP FOREVER matched
+                        ;
+
+unmatchediterationStmt  : WHILE simpleExpression DO unmatched
+                        | LOOP FOREVER unmatched
                         ;
 
 returnStmt              : RETURN SEMI
