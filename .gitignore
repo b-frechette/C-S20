@@ -12,3 +12,6 @@ everythingS20.c-
 lex.yy.c
 quoteTest.c-
 texttest.c-
+elsif.c-
+small.c-
+testExample.c-

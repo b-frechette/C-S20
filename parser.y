@@ -16,8 +16,13 @@ void yyerror(const char *msg)
 
 %}
 
+%union {
+    TokenData *tokenData;
+}
+
 // token specifies the token classes from the scanner
-%token NUMCONST CHARCONST STRINGCONST TRUE FALSE ID
+%token <tokenData> NUMCONST CHARCONST STRINGCONST TRUE FALSE ID 
+%token INVALIDCHAR
 %token STATIC INT BOOL CHAR ELSIF THEN IF ELSE WHILE DO FOREVER LOOP RETURN BREAK OR AND NOT
 %token SEMI COMMA LBRACKET RBRACKET COLON LPAREN RPAREN LCURL RCURL ASSIGN
 %token GRT LESS PLUS MINUS MUL DIV RAND TRUNC RANGE ADDASS SUBASS MULASS DIVASS INC DEC LESSEQ GRTEQ EQ NOTEQ
@@ -115,16 +120,28 @@ statementList           : statementList statement
                         | /* epsilon */
                         ;
 
-elsifList               : elsifList ELSIF simpleExpression THEN statement
+elsifMatched            : elsifStmt elseMatched
+                        ;
+
+elsifUnmatched          : elsifStmt elseUnmatched
+                        ;
+
+elsifStmt               : elsifStmt ELSIF simpleExpression THEN matched
                         | /* epsilon */
                         ;
 
-ifmatched               : IF simpleExpression THEN matched ELSE matched
+elseMatched             : ELSE matched
+                        ;
+
+elseUnmatched           : ELSE unmatched
+                        ;
+
+ifmatched               : IF simpleExpression THEN matched elsifMatched
                         ;
 
 ifunmatched             : IF simpleExpression THEN matched 
                         | IF simpleExpression THEN unmatched 
-                        | IF simpleExpression THEN matched ELSE unmatched
+                        | IF simpleExpression THEN matched elsifUnmatched
                         ;
 
 iterationRange          : ID ASSIGN simpleExpression RANGE simpleExpression
@@ -208,34 +225,35 @@ unaryop                 : MINUS
                         | RAND
                         ;
 
-factor                  : immutable
-                        | mutable
+factor                  : immutable                 //$$ = $1
+                        | mutable                   //$$ = $1
                         ;
 
 mutable                 : ID 
                         | mutable LBRACKET expression RBRACKET
                         ;
 
-immutable               : LPAREN expression RPAREN
+immutable               : LPAREN expression RPAREN  //$$ = $2
                         | ID call
-                        | constant
+                        | constant                  //$$ = $1
                         ;
 
-call                    : LPAREN args RPAREN
+call                    : LPAREN args RPAREN        //$$ = $2
                         ;
 
-args                    : argList
+args                    : argList                   //$$ = $1
+                        | /* epsilon */
                         ;
 
 argList                 : argList COMMA expression
-                        | expression
+                        | expression                //$$ = $1
                         ;
 
-constant                : NUMCONST
-                        | CHARCONST
-                        | STRINGCONST
-                        | TRUE
-                        | FALSE
+constant                : NUMCONST          
+                        | CHARCONST         
+                        | STRINGCONST       
+                        | TRUE              
+                        | FALSE             
                         ;
 
 %%
