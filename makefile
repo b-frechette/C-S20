@@ -3,27 +3,25 @@ CC   = g++
 CFLAGS = -DCPLUSPLUS -g     # for use with C++ if file ext is .c
 TAR = frechette.tar
 
-SRCS = $(BIN).y $(BIN).l
-HDRS = scanType.h
-OBJS = lex.yy.o $(BIN).tab.o
+SRCS = parser.y parser.l
+HDRS = scanType.h treeNode.h
+OBJS = lex.yy.o parser.tab.o
 LIBS = -lm 
 
-$(BIN): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o c-
+parser: lex.yy.o parser.tab.o treeUtils.o
+	g++ -DCPLUSPLUS -g lex.yy.o parser.tab.o treeUtils.o -lm -o c-
 
-$(BIN).tab.h $(BIN).tab.c: $(BIN).y
-	bison -v -t -d $(BIN).y  
+parser.tab.o: parser.tab.c treeUtils.h
 
-lex.yy.c: $(BIN).l $(BIN).tab.h
-	flex $(BIN).l
+parser.tab.h parser.tab.c: parser.y
+	bison -v -t -d parser.y  
 
-all:    
-	touch $(SRCS)
-	make
+lex.yy.c: parser.l parser.tab.h
+	flex parser.l
 
 clean:
-	rm -f $(OBJS) c- lex.yy.c $(BIN).tab.h $(BIN).tab.c $(BIN).tar $(BIN).output $(TAR) *~
+	rm -f lex.yy.o parser.tab.o c- lex.yy.c parser.tab.h parser.tab.c parser.tar parser.output treeUtils.o frechette.tar *~
 
 tar:
-	tar -cvf $(TAR) $(SRCS) $(HDRS) makefile 
-	ls -l $(TAR)
+	tar -cvf frechette.tar parser.y parser.l scanType.h treeNode.h makefile 
+	ls -l frechette.tar

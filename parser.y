@@ -1,6 +1,7 @@
 %{ 
 #include <stdio.h>
 #include <stdlib.h>
+#include "treeUtils.h"
 #include "scanType.h"
 
 #define YYDEBUG 1
@@ -18,14 +19,17 @@ void yyerror(const char *msg)
 
 %union {
     TokenData *tokenData;
+    TreeNode *tree;
 }
 
 // token specifies the token classes from the scanner
-%token <tokenData> NUMCONST CHARCONST STRINGCONST TRUE FALSE ID 
-%token INVALIDCHAR
+%token <tokenData> NUMCONST 
+%token INVALIDCHAR CHARCONST STRINGCONST TRUE FALSE ID 
 %token STATIC INT BOOL CHAR ELSIF THEN IF ELSE WHILE DO FOREVER LOOP RETURN BREAK OR AND NOT
 %token SEMI COMMA LBRACKET RBRACKET COLON LPAREN RPAREN LCURL RCURL ASSIGN
 %token GRT LESS PLUS MINUS MUL DIV RAND TRUNC RANGE ADDASS SUBASS MULASS DIVASS INC DEC LESSEQ GRTEQ EQ NOTEQ
+
+%type <tree> constant
 
 %%
 program                 : declarationList
@@ -249,11 +253,16 @@ argList                 : argList COMMA expression
                         | expression                //$$ = $1
                         ;
 
-constant                : NUMCONST          
-                        | CHARCONST         
-                        | STRINGCONST       
-                        | TRUE              
-                        | FALSE             
+constant                : NUMCONST  
+                            { $$ = newExpNode(ConstantK); }        
+                        | CHARCONST   
+                            { $$ = newExpNode(ConstantK); }      
+                        | STRINGCONST    
+                            { $$ = newExpNode(ConstantK); }   
+                        | TRUE         
+                            { $$ = newExpNode(ConstantK); }     
+                        | FALSE     
+                            { $$ = newExpNode(ConstantK); }        
                         ;
 
 %%

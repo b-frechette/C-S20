@@ -4,6 +4,7 @@
     #include <stdio.h> 
     #include <ctype.h> 
     #include <string.h>
+    #include "treeNodes.h"
     #include "scanType.h"
     #include "parser.tab.h"
 
