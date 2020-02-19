@@ -202,26 +202,26 @@ STRINGCONST \"(\\.|[^"\n])*\"
 \)                                  { return RPAREN; }
 \{                                  { return LCURL; }
 \}                                  { return RCURL; }
-\=                                  { return ASSIGN; }
-\>                                  { return GRT; }
-\<                                  { return LESS; }
-\+                                  { return PLUS; }
-\-                                  { return MINUS; }
-\*                                  { return MUL; }
-\/                                  { return DIV; }
-\%                                  { return TRUNC; }
-\?                                  { return RAND; }
-\.\.                                { return RANGE; }
-\+\=                                { return ADDASS; }
-\-\=                                { return SUBASS; }
-\*\=                                { return MULASS; }
-\/\=                                { return DIVASS; }
-\+\+                                { return INC; }
-\-\-                                { return DEC; }
-\<\=                                { return LESSEQ; }
-\>\=                                { return GRTEQ; }
-\=\=                                { return EQ; }
-\!\=                                { return NOTEQ; }
+\=                                  { return setValue(line, ASSIGN, yytext); }
+\>                                  { return setValue(line, GRT, yytext); }
+\<                                  { return setValue(line, LESS, yytext); }
+\+                                  { return setValue(line, PLUS, yytext); }
+\-                                  { return setValue(line, MINUS, yytext); }
+\*                                  { return setValue(line, MUL, yytext); }
+\/                                  { return setValue(line, DIV, yytext); }
+\%                                  { return setValue(line, TRUNC, yytext); }
+\?                                  { return setValue(line, RAND, yytext); }
+\.\.                                { return setValue(line, RANGE, yytext); }
+\+\=                                { return setValue(line, ADDASS, yytext); }
+\-\=                                { return setValue(line, SUBASS, yytext); }
+\*\=                                { return setValue(line, MULASS, yytext); }
+\/\=                                { return setValue(line, DIVASS, yytext); }
+\+\+                                { return setValue(line, INC, yytext); }
+\-\-                                { return setValue(line, DEC, yytext); }
+\<\=                                { return setValue(line, LESSEQ, yytext); }
+\>\=                                { return setValue(line, GRTEQ, yytext); }
+\=\=                                { return setValue(line, EQ, yytext); }
+\!\=                                { return setValue(line, NOTEQ, yytext); }
 
 "static"                            { return setValue(line, STATIC, yytext); }
 "int"                               { return setValue(line, INT, yytext); } 

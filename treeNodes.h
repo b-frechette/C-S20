@@ -49,11 +49,11 @@ typedef struct treeNode
 	    int value;                         // used when an integer constant or boolean
         unsigned char cvalue;               // used when a character
 	    char *string;                      // used when a string constant
-	    char *name;                        // used when IdK
+	    const char *name;                        // used when IdK
     } attr;                                 
     ExpType expType;		           // used when ExpK for type checking
-    //bool isArray;                          // is this an array
-    //bool isStatic;                         // is staticly allocated?
+    bool isArray;                          // is this an array
+    bool isStatic;                         // is staticly allocated?
 
     // even more semantic stuff will go here in later assignments.
 } TreeNode;

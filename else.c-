@@ -1,0 +1,16 @@
+int main()
+{
+    if 111 then 11;
+    else if 222 then 12;
+    else if 333 then 13;
+    else 14;
+
+    if 111 then 11;
+    elsif 222 then 12;
+    elsif 333 then 13;
+    else 14;
+
+    if 111 then 11;
+    elsif 222 then 12;
+    elsif 333 then 13;
+}

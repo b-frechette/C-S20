@@ -5,6 +5,8 @@ parser.output
 parser.tab.c
 parser.tab.h
 parser.tab.o 
+ourGetopt.o
+treeUtils.o
 frechette.tar
 
 cprogram.c-
@@ -15,4 +17,3 @@ texttest.c-
 elsif.c-
 small.c-
 testExample.c-
-treeUtils.o

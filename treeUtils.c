@@ -16,8 +16,6 @@ TreeNode * newExpNode(ExpKind kind)
         t->sibling = NULL;
         t->nodekind = ExpK;
         t->kind.exp = kind;
-        //t->lineno = lineno;
-        //t-type = Void;
     }
 
     return t;

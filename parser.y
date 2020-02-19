@@ -1,8 +1,10 @@
 %{ 
 #include <stdio.h>
 #include <stdlib.h>
+#include <strings.h>
 #include "treeUtils.h"
 #include "scanType.h"
+#include "ourGetopt.h"
 
 #define YYDEBUG 1
 
@@ -23,13 +25,13 @@ void yyerror(const char *msg)
 }
 
 // token specifies the token classes from the scanner
-%token <tokenData> NUMCONST 
-%token INVALIDCHAR CHARCONST STRINGCONST TRUE FALSE ID 
+%token <tokenData> NUMCONST CHARCONST STRINGCONST FALSE TRUE ID
+%token <tokenData> GRT LESS PLUS MINUS MUL DIV RAND TRUNC RANGE ADDASS SUBASS MULASS DIVASS INC DEC LESSEQ GRTEQ EQ NOTEQ ASSIGN
+%token INVALIDCHAR  
 %token STATIC INT BOOL CHAR ELSIF THEN IF ELSE WHILE DO FOREVER LOOP RETURN BREAK OR AND NOT
-%token SEMI COMMA LBRACKET RBRACKET COLON LPAREN RPAREN LCURL RCURL ASSIGN
-%token GRT LESS PLUS MINUS MUL DIV RAND TRUNC RANGE ADDASS SUBASS MULASS DIVASS INC DEC LESSEQ GRTEQ EQ NOTEQ
+%token SEMI COMMA LBRACKET RBRACKET COLON LPAREN RPAREN LCURL RCURL 
 
-%type <tree> constant
+%type <tree> constant mutable
 
 %%
 program                 : declarationList
@@ -94,19 +96,43 @@ paramId                 : ID
                         ;
 
 statement               : matched
+                            //{ $$ = $1; }
                         | unmatched
+                            //{ $$ = $1; }
                         ;
 
-matched                 : ifmatched
-                        | expressionStmt
+matchedelsif            : ELSIF simpleExpression THEN matched matchedelsif
+                        | ELSE matched
+                        ;
+
+unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
+                        | ELSE unmatched
+                        | /*epsilon*/
+                        ;
+
+iterationRange          : ID ASSIGN simpleExpression RANGE simpleExpression
+                        | ID ASSIGN simpleExpression RANGE simpleExpression COLON simpleExpression
+                        ;
+
+matched                 : IF simpleExpression THEN matched matchedelsif
+                        | WHILE simpleExpression DO matched
+                        | LOOP FOREVER matched
+                        | LOOP iterationRange DO matched
+                        | other_statements
+                            //{ $$ = $1; }
+                        ;
+
+unmatched               : IF simpleExpression THEN unmatched 
+                        | IF simpleExpression THEN matched unmatchedelsif
+                        | WHILE simpleExpression DO unmatched
+                        | LOOP FOREVER unmatched
+                        | LOOP iterationRange DO unmatched
+                        ;
+
+other_statements        : expressionStmt
                         | compoundStmt
                         | returnStmt
                         | breakStmt
-                        | matchediterationStmt
-                        ;
-
-unmatched               : ifunmatched
-                        | unmatchediterationStmt
                         ;
 
 expressionStmt          : expression SEMI
@@ -124,44 +150,6 @@ statementList           : statementList statement
                         | /* epsilon */
                         ;
 
-elsifMatched            : elsifStmt elseMatched
-                        ;
-
-elsifUnmatched          : elsifStmt elseUnmatched
-                        ;
-
-elsifStmt               : elsifStmt ELSIF simpleExpression THEN matched
-                        | /* epsilon */
-                        ;
-
-elseMatched             : ELSE matched
-                        ;
-
-elseUnmatched           : ELSE unmatched
-                        ;
-
-ifmatched               : IF simpleExpression THEN matched elsifMatched
-                        ;
-
-ifunmatched             : IF simpleExpression THEN matched 
-                        | IF simpleExpression THEN unmatched 
-                        | IF simpleExpression THEN matched elsifUnmatched
-                        ;
-
-iterationRange          : ID ASSIGN simpleExpression RANGE simpleExpression
-                        | ID ASSIGN simpleExpression RANGE simpleExpression COLON simpleExpression
-                        ;
-
-matchediterationStmt    : WHILE simpleExpression DO matched
-                        | LOOP FOREVER matched
-                        | LOOP iterationRange DO matched
-                        ;
-
-unmatchediterationStmt  : WHILE simpleExpression DO unmatched
-                        | LOOP FOREVER unmatched
-                        | LOOP iterationRange DO unmatched
-                        ;
-
 returnStmt              : RETURN SEMI
                         | RETURN expression SEMI
                         ;
@@ -176,23 +164,28 @@ expression              : mutable ASSIGN expression
                         | mutable DIVASS expression
                         | mutable INC
                         | mutable DEC 
-                        | simpleExpression
+                        | simpleExpression       
+                            //{ $$ = $1; }
                         ;
 
 simpleExpression        : simpleExpression OR andExpression
-                        | andExpression
+                        | andExpression  
+                            //{ $$ = $1; }
                         ;
 
 andExpression           : andExpression AND unaryRelExpression
                         | unaryRelExpression
+                            //{ $$ = $1; }
                         ;
 
 unaryRelExpression      : NOT unaryRelExpression
-                        | relExpression 
+                        | relExpression
+                            //{ $$ = $1; }
                         ;
 
 relExpression           : relExpression relop sumExpression
-                        | sumExpression
+                        | sumExpression  
+                            //{ $$ = $1; }
                         ;
 
 relop                   : LESSEQ
@@ -205,6 +198,7 @@ relop                   : LESSEQ
 
 sumExpression           : sumExpression sumop mulExpression
                         | mulExpression
+                            //{ $$ = $1; }
                         ;
 
 sumop                   : PLUS
@@ -213,6 +207,7 @@ sumop                   : PLUS
 
 mulExpression           : mulExpression mulop unaryExpression
                         | unaryExpression
+                            //{ $$ = $1; }
                         ;
 
 mulop                   : MUL
@@ -222,6 +217,7 @@ mulop                   : MUL
 
 unaryExpression         : unaryop unaryExpression 
                         | factor
+                            //{ $$ = $1; }
                         ;
 
 unaryop                 : MINUS
@@ -229,72 +225,153 @@ unaryop                 : MINUS
                         | RAND
                         ;
 
-factor                  : immutable                 //$$ = $1
-                        | mutable                   //$$ = $1
+factor                  : immutable
+                            //{ $$ = $1; }
+                        | mutable
+                            //{ $$ = $1; }                   
                         ;
 
 mutable                 : ID 
+                            { 
+                                $$ = newExpNode(IdK); 
+                                $$->attr.name = $1->tokenname;
+                                //$$->expType = Char;
+                                $$->lineno = $1->linenum;
+                            }
                         | mutable LBRACKET expression RBRACKET
                         ;
 
 immutable               : LPAREN expression RPAREN  //$$ = $2
                         | ID call
-                        | constant                  //$$ = $1
+                        | constant                 
+                            //{ $$ = $1; }
                         ;
 
 call                    : LPAREN args RPAREN        //$$ = $2
                         ;
 
-args                    : argList                   //$$ = $1
+args                    : argList                
+                            //{ $$ = $1; }
                         | /* epsilon */
                         ;
 
 argList                 : argList COMMA expression
-                        | expression                //$$ = $1
+                        | expression 
+                            //{ $$ = $1; }
                         ;
 
 constant                : NUMCONST  
-                            { $$ = newExpNode(ConstantK); }        
+                            { 
+                                $$ = newExpNode(ConstantK); 
+                                $$->attr.value = $1->numValue;
+                                $$->expType = Integer;
+                                $$->lineno = $1->linenum;
+                            }        
                         | CHARCONST   
-                            { $$ = newExpNode(ConstantK); }      
+                            { 
+                                $$ = newExpNode(ConstantK); 
+                                $$->attr.cvalue = $1->charValue;
+                                $$->expType = Char;
+                                $$->lineno = $1->linenum;
+                            }      
                         | STRINGCONST    
-                            { $$ = newExpNode(ConstantK); }   
+                            { 
+                                $$ = newExpNode(ConstantK); 
+                                $$->attr.string = $1->stringValue;
+                                //$$->expType = Char;
+                                $$->lineno = $1->linenum;
+                            }   
                         | TRUE         
-                            { $$ = newExpNode(ConstantK); }     
+                            { 
+                                $$ = newExpNode(ConstantK); 
+                                $$->attr.value = $1->numValue;
+                                $$->expType = Boolean;
+                                $$->lineno = $1->linenum; 
+                            }     
                         | FALSE     
-                            { $$ = newExpNode(ConstantK); }        
+                            { 
+                                $$ = newExpNode(ConstantK); 
+                                $$->attr.value = $1->numValue;
+                                $$->expType = Boolean;
+                                $$->lineno = $1->linenum; 
+                            }        
                         ;
 
 %%
 
 int main(int argc, char **argv)
 {
-    int i;
-
-    yydebug = 1;
-
+    extern int opterr;
+    extern int optind;
+    extern char *optarg;
+    int c, dflg = 0, pflg = 0, filerr = 0;
+    char *oarg = NULL;
     FILE *filename;
-    if(argc > 1)
-    {
-        filename  = fopen(argv[1], "r");
 
-        //Check if file is valid
+    while ((c = ourGetopt(argc, argv, (char *)":dp")) != EOF)
+    {
+        switch(c)
+        {
+            case 'd':
+                ++dflg;
+                break;
+            
+            case 'p':
+                ++pflg;
+                break;
+
+            case '?':
+                printf("Error\n");
+                exit(1);
+                break;
+
+            default:
+                printf("default\n");
+                break;
+        }
+    }
+
+    if(dflg) 
+    {
+        printf("d\n");
+        yydebug = 1;
+    }
+
+    if(pflg) 
+    {
+        printf("p\n");
+    }
+
+    if (optind < argc) 
+    {
+        (void)printf("file: %s\n", argv[optind]);
+        oarg = strdup(argv[optind]);
+        filerr++;
+        optind++;
+    }
+
+    if(filerr == 1)
+    {
+        filename = fopen(oarg, "r");
+
         if(filename == NULL)
         {
-            printf("ERROR(ARGLIST): file \"%s\" could not be opened.\n", argv[1]);
+            printf("ERROR(ARGLIST): file \"%s\" could not be opened.\n", oarg);
             exit(1);
         }
         else
         {
-           yyin = filename; 
-        } 
+            printf("file\n");
+            yyin = filename;
+        }
     }
-    //Otherwise use stdin
     else
     {
+        printf("stdin\n");
         yyin = stdin;
     }
-    yyparse();   // call the parser
+
+    yyparse();
 
     return 0;
 }
