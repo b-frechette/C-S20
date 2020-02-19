@@ -345,7 +345,7 @@ int main(int argc, char **argv)
     if (optind < argc) 
     {
         (void)printf("file: %s\n", argv[optind]);
-        oarg = strdup(argv[optind]);
+        oarg = argv[optind];
         filerr++;
         optind++;
     }
