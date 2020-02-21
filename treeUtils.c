@@ -99,17 +99,87 @@ void printTree(TreeNode *tree)
             switch(tree->kind.decl)
             {
                 case VarK:
-                    printf("Var %s\n", tree->attr.name);
+                    //NEEDS ARRAY CHECK
+                    printf("Var %s of type %u [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
                     break;
                 case FuncK:
-                    printf("Func %s\n", tree->attr.name);
+                    printf("Func %s returns type %u [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
                     break;
+                //NEEDS ARRAY CHECK
                 case ParamK:
-                    printf("Param %s\n", tree->attr.name);
+                    printf("Param %s of type %u [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
                     break;
                 default:
                     break;
             }
+        }
+        else if(tree->nodekind == ExpK)
+        {
+            switch(tree->kind.exp)
+            {
+                case OpK:
+                    printf("Op: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                    break;
+                case ConstantK:
+                    printf("Constant: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                    break;
+                case IdK:
+                    printf("Id: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                    break;
+                case AssignK:
+                    printf("Assign: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                    break;
+                case InitK:
+                    printf("I don't have any nodes for this\n");
+                    break;
+                case CallK:
+                    printf("Call: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if(tree->nodekind == StmtK)
+        {
+            switch(tree->kind.stmt)
+            {
+                case NullK:
+                    printf("Null unsure if I am going to use\n");
+                    break;
+                case ElsifK:
+                    printf("Elsif [line: %d]\n", tree->lineno);
+                    break;
+                case IfK:
+                    printf("If [line: %d]\n", tree->lineno);
+                    break;
+                case WhileK:
+                    printf("While [line: %d]\n", tree->lineno);
+                    break;
+                case LoopK:
+                    printf("Loop [line: %d]\n", tree->lineno);
+                    break;
+                case LoopForeverK:
+                    printf("LoopForever [line: %d]\n", tree->lineno);
+                    break;
+                case CompoundK:
+                    printf("Compound [line: %d]\n", tree->lineno);
+                    break;
+                case RangeK:
+                    printf("Range [line: %d]\n", tree->lineno);
+                    break;
+                case ReturnK:
+                    printf("Return [line: %d]\n", tree->lineno);
+                    break;
+                case BreakK:
+                    printf("Break [line: %d]\n", tree->lineno);
+                    break;
+                default:
+                    break;
+            }
+        }
+        else
+        {
+            printf("Unkown node\n");
         }
         for(i = 0; i < MAXCHILDREN; i++)
         {

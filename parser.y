@@ -565,7 +565,7 @@ statementList           : statementList statement
                                 }
                             }
                         | /* epsilon */
-                            { $$ = NULL; }
+                            { $$ = NULL; } 
                         ;
 
 returnStmt              : RETURN SEMI
@@ -594,6 +594,7 @@ expression              : mutable ASSIGN expression
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
                                 $$->attr.name = $2->tokenstr; 
+                                $$->lineno = $2->linenum;
                             }
                         | mutable ADDASS expression
                             {
@@ -830,6 +831,7 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.value = $1->numValue;
+                                $$->attr.name = $1->tokenstr;
                                 $$->expType = Integer;
                                 $$->lineno = $1->linenum;
                             }        
@@ -837,6 +839,7 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.cvalue = $1->charValue;
+                                $$->attr.name = $1->tokenstr;
                                 $$->expType = Char;
                                 $$->lineno = $1->linenum;
                             }      
@@ -844,6 +847,7 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.string = $1->stringValue;
+                                $$->attr.name = $1->tokenstr;
                                 //$$->expType = Char;
                                 $$->lineno = $1->linenum;
                             }   
@@ -851,6 +855,7 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.value = $1->numValue;
+                                $$->attr.name = $1->tokenstr;
                                 $$->expType = Boolean;
                                 $$->lineno = $1->linenum; 
                             }     
@@ -858,6 +863,7 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.value = $1->numValue;
+                                $$->attr.name = $1->tokenstr;
                                 $$->expType = Boolean;
                                 $$->lineno = $1->linenum; 
                             }        
