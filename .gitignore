@@ -9,18 +9,4 @@ ourGetopt.o
 treeUtils.o
 frechette.tar
 
-cprogram.c-
-everythingS20.c-
-lex.yy.c
-quoteTest.c-
-texttest.c-
-elsif.c-
-small.c-
-testExample.c-
-else.c-
-exp.c-
-if.c-
-init.c-
-loops.c-
-whileif.c-
-simple.c-
+tests
