@@ -6,4 +6,8 @@
 
 TreeNode * newExpNode(ExpKind);
 
+TreeNode * newStmtNode(StmtKind);
+
+TreeNode * newDeclNode(DeclKind kind);
+
 #endif

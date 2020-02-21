@@ -193,15 +193,15 @@ INVALIDCHAR \'[^'\n]*\'
 STRINGCONST \"(\\.|[^"\n])*\"
 
 %%
-\;                                  { return SEMI; } 
-\,                                  { return COMMA; } 
-\[                                  { return LBRACKET; }
-\]                                  { return RBRACKET; }
-\:                                  { return COLON; }
-\(                                  { return LPAREN; }
-\)                                  { return RPAREN; }
-\{                                  { return LCURL; }
-\}                                  { return RCURL; }
+\;                                  { return setValue(line, SEMI, yytext); } 
+\,                                  { return setValue(line, COMMA, yytext); } 
+\[                                  { return setValue(line, LBRACKET, yytext); }
+\]                                  { return setValue(line, RBRACKET, yytext); }
+\:                                  { return setValue(line, COLON, yytext); }
+\(                                  { return setValue(line, LPAREN, yytext); }
+\)                                  { return setValue(line, RPAREN, yytext); }
+\{                                  { return setValue(line, LCURL, yytext); }
+\}                                  { return setValue(line, RCURL, yytext); }
 \=                                  { return setValue(line, ASSIGN, yytext); }
 \>                                  { return setValue(line, GRT, yytext); }
 \<                                  { return setValue(line, LESS, yytext); }

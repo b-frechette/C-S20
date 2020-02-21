@@ -58,4 +58,11 @@ typedef struct treeNode
     // even more semantic stuff will go here in later assignments.
 } TreeNode;
 
+typedef struct varData 
+{
+    int linenum;
+    ExpType expType;
+    bool isStatic; 
+} VarData;
+
 #endif
