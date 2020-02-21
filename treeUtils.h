@@ -10,4 +10,8 @@ TreeNode * newStmtNode(StmtKind);
 
 TreeNode * newDeclNode(DeclKind);
 
+// static void printSpaces(void);
+
+void printTree(TreeNode *);
+
 #endif

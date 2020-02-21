@@ -17,6 +17,21 @@ void yyerror(const char *msg)
       printf("ERROR(PARSER): %s\n", msg);
 }
 
+void addSibling(TreeNode *t1, TreeNode *t2)
+{
+    if(t1 != NULL)  //make sure t1 is not NULL (again?)
+    {
+        if(t1->sibling == NULL)  //(check if we are at the end of the line of siblings)
+        {
+            t1->sibling = t2;
+        }
+        else //try again
+        {
+            addSibling(t2, t1->sibling);
+        }
+    }
+}
+
 TreeNode * savedTree;
 
 %}
@@ -173,20 +188,14 @@ program                 : declarationList
 
 declarationList         : declarationList declaration
                             {
-                                TreeNode *t = $1;
-                                
-                                if(t != NULL)
+                                if($1 == NULL)
                                 {
-                                    while(t->sibling != NULL)
-                                    {
-                                        t = t->sibling;
-                                    }
-                                    t->sibling = $2;
-                                    $$ = $1;
+                                    $$ = $2;
                                 }
                                 else
                                 {
-                                    $$ = $2;
+                                    $$ = $1;
+                                    addSibling($1, $2);
                                 }
                             }
                         | declaration
@@ -199,15 +208,14 @@ declaration             : varDeclaration
                             { $$ = $1; }
                         ;
 
-/* Var <id> (is array) of type <expType> [line: #] */
+/********TYPE PROBLEM*******/
 varDeclaration          : typeSpecifier varDeclList SEMI
                             {
                                 $$ = $2;
                             }
                         ;
 
-/* Var <id> (is array) of type <expType> [line: #] */
-/********FIX*******/
+/********TYPE PROBLEM*******/
 scopedVarDeclaration    : scopedTypeSpecifier varDeclList SEMI
                             {
                                 $$ = $2;
@@ -216,20 +224,14 @@ scopedVarDeclaration    : scopedTypeSpecifier varDeclList SEMI
 
 varDeclList             : varDeclList COMMA varDeclInitialize
                             {
-                                TreeNode *t = $1;
-                                
-                                if(t != NULL)
+                                if($1 == NULL)
                                 {
-                                    while(t->sibling != NULL)
-                                    {
-                                        t = t->sibling;
-                                    }
-                                    t->sibling = $3;
-                                    $$ = $1;
+                                    $$ = $3;
                                 }
                                 else
                                 {
-                                    $$ = $3;
+                                    $$ = $1;
+                                    addSibling($1, $3);
                                 }
                             }
                         | varDeclInitialize
@@ -308,78 +310,66 @@ funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
                             }
                         ;
 
-/**** CHECK ****/
+/**** EPSILON ****/
 params                  : paramList
                             { $$ = $1; }
                         | /* epsilon */
+                            { $$ = NULL; }
                         ;
 
 paramList               : paramList SEMI paramTypeList
                             {
-                                TreeNode *t = $1;
-                                
-                                if(t != NULL)
+                                if($1 == NULL)
                                 {
-                                    while(t->sibling != NULL)
-                                    {
-                                        t = t->sibling;
-                                    }
-                                    t->sibling = $3;
-                                    $$ = $1;
+                                    $$ = $3;
                                 }
                                 else
                                 {
-                                    $$ = $3;
+                                    $$ = $1;
+                                    addSibling($1, $3);
                                 }
                             }
                         | paramTypeList
                             { $$ = $1; }
                         ;
 
-/**** CHANGE ****/
+/**** TYPE PROBLEM ****/
 paramTypeList           : typeSpecifier paramIdList
                             {
-                                $$ = newDeclNode(ParamK);
-                                $$->child[0] = $2;
-                                $$->expType = $1.expType;
-                                $$->lineno = $1.linenum;
+                                $$ = $2;
                             }
                         ;
 
 paramIdList             : paramIdList COMMA paramId 
                             {
-                                TreeNode *t = $1;
-                                
-                                if(t != NULL)
+                                if($1 == NULL)
                                 {
-                                    while(t->sibling != NULL)
-                                    {
-                                        t = t->sibling;
-                                    }
-                                    t->sibling = $3;
-                                    $$ = $1;
+                                    $$ = $3;
                                 }
                                 else
                                 {
-                                    $$ = $3;
+                                    $$ = $1;
+                                    addSibling($1, $3);
                                 }
                             }
                         | paramId
                             { $$ = $1; }
                         ;
 
-/******CHANGE TREENODE TYPE *******/
+/**** VALIDATE ****/
 paramId                 : ID
                             {
-                                $$ = newExpNode(IdK);
+                                $$ = newDeclNode(ParamK);
                                 $$->attr.name = $1->tokenstr;
+                                $$->expType = UndefinedType;
                                 $$->lineno = $1->linenum;
                             }
                         | ID LBRACKET RBRACKET
                             {
-                                $$ = newExpNode(IdK);
+                                $$ = newDeclNode(ParamK);
                                 $$->attr.name = $1->tokenstr;
                                 $$->isArray = true;
+                                $$->expType = UndefinedType;
                                 $$->lineno = $1->linenum;
                             }
                         ;
@@ -402,7 +392,7 @@ matchedelsif            : ELSIF simpleExpression THEN matched matchedelsif
                             { $$ = $2; }
                         ;
 
-/**** CHECK ****/
+/**** EPSILON ****/
 unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
                             {
                                 $$ = newStmtNode(ElsifK);
@@ -416,7 +406,7 @@ unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
                         | /*epsilon*/
                         ;
 
-/**** CHECK ****/
+/**** VALIDATE ****/
 iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
                             {
                                 $$ = newStmtNode(RangeK);
@@ -523,7 +513,7 @@ other_statements        : expressionStmt
                             { $$ = $1; }
                         ;
 
-/**** CHECK ****/
+/**** VALIDATE ****/
 expressionStmt          : expression SEMI
                             {
                                 $$ = $1;
@@ -544,49 +534,38 @@ compoundStmt            : LCURL localDeclarations statementList RCURL
                             }
                         ;
 
-/**** CHECK ****/
+/**** EPSILON ****/
 localDeclarations       : localDeclarations scopedVarDeclaration
                             {
-                                TreeNode *t = $1;
-                                
-                                if(t != NULL)
-                                {
-                                    while(t->sibling != NULL)
-                                    {
-                                        t = t->sibling;
-                                    }
-                                    t->sibling = $2;
-                                    $$ = $1;
-                                }
-                                else
+                                if($1 == NULL)
                                 {
                                     $$ = $2;
                                 }
+                                else
+                                {
+                                    $$ = $1;
+                                    addSibling($1, $2);
+                                }
                             }
                         | /* epsilon */
+                            { $$ = NULL; }
                         ;
 
-/**** CHECK ****/
+/**** EPSILON ****/
 statementList           : statementList statement
                             {
-                                TreeNode *t = $1;
-                                
-                                if(t != NULL)
-                                {
-                                    while(t->sibling != NULL)
-                                    {
-                                        t = t->sibling;
-                                    }
-                                    t->sibling = $2;
-                                    $$ = $1;
-                                }
-                                else
+                                if($1 == NULL)
                                 {
                                     $$ = $2;
                                 }
+                                else
+                                {
+                                    $$ = $1;
+                                    addSibling($1, $2);
+                                }
                             }
                         | /* epsilon */
-                            /* Still need to verify */
+                            { $$ = NULL; }
                         ;
 
 returnStmt              : RETURN SEMI
@@ -790,7 +769,7 @@ factor                  : immutable
                             { $$ = $1; }                   
                         ;
 
-/**** CHECK ****/
+/**** VALIDATE ****/
 mutable                 : ID 
                             { 
                                 $$ = newExpNode(IdK); 
@@ -824,7 +803,7 @@ call                    : LPAREN args RPAREN
                             { $$ = $2; }
                         ;
 
-/**** CHECK ****/
+/**** EPSILON ****/
 args                    : argList                
                             { $$ = $1; }
                         | /* epsilon */
@@ -833,20 +812,14 @@ args                    : argList
 
 argList                 : argList COMMA expression
                             {
-                                TreeNode *t = $1;
-                                
-                                if(t != NULL)
+                                if($1 == NULL)
                                 {
-                                    while(t->sibling != NULL)
-                                    {
-                                        t = t->sibling;
-                                    }
-                                    t->sibling = $3;
-                                    $$ = $1;
+                                    $$ = $3;
                                 }
                                 else
                                 {
-                                    $$ = $3;
+                                    $$ = $1;
+                                    addSibling($1, $3);
                                 }
                             }
                         | expression 
@@ -930,11 +903,6 @@ int main(int argc, char **argv)
         yydebug = 1;
     }
 
-    if(pflg) 
-    {
-        printf("p\n");
-    }
-
     if (optind < argc) 
     {
         (void)printf("file: %s\n", argv[optind]);
@@ -946,6 +914,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
+        //filename = fopen("if.c-", "r");
 
         if(filename == NULL)
         {
@@ -954,7 +923,6 @@ int main(int argc, char **argv)
         }
         else
         {
-            printf("file\n");
             yyin = filename;
         }
     }
@@ -965,6 +933,13 @@ int main(int argc, char **argv)
     }
 
     yyparse();
+
+    if(pflg) 
+    {
+        printf("p\n");
+
+        printTree(savedTree);
+    }
 
     return 0;
 }

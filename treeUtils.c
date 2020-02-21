@@ -70,3 +70,52 @@ TreeNode * newDeclNode(DeclKind kind)
 
     return t;
 }
+
+static int indentno = 0;
+
+#define INDENT indentno += 2
+#define UNINDENT indentno -= 2
+
+static void printSpaces(void)
+{
+    int i;
+    for(i = 0; i < indentno; i++)
+    {
+        printf(" ");
+    }
+}
+
+void printTree(TreeNode *tree)
+{
+    int i;
+    INDENT;
+    
+    while(tree != NULL)
+    {
+        printSpaces();
+
+        if(tree->nodekind == DeclK)
+        {
+            switch(tree->kind.decl)
+            {
+                case VarK:
+                    printf("Var %s\n", tree->attr.name);
+                    break;
+                case FuncK:
+                    printf("Func %s\n", tree->attr.name);
+                    break;
+                case ParamK:
+                    printf("Param %s\n", tree->attr.name);
+                    break;
+                default:
+                    break;
+            }
+        }
+        for(i = 0; i < MAXCHILDREN; i++)
+        {
+            printTree(tree->child[i]);
+        }
+        tree = tree->sibling;
+    }
+    UNINDENT;
+}
