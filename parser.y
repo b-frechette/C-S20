@@ -116,6 +116,7 @@ TreeNode * savedTree;
 /*******TREE*******/
 
 %type <tree> constant
+%type <tree> iterationId
 
 %type <tree> argList                
 %type <tree> args
@@ -433,6 +434,14 @@ iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
                             }
                         ;
 
+iterationId             : ID    
+                            { 
+                                $$ = newExpNode(IdK); 
+                                $$->attr.name = $1->tokenstr;
+                                $$->lineno = $1->linenum;
+                            }
+                        ;
+
 matched                 : IF simpleExpression THEN matched matchedelsif
                             {
                                 $$ = newStmtNode(IfK);
@@ -454,7 +463,7 @@ matched                 : IF simpleExpression THEN matched matchedelsif
                                 $$->child[0] = $3;
                                 $$->lineno = $1->linenum;
                             }
-                        | LOOP ID iterationRange DO matched
+                        | LOOP iterationId iterationRange DO matched
                             {
                                 $$ = newStmtNode(LoopK);
                                 $$->child[0] = $2;
@@ -494,7 +503,7 @@ unmatched               : IF simpleExpression THEN unmatched
                                 $$->child[0] = $3;
                                 $$->lineno = $1->linenum;
                             }
-                        | LOOP ID iterationRange DO unmatched
+                        | LOOP iterationId iterationRange DO unmatched
                             {
                                 $$ = newStmtNode(LoopK);
                                 $$->child[0] = $2;

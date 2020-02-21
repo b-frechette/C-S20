@@ -42,7 +42,7 @@ TreeNode * newStmtNode(StmtKind kind)
         }
         t->sibling = NULL;
         t->nodekind = StmtK;
-        t->kind.exp = kind;
+        t->kind.stmt = kind;
     }
 
     return t;
@@ -65,7 +65,7 @@ TreeNode * newDeclNode(DeclKind kind)
         }
         t->sibling = NULL;
         t->nodekind = DeclK;
-        t->kind.exp = kind;
+        t->kind.decl = kind;
     }
 
     return t;
