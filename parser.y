@@ -35,6 +35,22 @@ void addSibling(TreeNode *t1, TreeNode *t2)
     { printf("error\n"); }
 }
 
+void setType(VarData v, TreeNode *t1)
+{
+    if(t1 != NULL)
+    {
+        if(t1->expType == UndefinedType)
+        {
+            t1->expType = v.expType;
+            t1->isStatic = v.isStatic;
+
+            setType(v, t1->sibling);
+        }
+        else
+        { return; }
+    }
+}
+
 TreeNode * savedTree;
 
 %}
@@ -214,6 +230,7 @@ declaration             : varDeclaration
 /********TYPE PROBLEM*******/
 varDeclaration          : typeSpecifier varDeclList SEMI
                             {
+                                setType($1, $2);
                                 $$ = $2;
                             }
                         ;
@@ -221,6 +238,7 @@ varDeclaration          : typeSpecifier varDeclList SEMI
 /********TYPE PROBLEM*******/
 scopedVarDeclaration    : scopedTypeSpecifier varDeclList SEMI
                             {
+                                setType($1, $2);
                                 $$ = $2;
                             }
                         ;
@@ -256,6 +274,7 @@ varDeclId               : ID
                                 $$ = newDeclNode(VarK);
                                 $$->lineno = $1->linenum;
                                 $$->attr.name = $1->tokenstr;
+                                $$->expType = UndefinedType;
                             }
                         | ID LBRACKET NUMCONST RBRACKET
                             {
@@ -263,6 +282,7 @@ varDeclId               : ID
                                 $$->lineno = $1->linenum;
                                 $$->attr.name = $1->tokenstr;
                                 $$->isArray = true;
+                                $$->expType = UndefinedType;
                             }
                         ;
 
@@ -309,6 +329,7 @@ funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
                                 $$->child[0] = $3;
                                 $$->child[1] = $5;
                                 $$->attr.name = $1->tokenstr;
+                                $$->expType = Void;
                                 $$->lineno = $1->linenum;
                             }
                         ;
@@ -339,6 +360,7 @@ paramList               : paramList SEMI paramTypeList
 /**** TYPE PROBLEM ****/
 paramTypeList           : typeSpecifier paramIdList
                             {
+                                setType($1, $2);
                                 $$ = $2;
                             }
                         ;
@@ -364,16 +386,16 @@ paramId                 : ID
                             {
                                 $$ = newDeclNode(ParamK);
                                 $$->attr.name = $1->tokenstr;
-                                $$->expType = UndefinedType;
                                 $$->lineno = $1->linenum;
+                                $$->expType = UndefinedType;
                             }
                         | ID LBRACKET RBRACKET
                             {
                                 $$ = newDeclNode(ParamK);
                                 $$->attr.name = $1->tokenstr;
                                 $$->isArray = true;
-                                $$->expType = UndefinedType;
                                 $$->lineno = $1->linenum;
+                                $$->expType = UndefinedType;
                             }
                         ;
 
@@ -880,7 +902,7 @@ int main(int argc, char **argv)
     extern int opterr;
     extern int optind;
     extern char *optarg;
-    int c, dflg = 0, pflg = 0, tflg = 0, filerr = 0;
+    int c, dflg = 0, pflg = 1, tflg = 0, filerr = 0;
     char *oarg = NULL;
     FILE *filename;
 
@@ -930,10 +952,10 @@ int main(int argc, char **argv)
         (void)printf("file: %s\n", oarg); 
     }
 
-    if(filerr == 1)
+    if(filerr == 1 || filerr == 0)
     {
-        filename = fopen(oarg, "r");
-        //filename = fopen("tests/tiny.c-", "r");
+        //filename = fopen(oarg, "r");
+        filename = fopen("tests/init.c-", "r");
 
         if(filename == NULL)
         {
