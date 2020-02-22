@@ -100,33 +100,45 @@ void printTree(TreeNode *tree)
             switch(tree->kind.decl)
             {
                 case VarK:
-                    //NEEDS ARRAY CHECK
                     switch(tree->expType)
                     {
-                        case Void:
-                            printf("Var %s of type void [line: %d]\n", tree->attr.name, tree->lineno);
-                            break;
                         case Integer:
-                            printf("Var %s of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            if(tree->isArray)
+                            {
+                                printf("Var %s is array of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
+                            else
+                            {
+                                printf("Var %s of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
                             break;
                         case Boolean:
-                            printf("Var %s of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            if(tree->isArray)
+                            {
+                                printf("Var %s is array of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
+                            else
+                            {
+                                printf("Var %s of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
                             break;
                         case Char:
-                            printf("Var %s of type char [line: %d]\n", tree->attr.name, tree->lineno);
-                            break;
-                        case CharInt:
-                            break;
-                        case Equal:
+                            if(tree->isArray)
+                            {
+                                printf("Var %s is array of type char [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
+                            else
+                            {
+                                printf("Var %s of type char [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
                             break;
                         case UndefinedType:
-                            printf("Var %s of type undefined [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("ERROR VAR: Undefined Type [line: %d]\n",tree->lineno);
                             break;
                         default:
-                            printf("Var %s of type unknown [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("ERROR VAR: Default [line: %d]\n",tree->lineno);
                             break;
                     }
-                    //printf("Var %s of type TO DO[line: %d]\n", tree->attr.name, tree->lineno);
                     break;
                 case FuncK:
                     switch(tree->expType)
@@ -143,15 +155,11 @@ void printTree(TreeNode *tree)
                         case Char:
                             printf("Func %s returns type char [line: %d]\n", tree->attr.name, tree->lineno);
                             break;
-                        case CharInt:
-                            break;
-                        case Equal:
-                            break;
                         case UndefinedType:
-                            printf("Func %s returns type undefined [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("ERROR FUNC: Undefined Type [line: %d]\n",tree->lineno);
                             break;
                         default:
-                            printf("Func %s returns type unknown [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("ERROR FUNC: Undefined Type [line: %d]\n",tree->lineno);
                             break;
                     }
                     //printf("Func %s returns type TO DO[line: %d]\n", tree->attr.name, tree->lineno);
@@ -160,27 +168,41 @@ void printTree(TreeNode *tree)
                 case ParamK:
                     switch(tree->expType)
                     {
-                        case Void:
-                            printf("Param %s of type void [line: %d]\n", tree->attr.name, tree->lineno);
-                            break;
                         case Integer:
-                            printf("Param %s of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            if(tree->isArray)
+                            {
+                                printf("Param %s is array of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
+                            else
+                            {
+                                printf("Param %s of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
                             break;
                         case Boolean:
-                            printf("Param %s of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            if(tree->isArray)
+                            {
+                                printf("Param %s is array of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
+                            else
+                            {
+                                printf("Param %s of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
                             break;
                         case Char:
-                            printf("Param %s of type char [line: %d]\n", tree->attr.name, tree->lineno);
-                            break;
-                        case CharInt:
-                            break;
-                        case Equal:
+                            if(tree->isArray)
+                            {
+                                printf("Param %s is array of type char [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
+                            else
+                            {
+                                printf("Param %s of type char [line: %d]\n", tree->attr.name, tree->lineno);
+                            }
                             break;
                         case UndefinedType:
-                            printf("Param %s of type undefined [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("ERROR PARAM: Undefined Type [line: %d]\n",tree->lineno);
                             break;
                         default:
-                            printf("Param %s of type unknown [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("ERROR EXP: Default [line: %d]\n",tree->lineno);
                             break;
                     }
                     //printf("Param %s of type TO DO line: %d]\n", tree->attr.name, tree->lineno);
@@ -198,16 +220,13 @@ void printTree(TreeNode *tree)
                     printf("Op: %s [line: %d]\n", tree->attr.name, tree->lineno);
                     break;
                 case ConstantK:
-                    printf("Constant: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                    printf("Const: %s [line: %d]\n", tree->attr.name, tree->lineno);
                     break;
                 case IdK:
                     printf("Id: %s [line: %d]\n", tree->attr.name, tree->lineno);
                     break;
                 case AssignK:
                     printf("Assign: %s [line: %d]\n", tree->attr.name, tree->lineno);
-                    break;
-                case InitK:
-                    printf("I don't have any nodes for this\n");
                     break;
                 case CallK:
                     printf("Call: %s [line: %d]\n", tree->attr.name, tree->lineno);
@@ -221,9 +240,6 @@ void printTree(TreeNode *tree)
         {
             switch(tree->kind.stmt)
             {
-                case NullK:
-                    printf("Null unsure if I am going to use\n");
-                    break;
                 case ElsifK:
                     printf("Elsif [line: %d]\n", tree->lineno);
                     break;
@@ -266,7 +282,7 @@ void printTree(TreeNode *tree)
             if(tree->child[i] != NULL)
             {
                 printSpaces();
-                printf("Child[%d]  ", i);
+                printf("Child: %d ", i);
             }
             printTree(tree->child[i]);
         }

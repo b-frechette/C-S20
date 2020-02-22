@@ -445,7 +445,7 @@ iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $2;
                                 $$->child[1] = $4;
-                                $$->child[1] = $6;
+                                $$->child[2] = $6;
                                 $$->lineno = $1->linenum;
                             }
                         ;
@@ -546,8 +546,7 @@ expressionStmt          : expression SEMI
                             }
                         | SEMI
                             {
-                                $$ = newStmtNode(NullK);
-                                $$->lineno = $1->linenum;
+                                { $$ = NULL; }
                             }
                         ;
 
@@ -952,10 +951,10 @@ int main(int argc, char **argv)
         (void)printf("file: %s\n", oarg); 
     }
 
-    if(filerr == 1 || filerr == 0)
+    if(filerr == 1)
     {
-        //filename = fopen(oarg, "r");
-        filename = fopen("tests/init.c-", "r");
+        filename = fopen(oarg, "r");
+        //filename = fopen("tests/init.c-", "r");
 
         if(filename == NULL)
         {
@@ -969,7 +968,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        printf("stdin\n");
+        //printf("stdin\n");
         yyin = stdin;
     }
 
