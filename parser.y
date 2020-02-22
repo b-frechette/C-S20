@@ -438,6 +438,15 @@ iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $2;
                                 $$->child[1] = $4;
+
+                                //For the mysterious 1 I forgot to ask about so for now this nasty piece of code, sorry
+                                TreeNode *t = newExpNode(ConstantK);
+                                t->attr.value = 1;
+                                t->attr.name = "1";
+                                t->expType = Integer;
+                                t->lineno = $3->linenum;
+
+                                $$->child[2] = t;
                                 $$->lineno = $3->linenum;
                             }
                         | ASSIGN simpleExpression RANGE simpleExpression COLON simpleExpression
@@ -864,16 +873,16 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.cvalue = $1->charValue;
-                                $$->attr.name = $1->tokenstr;
-                                $$->expType = Char;
+                                $$->attr.name = &$1->charValue;
+                                $$->expType = CharInt;
                                 $$->lineno = $1->linenum;
                             }      
                         | STRINGCONST    
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.string = $1->stringValue;
-                                $$->attr.name = $1->tokenstr;
-                                //$$->expType = Char;
+                                $$->attr.name = $1->stringValue;
+                                $$->expType = Char;
                                 $$->lineno = $1->linenum;
                             }   
                         | TRUE         

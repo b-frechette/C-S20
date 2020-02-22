@@ -220,7 +220,18 @@ void printTree(TreeNode *tree)
                     printf("Op: %s [line: %d]\n", tree->attr.name, tree->lineno);
                     break;
                 case ConstantK:
-                    printf("Const: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                    switch (tree->expType)
+                    {
+                        case Char:
+                            printf("Const: \"%s\" [line: %d]\n", tree->attr.name, tree->lineno);
+                            break;
+                        case CharInt:
+                            printf("Const: '%s' [line: %d]\n", tree->attr.name, tree->lineno);
+                            break;
+                        default:
+                            printf("Const: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                            break;
+                    }
                     break;
                 case IdK:
                     printf("Id: %s [line: %d]\n", tree->attr.name, tree->lineno);
