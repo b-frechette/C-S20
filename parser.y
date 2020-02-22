@@ -27,9 +27,12 @@ void addSibling(TreeNode *t1, TreeNode *t2)
         }
         else //try again
         {
-            addSibling(t2, t1->sibling);
+            //WATCH YOUR POINTERS IDIOT
+            addSibling(t1->sibling, t2);
         }
     }
+    else
+    { printf("error\n"); }
 }
 
 TreeNode * savedTree;
@@ -194,8 +197,8 @@ declarationList         : declarationList declaration
                                 }
                                 else
                                 {
-                                    $$ = $1;
                                     addSibling($1, $2);
+                                    $$ = $1;
                                 }
                             }
                         | declaration
@@ -230,8 +233,8 @@ varDeclList             : varDeclList COMMA varDeclInitialize
                                 }
                                 else
                                 {
-                                    $$ = $1;
                                     addSibling($1, $3);
+                                    $$ = $1;
                                 }
                             }
                         | varDeclInitialize
@@ -348,8 +351,8 @@ paramIdList             : paramIdList COMMA paramId
                                 }
                                 else
                                 {
-                                    $$ = $1;
                                     addSibling($1, $3);
+                                    $$ = $1;
                                 }
                             }
                         | paramId
@@ -404,6 +407,7 @@ unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
                         | ELSE unmatched
                             { $$ = $2; }
                         | /*epsilon*/
+                            { $$ = NULL; }
                         ;
 
 /**** VALIDATE ****/
@@ -543,8 +547,8 @@ localDeclarations       : localDeclarations scopedVarDeclaration
                                 }
                                 else
                                 {
-                                    $$ = $1;
                                     addSibling($1, $2);
+                                    $$ = $1;
                                 }
                             }
                         | /* epsilon */
@@ -560,8 +564,8 @@ statementList           : statementList statement
                                 }
                                 else
                                 {
-                                    $$ = $1;
                                     addSibling($1, $2);
+                                    $$ = $1;
                                 }
                             }
                         | /* epsilon */
@@ -808,7 +812,7 @@ call                    : LPAREN args RPAREN
 args                    : argList                
                             { $$ = $1; }
                         | /* epsilon */
-                            /* Should I create a NullK treeNode here? */
+                            { $$ = NULL; }
                         ;
 
 argList                 : argList COMMA expression
@@ -819,8 +823,8 @@ argList                 : argList COMMA expression
                                 }
                                 else
                                 {
-                                    $$ = $1;
                                     addSibling($1, $3);
+                                    $$ = $1;
                                 }
                             }
                         | expression 
@@ -876,11 +880,11 @@ int main(int argc, char **argv)
     extern int opterr;
     extern int optind;
     extern char *optarg;
-    int c, dflg = 0, pflg = 0, filerr = 0;
+    int c, dflg = 0, pflg = 0, tflg = 0, filerr = 0;
     char *oarg = NULL;
     FILE *filename;
 
-    while ((c = ourGetopt(argc, argv, (char *)":dp")) != EOF)
+    while ((c = ourGetopt(argc, argv, (char *)":dpt")) != EOF)
     {
         switch(c)
         {
@@ -890,6 +894,10 @@ int main(int argc, char **argv)
             
             case 'p':
                 ++pflg;
+                break;
+
+            case 't':
+                ++tflg;
                 break;
 
             case '?':
@@ -911,16 +919,21 @@ int main(int argc, char **argv)
 
     if (optind < argc) 
     {
-        (void)printf("file: %s\n", argv[optind]);
+        //(void)printf("file: %s\n", argv[optind]);
         oarg = argv[optind];
         filerr++;
         optind++;
     }
 
+    if(tflg)
+    {
+        (void)printf("file: %s\n", oarg); 
+    }
+
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("if.c-", "r");
+        //filename = fopen("tests/tiny.c-", "r");
 
         if(filename == NULL)
         {
@@ -938,12 +951,11 @@ int main(int argc, char **argv)
         yyin = stdin;
     }
 
+
     yyparse();
 
     if(pflg) 
     {
-        printf("p\n");
-
         printTree(savedTree);
     }
 

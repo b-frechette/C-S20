@@ -71,7 +71,8 @@ TreeNode * newDeclNode(DeclKind kind)
     return t;
 }
 
-static int indentno = 0;
+static int indentno = -2;
+bool first = true;
 
 #define INDENT indentno += 2
 #define UNINDENT indentno -= 2
@@ -87,8 +88,8 @@ static void printSpaces(void)
 
 void printTree(TreeNode *tree)
 {
-    int i;
-    INDENT;
+    int i, sib;
+    //INDENT;
     
     while(tree != NULL)
     {
@@ -100,16 +101,17 @@ void printTree(TreeNode *tree)
             {
                 case VarK:
                     //NEEDS ARRAY CHECK
-                    printf("Var %s of type %u [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
+                    printf("Var %s of type TO DO[line: %d]\n", tree->attr.name, tree->lineno);
                     break;
                 case FuncK:
-                    printf("Func %s returns type %u [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
+                    printf("Func %s returns type TO DO[line: %d]\n", tree->attr.name, tree->lineno);
                     break;
                 //NEEDS ARRAY CHECK
                 case ParamK:
-                    printf("Param %s of type %u [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
+                    printf("Param %s of type TO DO line: %d]\n", tree->attr.name, tree->lineno);
                     break;
                 default:
+                    printf("error\n");
                     break;
             }
         }
@@ -136,6 +138,7 @@ void printTree(TreeNode *tree)
                     printf("Call: %s [line: %d]\n", tree->attr.name, tree->lineno);
                     break;
                 default:
+                    printf("error\n");
                     break;
             }
         }
@@ -174,6 +177,7 @@ void printTree(TreeNode *tree)
                     printf("Break [line: %d]\n", tree->lineno);
                     break;
                 default:
+                    printf("error\n");
                     break;
             }
         }
@@ -183,9 +187,14 @@ void printTree(TreeNode *tree)
         }
         for(i = 0; i < MAXCHILDREN; i++)
         {
+            if(tree->child[i] != NULL)
+            {
+                printf("Child[%d] ", i);
+            }
             printTree(tree->child[i]);
         }
+
         tree = tree->sibling;
     }
-    UNINDENT;
+    //UNINDENT;
 }
