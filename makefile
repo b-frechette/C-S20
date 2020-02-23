@@ -1,29 +1,43 @@
 BIN  = parser
 CC   = g++
-CFLAGS = -DCPLUSPLUS -g     # for use with C++ if file ext is .c
+CFLAGS = -DCPLUSPLUS -g  
 TAR = frechette.tar
 
-SRCS = $(BIN).y $(BIN).l
-HDRS = scanType.h
-OBJS = lex.yy.o $(BIN).tab.o
+SRCS = parser.y parser.l
+HDRS = scanType.h treeNode.h
+OBJS = lex.yy.o parser.tab.o
 LIBS = -lm 
 
-$(BIN): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o c-
+parser: lex.yy.o parser.tab.o treeUtils.o ourGetopt.o
+	g++ -DCPLUSPLUS -g lex.yy.o parser.tab.o treeUtils.o ourGetopt.o -lm -o c-
 
-$(BIN).tab.h $(BIN).tab.c: $(BIN).y
-	bison -v -t -d $(BIN).y  
+parser.tab.h parser.tab.c: parser.y treeUtils.h ourGetopt.h
+	bison -v -t -d parser.y  
 
-lex.yy.c: $(BIN).l $(BIN).tab.h
-	flex $(BIN).l
-
-all:    
-	touch $(SRCS)
-	make
+lex.yy.c: parser.l parser.tab.h
+	flex parser.l
 
 clean:
-	rm -f $(OBJS) c- lex.yy.c $(BIN).tab.h $(BIN).tab.c $(BIN).tar $(BIN).output $(TAR) *~
+	rm -f lex.yy.o parser.tab.o c- lex.yy.c parser.tab.h parser.tab.c parser.tar parser.output treeUtils.o ourGetopt.o frechette.tar *~
+
+test:
+	./c- tests/array.c-
+	./c- tests/call.c-
+	./c- tests/elsif.c-
+	./c- tests/everythingS20.c-
+	./c- tests/exp.c-
+	./c- tests/if.c-
+	./c- tests/init.c-
+	./c- tests/loops.c-
+	./c- tests/matchunmatch.c-
+	./c- tests/precassoc.c-
+	./c- tests/scope.c-
+	./c- tests/simple.c-
+	./c- tests/small.c-
+	./c- tests/testExample.c-
+	./c- tests/tiny.c-
+	./c- tests/whileif.c-
 
 tar:
-	tar -cvf $(TAR) $(SRCS) $(HDRS) makefile 
-	ls -l $(TAR)
+	tar -cvf frechette.tar parser.y parser.l scanType.h treeNodes.h treeUtils.h treeUtils.c ourGetopt.h ourGetopt.c makefile 
+	ls -l frechette.tar

@@ -5,10 +5,8 @@ parser.output
 parser.tab.c
 parser.tab.h
 parser.tab.o 
+ourGetopt.o
+treeUtils.o
 frechette.tar
 
-cprogram.c-
-everythingS20.c-
-lex.yy.c
-quoteTest.c-
-texttest.c-
+tests

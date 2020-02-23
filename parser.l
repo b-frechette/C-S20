@@ -1,15 +1,10 @@
 %{
-    /* 
-    *  parser.l
-    *
-    *  Flex file used to match with the stream of characters
-    *  in a given file or stdin.
-    */
 
     #include <stdlib.h>
     #include <stdio.h> 
     #include <ctype.h> 
     #include <string.h>
+    #include "treeNodes.h"
     #include "scanType.h"
     #include "parser.tab.h"
 
@@ -148,6 +143,7 @@
         case NUMCONST:
             yylval.tokenData->numValue = atof(value); 
             yylval.tokenData->tokenname = "NUMCONST";
+            sprintf(yylval.tokenData->tokenstr, "%d", yylval.tokenData->numValue);
             break;
         case CHARCONST:
             // Catch meta-character charconst
@@ -177,39 +173,6 @@
             { yylval.tokenData->numValue = 0; }
             yylval.tokenData->tokenname = "BOOLCONST";
             break;
-        case KEYWORD:
-            toUpper(value);
-            yylval.tokenData->tokenname = strdup(value);
-            break;
-        case OPERATOR:
-            if(value[1] != '\0')
-            {
-                if(strcmp(value, "..") == 0)
-                { yylval.tokenData->tokenname = "RANGE"; }
-                else if(strcmp(value, "+=") == 0)
-                { yylval.tokenData->tokenname = "ADDASS"; }
-                else if(strcmp(value, "-=") == 0)
-                { yylval.tokenData->tokenname = "SUBASS"; }
-                else if(strcmp(value, "*=") == 0)
-                { yylval.tokenData->tokenname = "MULASS"; }
-                else if(strcmp(value, "/=") == 0)
-                { yylval.tokenData->tokenname = "DIVASS"; }
-                else if(strcmp(value, "++") == 0)
-                { yylval.tokenData->tokenname = "INC"; }
-                else if(strcmp(value, "--") == 0)
-                { yylval.tokenData->tokenname = "DEC"; }
-                else if(strcmp(value, "<=") == 0)
-                { yylval.tokenData->tokenname = "LESSEQ"; }
-                else if(strcmp(value, ">=") == 0)
-                { yylval.tokenData->tokenname = "GRTEQ"; }
-                else if(strcmp(value, "==") == 0)
-                { yylval.tokenData->tokenname = "EQ"; }
-                else if (strcmp(value, "!=") == 0)
-                { yylval.tokenData->tokenname = "NOTEQ"; }
-            }
-            else
-            { yylval.tokenData->tokenname = strdup(value); }
-            break;
         case INVALIDCHAR:
             printf("ERROR(%d): character is %d characters and not a single character: %s. First char used.\n", lineNum, parseChar(value), yylval.tokenData->tokenstr);
             yylval.tokenData->charValue = value[0];
@@ -219,6 +182,9 @@
 
     return tokClass;
     }
+
+// "true"                              { return setValue(line, TRUE, yytext); }
+// "false"                             { return setValue(line, FALSE, yytext); }
 %}
 
 %option noyywrap
@@ -227,60 +193,67 @@ ID          [a-z|A-Z|_][a-z|A-Z|_|0-9]*
 NUMCONST    [0-9]+
 CHARCONST   \'(\\.|[^'\n])\'
 INVALIDCHAR \'[^'\n]*\' 
-STRINGCONST \"(\\.|[^"\n])*\"  
+STRINGCONST \"(\\.|[^"\n])*\"
 
 %%
+\;                                  { return setValue(line, SEMI, yytext); } 
+\,                                  { return setValue(line, COMMA, yytext); } 
+\[                                  { return setValue(line, LBRACKET, yytext); }
+\]                                  { return setValue(line, RBRACKET, yytext); }
+\:                                  { return setValue(line, COLON, yytext); }
+\(                                  { return setValue(line, LPAREN, yytext); }
+\)                                  { return setValue(line, RPAREN, yytext); }
+\{                                  { return setValue(line, LCURL, yytext); }
+\}                                  { return setValue(line, RCURL, yytext); }
+\=                                  { return setValue(line, ASSIGN, yytext); }
+\>                                  { return setValue(line, GRT, yytext); }
+\<                                  { return setValue(line, LESS, yytext); }
+\+                                  { return setValue(line, PLUS, yytext); }
+\-                                  { return setValue(line, MINUS, yytext); }
+\*                                  { return setValue(line, MUL, yytext); }
+\/                                  { return setValue(line, DIV, yytext); }
+\%                                  { return setValue(line, TRUNC, yytext); }
+\?                                  { return setValue(line, RAND, yytext); }
+\.\.                                { return setValue(line, RANGE, yytext); }
+\+\=                                { return setValue(line, ADDASS, yytext); }
+\-\=                                { return setValue(line, SUBASS, yytext); }
+\*\=                                { return setValue(line, MULASS, yytext); }
+\/\=                                { return setValue(line, DIVASS, yytext); }
+\+\+                                { return setValue(line, INC, yytext); }
+\-\-                                { return setValue(line, DEC, yytext); }
+\<\=                                { return setValue(line, LESSEQ, yytext); }
+\>\=                                { return setValue(line, GRTEQ, yytext); }
+\=\=                                { return setValue(line, EQ, yytext); }
+\!\=                                { return setValue(line, NOTEQ, yytext); }
 
-\; |
-\, |
-\[ |
-\] |
-\: |
-\( |
-\) |
-\{ |
-\} |
-\= |
-\> |
-\< |
-\+ |
-\- |
-\* |
-\/ |
-\% |
-\? |
-\.\. | //RANGE
-\+\= | //ADDASS
-\-\= | //SUBASS
-\*\= | //MULASS
-\/\= | //DIVASS
-\+\+ | //INC
-\-\- | //DEC
-\<\= | //LESSEQ
-\>\= | //GRTEQ
-\=\= | //EQ
-\!\=            { return setValue(line, OPERATOR, yytext); } //OPERATOR -> Catches all operators (will probably need to change)
+"static"                            { return setValue(line, STATIC, yytext); }
+"int"                               { return setValue(line, INT, yytext); } 
+"bool"                              { return setValue(line, BOOL, yytext); }
+"char"                              { return setValue(line, CHAR, yytext); }
+"elsif"                             { return setValue(line, ELSIF, yytext); }
+"then"                              { return setValue(line, THEN, yytext); }
+"if"                                { return setValue(line, IF, yytext); }
+"else"                              { return setValue(line, ELSE, yytext); }
+"while"                             { return setValue(line, WHILE, yytext); }
+"do"                                { return setValue(line, DO, yytext); }
+"forever"                           { return setValue(line, FOREVER, yytext); }
+"loop"                              { return setValue(line, LOOP, yytext); }
+"return"                            { return setValue(line, RETURN, yytext); }
+"break"                             { return setValue(line, BREAK, yytext); }
+"or"                                { return setValue(line, OR, yytext); }
+"and"                               { return setValue(line, AND, yytext); }
+"not"                               { return setValue(line, NOT, yytext); }
 
-"static"|"int"|"bool"|"char"|"elsif"|"then"|"if"|"else"|"while"|"do"|"forever"|"loop"|"return"|"break"|"or"|"and"|"not"         { return setValue(line, KEYWORD, yytext); } //KEYWORD -> Catches all keywords
+"true"|"false"                      { return setValue(line, BOOLCONST, yytext); }
 
-"true"|"false"  { return setValue(line, BOOLCONST, yytext); } //BOOLCONST -> Catches the keyword of true or false, but recognized as BOOLCONST
+{ID}                                { return setValue(line, ID, yytext); }
+{STRINGCONST}                       { return setValue(line, STRINGCONST, yytext); }
+{CHARCONST}                         { return setValue(line, CHARCONST, yytext); }
+{INVALIDCHAR}                       { return setValue(line, INVALIDCHAR, yytext); }
+{NUMCONST}                          { return setValue(line, NUMCONST, yytext); }
 
-{ID}            { return setValue(line, ID, yytext); } //ID -> Catches all IDs
-
-{NUMCONST}      { return setValue(line, NUMCONST, yytext); } //NUMCONST -> Catches all valid numbers
-
-{CHARCONST}     { return setValue(line, CHARCONST, yytext); } //CHARCONST -> Catches all CHARCONST (Watch regular expression and parsing for charValue)
-
-{INVALIDCHAR}   { return setValue(line, INVALIDCHAR, yytext); } //INVALIDCHAR -> Catches all INVALID CHAR 
-
-{STRINGCONST}   { return setValue(line, STRINGCONST, yytext); } //STRINGCONST -> Catches string (Watch the regular expression and parsing for stringValue)
-
-[ \t]           ; //WHITESPACE -> Discard
-
-"//".*\n        { line++; } //COMMENTS -> grab newline for counter and discard the comment
-
-\n              { line++ ; return setValue(line, yytext[0], yytext); } //NEWLINE -> grab character for grammar
-
-.               { printf("ERROR(%d): Invalid or misplaced input character: \"%s\"\n", line, yytext); } //ERROR -> Throw line number are erroneous charcter
-
+"//".*\n                            { line++; }
+[ \t]                               ;  // white space
+\n                                  { line++; }
+.                                   { printf("ERROR(%d): Invalid or misplaced input character: \"%s\"\n", line, yytext); }
 %%
