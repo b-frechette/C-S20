@@ -71,7 +71,7 @@ TreeNode * newDeclNode(DeclKind kind)
     return t;
 }
 
-static int indentno = 0;
+static int indentno = -1;
 bool first = true;
 
 #define INDENT indentno += 1
@@ -89,10 +89,10 @@ static void printSpaces(void)
 void printTree(TreeNode *tree)
 {
     int i, sib;
-    INDENT;
+    //INDENT;
     
-    while(tree != NULL)
-    {
+    //while(tree != NULL)
+    //{
         //printSpaces();
 
         if(tree->nodekind == DeclK)
@@ -292,12 +292,17 @@ void printTree(TreeNode *tree)
         {
             if(tree->child[i] != NULL)
             {
-                printSpaces();
-                printf("Child: %d ", i);
+                //printSpaces();
+                //printf("Child: %d ", i);
+                printTree(tree->child[i]);
             }
-            printTree(tree->child[i]);
         }
-        tree = tree->sibling;
-    }
-    UNINDENT;
+        //tree = tree->sibling;
+        if(tree->sibling != NULL)
+        {
+            printTree(tree->sibling); 
+        }
+        //printTree(tree->sibling);
+    //}
+    //UNINDENT;
 }

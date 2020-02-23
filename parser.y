@@ -960,10 +960,10 @@ int main(int argc, char **argv)
         (void)printf("file: %s\n", oarg); 
     }
 
-    if(filerr == 1)
+    if(filerr == 1 || filerr == 0)
     {
-        filename = fopen(oarg, "r");
-        //filename = fopen("tests/init.c-", "r");
+        //filename = fopen(oarg, "r");
+        filename = fopen("tests/init.c-", "r");
 
         if(filename == NULL)
         {
