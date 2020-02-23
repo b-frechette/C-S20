@@ -166,12 +166,11 @@
             yylval.tokenData->stringValue = strdup(value);
             yylval.tokenData->tokenname = "STRINGCONST";
             break;
-        case TRUE:
-            yylval.tokenData->numValue = 1; 
-            yylval.tokenData->tokenname = "BOOLCONST";
-            break;
-        case FALSE:
-            yylval.tokenData->numValue = 0; 
+        case BOOLCONST:
+            if(strcmp(value, "true") == 0)
+            { yylval.tokenData->numValue = 1; }
+            else
+            { yylval.tokenData->numValue = 0; }
             yylval.tokenData->tokenname = "BOOLCONST";
             break;
         case INVALIDCHAR:
@@ -183,6 +182,9 @@
 
     return tokClass;
     }
+
+// "true"                              { return setValue(line, TRUE, yytext); }
+// "false"                             { return setValue(line, FALSE, yytext); }
 %}
 
 %option noyywrap
@@ -242,8 +244,7 @@ STRINGCONST \"(\\.|[^"\n])*\"
 "and"                               { return setValue(line, AND, yytext); }
 "not"                               { return setValue(line, NOT, yytext); }
 
-"true"                              { return setValue(line, TRUE, yytext); }
-"false"                             { return setValue(line, FALSE, yytext); }
+"true"|"false"                      { return setValue(line, BOOLCONST, yytext); }
 
 {ID}                                { return setValue(line, ID, yytext); }
 {STRINGCONST}                       { return setValue(line, STRINGCONST, yytext); }

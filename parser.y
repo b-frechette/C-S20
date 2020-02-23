@@ -85,8 +85,7 @@ TreeNode * savedTree;
 %token <tokenData> NUMCONST 
 %token <tokenData> CHARCONST 
 %token <tokenData> STRINGCONST  
-%token <tokenData> TRUE 
-%token <tokenData> FALSE
+%token <tokenData> BOOLCONST
 
 /* ID */
 %token <tokenData> ID
@@ -887,22 +886,14 @@ constant                : NUMCONST
                                 $$->expType = Char;
                                 $$->lineno = $1->linenum;
                             }   
-                        | TRUE         
+                        | BOOLCONST         
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.value = $1->numValue;
                                 $$->attr.name = $1->tokenstr;
                                 $$->expType = Boolean;
                                 $$->lineno = $1->linenum; 
-                            }     
-                        | FALSE     
-                            { 
-                                $$ = newExpNode(ConstantK); 
-                                $$->attr.value = $1->numValue;
-                                $$->attr.name = $1->tokenstr;
-                                $$->expType = Boolean;
-                                $$->lineno = $1->linenum; 
-                            }        
+                            }            
                         ;
 
 %%
