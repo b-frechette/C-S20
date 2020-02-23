@@ -485,7 +485,7 @@ matched                 : IF simpleExpression THEN matched matchedelsif
                         | LOOP FOREVER matched
                             {
                                 $$ = newStmtNode(LoopForeverK);
-                                $$->child[0] = $3;
+                                $$->child[1] = $3;
                                 $$->lineno = $1->linenum;
                             }
                         | LOOP iterationId iterationRange DO matched
@@ -960,10 +960,11 @@ int main(int argc, char **argv)
         (void)printf("file: %s\n", oarg); 
     }
 
-    if(filerr == 1 || filerr == 0)
+    //if(filerr == 1 || filerr == 0)
+    if(filerr == 1)
     {
-        //filename = fopen(oarg, "r");
-        filename = fopen("tests/init.c-", "r");
+        filename = fopen(oarg, "r");
+        //filename = fopen("tests/init.c-", "r");
 
         if(filename == NULL)
         {
@@ -986,7 +987,7 @@ int main(int argc, char **argv)
 
     if(pflg) 
     {
-        printTree(savedTree);
+        printTree(savedTree, 1, 0);
     }
 
     return 0;

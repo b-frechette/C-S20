@@ -12,6 +12,6 @@ TreeNode * newDeclNode(DeclKind);
 
 // static void printSpaces(void);
 
-void printTree(TreeNode *);
+void printTree(TreeNode *, int, int);
 
 #endif
