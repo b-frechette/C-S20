@@ -9,7 +9,7 @@ TreeNode * newExpNode(ExpKind kind)
     
     if(t == NULL)
     {
-        { printf("Out of memory error at line\n"); }
+        { printf("ERROR: Out of memory (EXP)\n"); }
     }
     else
     {
@@ -32,7 +32,7 @@ TreeNode * newStmtNode(StmtKind kind)
     
     if(t == NULL)
     {
-        { printf("Out of memory error at line\n"); }
+        { printf("ERROR: Out of memory (STMT)\n"); }
     }
     else
     {
@@ -55,7 +55,7 @@ TreeNode * newDeclNode(DeclKind kind)
     
     if(t == NULL)
     {
-        { printf("Out of memory error at line\n"); }
+        { printf("ERROR: Out of memory (DECL)\n"); }
     }
     else
     {
@@ -71,12 +71,6 @@ TreeNode * newDeclNode(DeclKind kind)
     return t;
 }
 
-static int indentno = -1;
-bool first = true;
-
-#define INDENT indentno += 1
-#define UNINDENT indentno -= 1
-
 static void printSpaces(int spaces)
 {
     int i;
@@ -89,9 +83,6 @@ static void printSpaces(int spaces)
 void printTree(TreeNode *tree, int indent, int sibling)
 {
     int i;
-    //INDENT;
-    
-    //printSpaces();
 
     if(tree->nodekind == DeclK)
     {
@@ -160,9 +151,7 @@ void printTree(TreeNode *tree, int indent, int sibling)
                         printf("ERROR FUNC: Undefined Type [line: %d]\n",tree->lineno);
                         break;
                 }
-                //printf("Func %s returns type TO DO[line: %d]\n", tree->attr.name, tree->lineno);
                 break;
-            //NEEDS ARRAY CHECK
             case ParamK:
                 switch(tree->expType)
                 {
@@ -203,7 +192,6 @@ void printTree(TreeNode *tree, int indent, int sibling)
                         printf("ERROR EXP: Default [line: %d]\n",tree->lineno);
                         break;
                 }
-                //printf("Param %s of type TO DO line: %d]\n", tree->attr.name, tree->lineno);
                 break;
             default:
                 printf("error\n");
@@ -221,7 +209,7 @@ void printTree(TreeNode *tree, int indent, int sibling)
                 switch (tree->expType)
                 {
                     case Char:
-                        printf("Const: \"%s\" [line: %d]\n", tree->attr.name, tree->lineno);
+                        printf("Const: \"%s\" [line: %d]\n", tree->attr.string, tree->lineno);
                         break;
                     case CharInt:
                         printf("Const: '%c' [line: %d]\n", tree->attr.cvalue, tree->lineno);
@@ -283,7 +271,7 @@ void printTree(TreeNode *tree, int indent, int sibling)
     }
     else
     {
-        printf("Unkown node\n");
+        printf("ERROR: Unkown Node\n");
     }
 
     for(i = 0; i < MAXCHILDREN; i++)
@@ -296,12 +284,10 @@ void printTree(TreeNode *tree, int indent, int sibling)
         }
     }
     
-    //tree = tree->sibling;
     if(tree->sibling != NULL)
     {
         printSpaces(indent-1);
         printf("Sibling: %d ", sibling);
         printTree(tree->sibling, indent, sibling+1); 
     }
-    //printTree(tree->sibling);
 }

@@ -17,17 +17,22 @@ void yyerror(const char *msg)
       printf("ERROR(PARSER): %s\n", msg);
 }
 
+/* descr: Recursively add sibling to end of the list
+*
+* param: TreeNode -> Pointer to the node to add the sibling
+* param: TreeNode -> Pointer to the sibling node
+* return: void
+*/
 void addSibling(TreeNode *t1, TreeNode *t2)
 {
-    if(t1 != NULL)  //make sure t1 is not NULL (again?)
+    if(t1 != NULL) 
     {
-        if(t1->sibling == NULL)  //(check if we are at the end of the line of siblings)
+        if(t1->sibling == NULL)
         {
             t1->sibling = t2;
         }
-        else //try again
+        else
         {
-            //WATCH YOUR POINTERS IDIOT
             addSibling(t1->sibling, t2);
         }
     }
@@ -35,6 +40,15 @@ void addSibling(TreeNode *t1, TreeNode *t2)
     { printf("error\n"); }
 }
 
+/* descr: Recursively add the type for a var or param kind. This is 
+* done by adding the unidentified type to the id assignment for 
+* param or var, then checking for it here to tell whether it needs 
+* to be changed.
+*
+* param: VarData -> Struct that contains the type and static data
+* param: TreeNode -> Pointer to the param or var node to change
+* return: void
+*/
 void setType(VarData v, TreeNode *t1)
 {
     if(t1 != NULL)
@@ -55,7 +69,8 @@ TreeNode * savedTree;
 
 %}
 
-%union {
+%union 
+{
     VarData vardata; 
     TokenData *tokenData;
     TreeNode *tree;
@@ -137,17 +152,17 @@ TreeNode * savedTree;
 * NONTERMINALS     *
 *******************/
 
-/*****EXPTYPE******/
+/* VARDATA */
 %type <vardata> typeSpecifier
 %type <vardata> scopedTypeSpecifier
 
-/****TOKENDATA*****/
+/* TOKENDATA */
 %type <tokenData> unaryop
 %type <tokenData> mulop
 %type <tokenData> sumop
 %type <tokenData> relop
 
-/*******TREE*******/
+/* TREE */
 
 %type <tree> constant
 %type <tree> iterationId
@@ -197,8 +212,6 @@ TreeNode * savedTree;
 %type <tree> varDeclaration
 %type <tree> declaration
 %type <tree> declarationList
-
-
  
 %%
 program                 : declarationList
@@ -227,7 +240,6 @@ declaration             : varDeclaration
                             { $$ = $1; }
                         ;
 
-/********TYPE PROBLEM*******/
 varDeclaration          : typeSpecifier varDeclList SEMI
                             {
                                 setType($1, $2);
@@ -235,7 +247,6 @@ varDeclaration          : typeSpecifier varDeclList SEMI
                             }
                         ;
 
-/********TYPE PROBLEM*******/
 scopedVarDeclaration    : scopedTypeSpecifier varDeclList SEMI
                             {
                                 setType($1, $2);
@@ -268,7 +279,6 @@ varDeclInitialize       : varDeclId
                             }
                         ;
 
-/***CHECK***/
 varDeclId               : ID 
                             {
                                 $$ = newDeclNode(VarK);
@@ -285,7 +295,6 @@ varDeclId               : ID
                                 $$->expType = UndefinedType;
                             }
                         ;
-
 
 scopedTypeSpecifier     : STATIC typeSpecifier
                             {
@@ -313,7 +322,6 @@ typeSpecifier           : INT
                             }
                         ;
 
-/*****FIX******/
 funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
                             {
                                 $$ = newDeclNode(FuncK);
@@ -357,7 +365,6 @@ paramList               : paramList SEMI paramTypeList
                             { $$ = $1; }
                         ;
 
-/**** TYPE PROBLEM ****/
 paramTypeList           : typeSpecifier paramIdList
                             {
                                 setType($1, $2);
@@ -381,7 +388,6 @@ paramIdList             : paramIdList COMMA paramId
                             { $$ = $1; }
                         ;
 
-/**** VALIDATE ****/
 paramId                 : ID
                             {
                                 $$ = newDeclNode(ParamK);
@@ -432,14 +438,14 @@ unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
                             { $$ = NULL; }
                         ;
 
-/**** VALIDATE ****/
+/**** QUESTION ****/
 iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
                             {
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $2;
                                 $$->child[1] = $4;
 
-                                //For the mysterious 1 I forgot to ask about so for now this nasty piece of code, sorry
+                                //Solution for Exp node that appears in test cases - Ask why it's there
                                 TreeNode *t = newExpNode(ConstantK);
                                 t->attr.value = 1;
                                 t->attr.name = "1";
@@ -467,6 +473,7 @@ iterationId             : ID
                             }
                         ;
 
+/**** QUESTION ****/
 matched                 : IF simpleExpression THEN matched matchedelsif
                             {
                                 $$ = newStmtNode(IfK);
@@ -485,7 +492,7 @@ matched                 : IF simpleExpression THEN matched matchedelsif
                         | LOOP FOREVER matched
                             {
                                 $$ = newStmtNode(LoopForeverK);
-                                $$->child[1] = $3;
+                                $$->child[1] = $3;                  //Why is the child 1 and not 0 in tests?
                                 $$->lineno = $1->linenum;
                             }
                         | LOOP iterationId iterationRange DO matched
@@ -500,6 +507,7 @@ matched                 : IF simpleExpression THEN matched matchedelsif
                             { $$ = $1; }
                         ;
 
+/**** QUESTION ****/
 unmatched               : IF simpleExpression THEN unmatched 
                             {
                                 $$ = newStmtNode(IfK);
@@ -525,7 +533,7 @@ unmatched               : IF simpleExpression THEN unmatched
                         | LOOP FOREVER unmatched
                             {
                                 $$ = newStmtNode(LoopForeverK);
-                                $$->child[1] = $3;
+                                $$->child[1] = $3;                  //Why is the child 1 and not 0 in tests?
                                 $$->lineno = $1->linenum;
                             }
                         | LOOP iterationId iterationRange DO unmatched
@@ -548,15 +556,10 @@ other_statements        : expressionStmt
                             { $$ = $1; }
                         ;
 
-/**** VALIDATE ****/
 expressionStmt          : expression SEMI
-                            {
-                                $$ = $1;
-                            }
+                            { $$ = $1; }
                         | SEMI
-                            {
-                                { $$ = NULL; }
-                            }
+                            { $$ = NULL; }
                         ;
 
 compoundStmt            : LCURL localDeclarations statementList RCURL
@@ -804,7 +807,6 @@ factor                  : immutable
                             { $$ = $1; }                   
                         ;
 
-/**** VALIDATE ****/
 mutable                 : ID 
                             { 
                                 $$ = newExpNode(IdK); 
@@ -861,6 +863,7 @@ argList                 : argList COMMA expression
                             { $$ = $1; }
                         ;
 
+/**** CHECK ****/
 constant                : NUMCONST  
                             { 
                                 $$ = newExpNode(ConstantK); 
@@ -873,7 +876,6 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.cvalue = $1->charValue;
-                                //$$->attr.name = &$1->charValue;
                                 $$->expType = CharInt;
                                 $$->lineno = $1->linenum;
                             }      
@@ -881,7 +883,7 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.string = $1->stringValue;
-                                $$->attr.name = $1->stringValue;
+                                //$$->attr.name = $1->stringValue;
                                 $$->expType = Char;
                                 $$->lineno = $1->linenum;
                             }   
@@ -910,11 +912,11 @@ int main(int argc, char **argv)
     extern int opterr;
     extern int optind;
     extern char *optarg;
-    int c, dflg = 0, pflg = 1, tflg = 0, filerr = 0;
+    int c, dflg = 0, pflg = 0, filerr = 0;
     char *oarg = NULL;
     FILE *filename;
 
-    while ((c = ourGetopt(argc, argv, (char *)":dpt")) != EOF)
+    while ((c = ourGetopt(argc, argv, (char *)":dp")) != EOF)
     {
         switch(c)
         {
@@ -924,10 +926,6 @@ int main(int argc, char **argv)
             
             case 'p':
                 ++pflg;
-                break;
-
-            case 't':
-                ++tflg;
                 break;
 
             case '?':
@@ -943,28 +941,19 @@ int main(int argc, char **argv)
 
     if(dflg) 
     {
-        printf("d\n");
         yydebug = 1;
     }
 
     if (optind < argc) 
     {
-        //(void)printf("file: %s\n", argv[optind]);
         oarg = argv[optind];
         filerr++;
         optind++;
     }
 
-    if(tflg)
-    {
-        (void)printf("file: %s\n", oarg); 
-    }
-
-    //if(filerr == 1 || filerr == 0)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/init.c-", "r");
 
         if(filename == NULL)
         {
@@ -978,7 +967,6 @@ int main(int argc, char **argv)
     }
     else
     {
-        //printf("stdin\n");
         yyin = stdin;
     }
 

@@ -143,7 +143,6 @@
         case NUMCONST:
             yylval.tokenData->numValue = atof(value); 
             yylval.tokenData->tokenname = "NUMCONST";
-            //yylval.tokenData->tokenstr[20];
             sprintf(yylval.tokenData->tokenstr, "%d", yylval.tokenData->numValue);
             break;
         case CHARCONST:

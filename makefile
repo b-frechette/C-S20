@@ -1,6 +1,6 @@
 BIN  = parser
 CC   = g++
-CFLAGS = -DCPLUSPLUS -g     # for use with C++ if file ext is .c
+CFLAGS = -DCPLUSPLUS -g  
 TAR = frechette.tar
 
 SRCS = parser.y parser.l
@@ -21,25 +21,22 @@ clean:
 	rm -f lex.yy.o parser.tab.o c- lex.yy.c parser.tab.h parser.tab.c parser.tar parser.output treeUtils.o ourGetopt.o frechette.tar *~
 
 test:
-	./c- -t tests/array.c-
-	./c- -t tests/call.c-
-	./c- -t tests/elsif.c-
-	./c- -t tests/everythingS20.c-
-	./c- -t tests/exp.c-
-	./c- -t tests/if.c-
-	./c- -t tests/init.c-
-	./c- -t tests/loops.c-
-	./c- -t tests/matchunmatch.c-
-	./c- -t tests/precassoc.c-
-	./c- -t tests/scope.c-
-	./c- -t tests/simple.c-
-	./c- -t tests/small.c-
-	./c- -t tests/testExample.c-
-	./c- -t tests/tiny.c-
-	./c- -t tests/whileif.c-
-
-print:
-	./c- -p tests/array.c-
+	./c- tests/array.c-
+	./c- tests/call.c-
+	./c- tests/elsif.c-
+	./c- tests/everythingS20.c-
+	./c- tests/exp.c-
+	./c- tests/if.c-
+	./c- tests/init.c-
+	./c- tests/loops.c-
+	./c- tests/matchunmatch.c-
+	./c- tests/precassoc.c-
+	./c- tests/scope.c-
+	./c- tests/simple.c-
+	./c- tests/small.c-
+	./c- tests/testExample.c-
+	./c- tests/tiny.c-
+	./c- tests/whileif.c-
 
 tar:
 	tar -cvf frechette.tar parser.y parser.l scanType.h treeNodes.h treeUtils.h treeUtils.c ourGetopt.h ourGetopt.c makefile 

@@ -1,3 +1,7 @@
+//  ourGetopt.c:	Derived from AT&T public domain source of ourGetopt(3),	
+// 		modified for use with MS C 6.0 on MS DOS systems. For	
+// 		unknown reasons the variable optopt is exported here.
+
 #include	<string.h>
 #include	<stdio.h>
 
