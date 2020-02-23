@@ -224,7 +224,7 @@ void printTree(TreeNode *tree, int indent, int sibling)
                         printf("Const: \"%s\" [line: %d]\n", tree->attr.name, tree->lineno);
                         break;
                     case CharInt:
-                        printf("Const: '%s' [line: %d]\n", tree->attr.name, tree->lineno);
+                        printf("Const: '%c' [line: %d]\n", tree->attr.cvalue, tree->lineno);
                         break;
                     default:
                         printf("Const: %s [line: %d]\n", tree->attr.name, tree->lineno);

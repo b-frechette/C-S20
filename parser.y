@@ -525,7 +525,7 @@ unmatched               : IF simpleExpression THEN unmatched
                         | LOOP FOREVER unmatched
                             {
                                 $$ = newStmtNode(LoopForeverK);
-                                $$->child[0] = $3;
+                                $$->child[1] = $3;
                                 $$->lineno = $1->linenum;
                             }
                         | LOOP iterationId iterationRange DO unmatched
@@ -873,7 +873,7 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.cvalue = $1->charValue;
-                                $$->attr.name = &$1->charValue;
+                                //$$->attr.name = &$1->charValue;
                                 $$->expType = CharInt;
                                 $$->lineno = $1->linenum;
                             }      
