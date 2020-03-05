@@ -965,7 +965,7 @@ int main(int argc, char **argv)
 
     yyparse();
 
-    //semantic(savedTree);
+    semantic(savedTree);
 
     if(pflg) 
     {

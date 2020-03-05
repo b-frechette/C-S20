@@ -7,6 +7,7 @@ parser.tab.h
 parser.tab.o 
 ourGetopt.o
 treeUtils.o
+semantic.o
 frechette.tar
 
 tests
