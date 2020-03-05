@@ -27,9 +27,11 @@ static void traverse(TreeNode *t, void (* preProcedure) (TreeNode *), void (* po
            } 
         }
 
+        //or maybe in the post procedure??
         postProcedure(t);
         if(st.depth() > 1)
         {
+            //do check for usage and other warnings here
             st.leave();
         }
         traverse(t->sibling, preProcedure, postProcedure);
@@ -60,6 +62,7 @@ static void insertNode(TreeNode *t)
                 st.enter(t->attr.name);
                 break;
             case ParamK:
+                st.insert(t->attr.name, t);
                 break;
             default:
                 printf("error\n");
@@ -75,6 +78,11 @@ static void insertNode(TreeNode *t)
             case ConstantK:
                 break;
             case IdK:
+                //st.lookup(t->attr.name);
+                if(st.lookup(t->attr.name) == NULL)
+                { printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name); }
+                else
+                { /* TO DO code here */ }
                 break;
             case AssignK:
                 break;
