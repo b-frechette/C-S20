@@ -44,7 +44,8 @@ typedef struct treeNode
     } attr;                                 
     ExpType expType;		      
     bool isArray;                          
-    bool isStatic;                        
+    bool isStatic;  
+    bool isDeclared;                      
 
 } TreeNode;
 

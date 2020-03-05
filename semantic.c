@@ -12,6 +12,11 @@ void semantic(TreeNode *syntaxTree)
     traverse(syntaxTree, insertNode, nullProcedure);
 
     st.print(pointerPrintStr);
+
+    if(st.lookupGlobal("main") == NULL)
+    {
+        printf("ERROR(LINKER): Procedure main is not declared.\n");
+    }
 }
 
 static void traverse(TreeNode *t, void (* preProcedure) (TreeNode *), void (* postProcedure) (TreeNode *))
