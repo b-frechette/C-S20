@@ -184,7 +184,7 @@ void* SymbolTable::lookupGlobal(std::string sym) {
 // Returns true if insert was successful and false if symbol already in the most
 // recent scope
 bool SymbolTable::insert(std::string sym, void* ptr) {
-    //if (debugFlg)
+    if (debugFlg)
         printf("DEBUG(SymbolTable): insert the symbol \"%s\".\n", sym.c_str());
     return (stack.back())->insert(sym, ptr);
 }

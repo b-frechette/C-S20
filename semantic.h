@@ -9,4 +9,6 @@ static void nullProcedure(TreeNode *t);
 
 static void insertNode(TreeNode *t);
 
+//SymbolTable st;
+
 #endif

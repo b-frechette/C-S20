@@ -34,11 +34,12 @@ static void traverse(TreeNode *t, void (* preProcedure) (TreeNode *), void (* po
 
         //or maybe in the post procedure??
         postProcedure(t);
-        if(st.depth() > 1)
-        {
-            //do check for usage and other warnings here
-            st.leave();
-        }
+        // printf("Scopes: %d\n", st.depth());
+        // if(st.depth() > 2)
+        // {
+        //     //do check for usage and other warnings here
+        //     st.leave();
+        // }
         traverse(t->sibling, preProcedure, postProcedure);
     }
 }
@@ -61,13 +62,27 @@ static void insertNode(TreeNode *t)
         {
             case VarK:
                 st.insert(t->attr.name, t);
+                // if(st.lookup(t->attr.name) == NULL)
+                // { st.insert(t->attr.name, t); }
+                // else
+                // {
+                //     TreeNode *temp = st.lookupNode(t->attr.name);
+                //     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                // }
                 break;
             case FuncK:
-                st.insert(t->attr.name, t);
+                st.insert(t->attr.name, t); 
                 st.enter(t->attr.name);
                 break;
             case ParamK:
                 st.insert(t->attr.name, t);
+                // if(st.lookup(t->attr.name) == NULL)
+                // { st.insert(t->attr.name, t); }
+                // else
+                // {
+                //     TreeNode *temp = st.lookupNode(t->attr.name);
+                //     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                // }
                 break;
             default:
                 printf("error\n");
