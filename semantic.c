@@ -60,33 +60,36 @@ static void insertNode(TreeNode *t)
         switch(t->kind.decl)
         {
             case VarK:
-                st.insert(t->attr.name, t);
-                // if(st.lookup(t->attr.name) == NULL)
-                // { st.insert(t->attr.name, t); }
-                // else
-                // {
-                //     TreeNode *temp = st.lookupNode(t->attr.name);
-                //     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
-                // }
+                if(st.lookup(t->attr.name) == NULL)
+                { st.insert(t->attr.name, t); }
+                else
+                {
+                    TreeNode *temp = st.lookupNode(t->attr.name);
+                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                }
                 break;
             case FuncK:
+                //Leave the scope of the last function
                 if(st.depth() > 1)
+                { st.leave(); }
+
+                if(st.lookup(t->attr.name) == NULL)
+                { st.insert(t->attr.name, t); }
+                else
                 {
-                    //do check for usage and other warnings here
-                    st.leave();
+                    TreeNode *temp = st.lookupNode(t->attr.name);
+                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
                 }
-                st.insert(t->attr.name, t); 
                 st.enter(t->attr.name);
                 break;
             case ParamK:
-                st.insert(t->attr.name, t);
-                // if(st.lookup(t->attr.name) == NULL)
-                // { st.insert(t->attr.name, t); }
-                // else
-                // {
-                //     TreeNode *temp = st.lookupNode(t->attr.name);
-                //     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
-                // }
+                if(st.lookup(t->attr.name) == NULL)
+                { st.insert(t->attr.name, t); }
+                else
+                {
+                    TreeNode *temp = st.lookupNode(t->attr.name);
+                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                }
                 break;
             default:
                 printf("error\n");
