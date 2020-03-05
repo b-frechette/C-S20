@@ -8,8 +8,8 @@ HDRS = scanType.h treeNode.h
 OBJS = lex.yy.o parser.tab.o
 LIBS = -lm 
 
-parser: lex.yy.o parser.tab.o treeUtils.o ourGetopt.o semantic.o
-	g++ -DCPLUSPLUS -g lex.yy.o parser.tab.o treeUtils.o ourGetopt.o semantic.o -lm -o c-
+parser: lex.yy.o parser.tab.o treeUtils.o ourGetopt.o semantic.o symbolTable.o
+	g++ -DCPLUSPLUS -g lex.yy.o parser.tab.o treeUtils.o ourGetopt.o semantic.o symbolTable.o -lm -o c-
 
 parser.tab.h parser.tab.c: parser.y treeUtils.h ourGetopt.h semantic.h
 	bison -v -t -d parser.y  

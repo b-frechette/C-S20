@@ -4,10 +4,14 @@
 #include "symbolTable.h"
 #include "semantic.h"
 
+SymbolTable st;
+
 void semantic(TreeNode *syntaxTree)
 {
     //printf("Checkpoint\n");
     traverse(syntaxTree, insertNode, nullProcedure);
+
+    st.print(pointerPrintStr);
 }
 
 static void traverse(TreeNode *t, void (* preProcedure) (TreeNode *), void (* postProcedure) (TreeNode *))
@@ -45,45 +49,7 @@ static void insertNode(TreeNode *t)
         switch(t->kind.decl)
         {
             case VarK:
-                switch(t->expType)
-                {
-                    case Integer:
-                        if(t->isArray)
-                        {
-                            printf("Var %s is array of type int [line: %d]\n", t->attr.name, t->lineno);
-                        }
-                        else
-                        {
-                            printf("Var %s of type int [line: %d]\n", t->attr.name, t->lineno);
-                        }
-                        break;
-                    case Boolean:
-                        if(t->isArray)
-                        {
-                            printf("Var %s is array of type bool [line: %d]\n", t->attr.name, t->lineno);
-                        }
-                        else
-                        {
-                            printf("Var %s of type bool [line: %d]\n", t->attr.name, t->lineno);
-                        }
-                        break;
-                    case Char:
-                        if(t->isArray)
-                        {
-                            printf("Var %s is array of type char [line: %d]\n", t->attr.name, t->lineno);
-                        }
-                        else
-                        {
-                            printf("Var %s of type char [line: %d]\n", t->attr.name, t->lineno);
-                        }
-                        break;
-                    case UndefinedType:
-                        printf("ERROR VAR: Undefined Type [line: %d]\n",t->lineno);
-                        break;
-                    default:
-                        printf("ERROR VAR: Default [line: %d]\n",t->lineno);
-                        break;
-                }
+                st.insert(t->attr.name, t);
                 break;
             case FuncK:
                 switch(t->expType)

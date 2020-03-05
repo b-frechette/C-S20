@@ -184,7 +184,7 @@ void* SymbolTable::lookupGlobal(std::string sym) {
 // Returns true if insert was successful and false if symbol already in the most
 // recent scope
 bool SymbolTable::insert(std::string sym, void* ptr) {
-    if (debugFlg)
+    //if (debugFlg)
         printf("DEBUG(SymbolTable): insert the symbol \"%s\".\n", sym.c_str());
     return (stack.back())->insert(sym, ptr);
 }
@@ -219,21 +219,21 @@ void countSymbols(std::string sym, void* ptr) {
 
 // int main()
 // {
-//     Scope s("global");
+//     // Scope s("global");
 
-//     s.insert("dog", (char *)"woof");
-//     s.insert("cat", (char *)"meow");
-//     printf("%s\n", (char *)(s.lookup("cat")));
-//     printf("%s\n", (char *)(s.lookup("dog")));
+//     // s.insert("dog", (char *)"woof");
+//     // s.insert("cat", (char *)"meow");
+//     // printf("%s\n", (char *)(s.lookup("cat")));
+//     // printf("%s\n", (char *)(s.lookup("dog")));
 
-//     if (s.lookup("fox")==NULL) printf("not found\n");
-//     else printf("found\n");
-//     s.print(pointerPrintAddr);
-//     s.print(pointerPrintStr);
+//     // if (s.lookup("fox")==NULL) printf("not found\n");
+//     // else printf("found\n");
+//     // s.print(pointerPrintAddr);
+//     // s.print(pointerPrintStr);
 
 //     SymbolTable st;
 
-//     printf("Print symbol table.\n");
+//     printf("1. Print symbol table.\n");
 //     st.print(pointerPrintStr);
 //     st.insert("alfa", (char *)"ant");
 //     st.insert("bravo", (char *)"bat");
@@ -245,7 +245,7 @@ void countSymbols(std::string sym, void* ptr) {
 //     st.insert("delta", (char *)"dog");
 //     st.insertGlobal("echo", (char *)"elk");
 
-//     printf("Print symbol table.\n");
+//     printf("2. Print symbol table.\n");
 //     st.print(pointerPrintStr);
 
 
