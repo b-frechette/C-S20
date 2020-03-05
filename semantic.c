@@ -11,6 +11,12 @@ void semantic(TreeNode *syntaxTree)
     //printf("Checkpoint\n");
     traverse(syntaxTree, insertNode, nullProcedure);
 
+    if(st.depth() > 1)
+    {
+        //do check for usage and other warnings here
+        st.leave();
+    }
+
     st.print(pointerPrintStr);
 
     if(st.lookupGlobal("main") == NULL)
@@ -32,14 +38,7 @@ static void traverse(TreeNode *t, void (* preProcedure) (TreeNode *), void (* po
            } 
         }
 
-        //or maybe in the post procedure??
         postProcedure(t);
-        // printf("Scopes: %d\n", st.depth());
-        // if(st.depth() > 2)
-        // {
-        //     //do check for usage and other warnings here
-        //     st.leave();
-        // }
         traverse(t->sibling, preProcedure, postProcedure);
     }
 }
@@ -71,6 +70,11 @@ static void insertNode(TreeNode *t)
                 // }
                 break;
             case FuncK:
+                if(st.depth() > 1)
+                {
+                    //do check for usage and other warnings here
+                    st.leave();
+                }
                 st.insert(t->attr.name, t); 
                 st.enter(t->attr.name);
                 break;
