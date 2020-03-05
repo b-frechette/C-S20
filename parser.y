@@ -944,9 +944,10 @@ int main(int argc, char **argv)
         optind++;
     }
 
-    if(filerr == 1)
+    if(filerr == 1 || filerr == 0)
     {
-        filename = fopen(oarg, "r");
+        //filename = fopen(oarg, "r");
+        filename = fopen("tests/tiny.c-", "r");
 
         if(filename == NULL)
         {
