@@ -10,3 +10,4 @@ treeUtils.o
 frechette.tar
 
 tests
+.DS_STORE

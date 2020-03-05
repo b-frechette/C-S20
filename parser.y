@@ -5,6 +5,7 @@
 #include "treeUtils.h"
 #include "scanType.h"
 #include "ourGetopt.h"
+#include "semantic.h"
 
 #define YYDEBUG 1
 
@@ -867,7 +868,7 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.value = $1->numValue;
-                                $$->attr.name = $1->tokenstr;
+                                // $$->attr.name = $1->tokenstr;
                                 $$->expType = Integer;
                                 $$->lineno = $1->linenum;
                             }        
@@ -876,6 +877,7 @@ constant                : NUMCONST
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.cvalue = $1->charValue;
                                 $$->expType = CharInt;
+                                // $$->expType = Char;
                                 $$->lineno = $1->linenum;
                             }      
                         | STRINGCONST    
@@ -961,8 +963,9 @@ int main(int argc, char **argv)
         yyin = stdin;
     }
 
-
     yyparse();
+
+    //semantic(savedTree);
 
     if(pflg) 
     {
