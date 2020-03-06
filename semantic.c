@@ -17,7 +17,7 @@ void semantic(TreeNode *syntaxTree)
         st.leave();
     }
 
-    st.print(pointerPrintStr);
+    // st.print(pointerPrintStr);
 
     if(st.lookupGlobal("main") == NULL)
     {

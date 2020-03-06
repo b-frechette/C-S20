@@ -906,11 +906,11 @@ int main(int argc, char **argv)
     extern int opterr;
     extern int optind;
     extern char *optarg;
-    int c, dflg = 0, pflg = 0, filerr = 0;
+    int c, dflg = 0, pflg = 0, filerr = 0, Pflg = 0;
     char *oarg = NULL;
     FILE *filename;
 
-    while ((c = ourGetopt(argc, argv, (char *)":dp")) != EOF)
+    while ((c = ourGetopt(argc, argv, (char *)":dpP")) != EOF)
     {
         switch(c)
         {
@@ -920,6 +920,10 @@ int main(int argc, char **argv)
             
             case 'p':
                 ++pflg;
+                break;
+
+            case 'P':
+                ++Pflg;
                 break;
 
             case '?':
@@ -971,6 +975,12 @@ int main(int argc, char **argv)
 
     if(pflg) 
     {
+        printTree(savedTree, 1, 0);
+    }
+
+    if(Pflg) 
+    {
+        //TEMPORARY HOLDING FOR NOW
         printTree(savedTree, 1, 0);
     }
 
