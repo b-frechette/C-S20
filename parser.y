@@ -4,6 +4,7 @@
 #include <strings.h>
 #include "treeUtils.h"
 #include "scanType.h"
+#include "printtree.h"
 #include "ourGetopt.h"
 #include "semantic.h"
 
@@ -944,10 +945,10 @@ int main(int argc, char **argv)
         optind++;
     }
 
-    if(filerr == 1 || filerr == 0)
+    if(filerr == 1)
     {
-        //filename = fopen(oarg, "r");
-        filename = fopen("tests/tiny.c-", "r");
+        filename = fopen(oarg, "r");
+        //filename = fopen("tests/tiny.c-", "r");
 
         if(filename == NULL)
         {
