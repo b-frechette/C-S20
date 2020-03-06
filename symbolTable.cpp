@@ -112,6 +112,13 @@ void SymbolTable::print(void (*printData)(void*)) {
     printf("===========  ============  ===========\n");
 }
 
+// Apply function to each simple in the local scope.   The function gets both the
+// string and the associated pointer.
+void SymbolTable::applyToAll(void (*action)(std::string , void *))
+{
+    stack[stack.size()-1]->applyToAll(action);
+}
+
 void SymbolTable::applyToAllGlobal(void (*action)(std::string, void*)) {
     stack[0]->applyToAll(action);
 }
