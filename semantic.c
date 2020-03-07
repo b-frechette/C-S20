@@ -22,6 +22,7 @@ void semantic(TreeNode *syntaxTree)
     if(st.lookupGlobal("main") == NULL)
     {
         printf("ERROR(LINKER): Procedure main is not declared.\n");
+        numErrors++;
     }
 }
 
@@ -66,6 +67,7 @@ static void insertNode(TreeNode *t)
                 {
                     TreeNode *temp = st.lookupNode(t->attr.name);
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                    numErrors++;
                 }
                 break;
             case FuncK:
@@ -79,6 +81,7 @@ static void insertNode(TreeNode *t)
                 {
                     TreeNode *temp = st.lookupNode(t->attr.name);
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                    numErrors++;
                 }
                 st.enter(t->attr.name);
                 break;
@@ -89,6 +92,7 @@ static void insertNode(TreeNode *t)
                 {
                     TreeNode *temp = st.lookupNode(t->attr.name);
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                    numErrors++;
                 }
                 break;
             default:
@@ -105,9 +109,11 @@ static void insertNode(TreeNode *t)
             case ConstantK:
                 break;
             case IdK:
-                //st.lookup(t->attr.name);
                 if(st.lookup(t->attr.name) == NULL)
-                { printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name); }
+                { 
+                    printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name); 
+                    numErrors++;
+                }
                 else
                 { /* TO DO code here */ }
                 break;

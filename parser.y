@@ -10,6 +10,8 @@
 
 #define YYDEBUG 1
 
+int numErrors, numWarnings;
+
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
@@ -969,20 +971,30 @@ int main(int argc, char **argv)
         yyin = stdin;
     }
 
+    numErrors = 0;
+    numWarnings = 0;
+
     yyparse();
 
-    semantic(savedTree);
-
-    if(pflg) 
+    if(numErrors == 0)
     {
-        printTree(savedTree, 1, 0);
-    }
+        if(pflg) 
+        {
+            printTree(savedTree, 1, 0);
+        }
 
-    if(Pflg) 
-    {
-        //TEMPORARY HOLDING FOR NOW
-        printTree(savedTree, 1, 0);
+        semantic(savedTree);
+
+        if(Pflg) 
+        {
+            //TEMPORARY HOLDING FOR NOW
+            printTree(savedTree, 1, 0);
+        }
+
     }
+    
+    printf("Number of errors: %d\n", numErrors);
+    printf("Number of warnings: %d\n", numWarnings);
 
     return 0;
 }
