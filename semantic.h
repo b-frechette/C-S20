@@ -14,6 +14,8 @@ static void nullProcedure(TreeNode *t);
 
 char insertNode(TreeNode *t);
 
+void checkUse(std::string, void*);
+
 //SymbolTable st;
 
 #endif

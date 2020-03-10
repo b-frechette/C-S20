@@ -57,12 +57,7 @@ char insertNode(TreeNode *t)
         switch(t->kind.decl)
         {
             case VarK:
-                //printf("VarK\n");
-                if(st.lookup(t->attr.name) == NULL)     //Insert into table
-                {
-                    st.insert(t->attr.name, (TreeNode *)t);
-                }
-                else                                    //Already declared
+                if(!st.insert(t->attr.name, t))
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
@@ -76,17 +71,13 @@ char insertNode(TreeNode *t)
 
             case FuncK:
                 //printf("FuncK\n");
-                while(st.depth() > 1)                   //Leave out to Global Scope
-                {
-                    //Maybe do a check for leaving the scopes
-                    st.leave();
-                }                                    
+                // while(st.depth() > 1)                   //Leave out to Global Scope
+                // {
+                //     //Maybe do a check for leaving the scopes
+                //     st.leave();
+                // }                                    
 
-                if(st.lookup(t->attr.name) == NULL)     //Insert into table
-                {
-                    st.insert(t->attr.name, (TreeNode *)t);
-                }
-                else                                    //Already declared
+                if(!st.insert(t->attr.name, t))
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
@@ -102,12 +93,7 @@ char insertNode(TreeNode *t)
                 break;
 
             case ParamK:
-                //printf("ParamK\n");
-                if(st.lookup(t->attr.name) == NULL)     //Insert into table
-                {
-                    st.insert(t->attr.name, (TreeNode *)t);
-                }
-                else                                    //Already declared
+                if(!st.insert(t->attr.name, t))
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
@@ -151,7 +137,7 @@ char insertNode(TreeNode *t)
                     
                 }
                 break;
-            case AssignK:
+            case AssignK:   //check the children recurisively first
                 break;
             case CallK:
                 //printf("CallK\n");
@@ -228,11 +214,31 @@ char insertNode(TreeNode *t)
 
     if(scoped)
     {
+        st.applyToAll(checkUse);
         st.leave();
     }
 
     if(t->sibling != NULL)
     {
         insertNode(t->sibling); 
+    }
+}
+
+void checkUse(std::string sym, void* t)
+{
+    //Check for initialization and use before leaving scope
+    //TO DO:
+    // -> don't worry about many warnings - it will clear up once I get operators in
+    // -> use still needs to be implemented
+    TreeNode *temp;
+    temp = st.lookupNode(sym.c_str());
+
+    if(temp != NULL)
+    {
+        if(!temp->isInit)
+        {
+            printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", temp->lineno, temp->attr.name);
+            numWarnings++;
+        }
     }
 }
