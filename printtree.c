@@ -226,7 +226,7 @@ void printTree(TreeNode *tree, int indent, int sibling)
 void semanticPrintTree(TreeNode *tree, int indent, int sibling)
 {
     int i;
-    const char* types[] = {"void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
+    const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
 
     if(tree->nodekind == DeclK)
     {

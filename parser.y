@@ -470,8 +470,10 @@ iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
 
 iterationId             : ID    
                             { 
-                                $$ = newExpNode(IdK); 
+                                //$$ = newExpNode(IdK); 
+                                $$ = newDeclNode(VarK);
                                 $$->attr.name = $1->tokenstr;
+                                $$->expType = Integer;
                                 $$->lineno = $1->linenum;
                             }
                         ;
@@ -954,7 +956,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/defused.c-", "r");
+        //filename = fopen("tests/array.c-", "r");
 
         if(filename == NULL)
         {

@@ -147,6 +147,11 @@ void insertNode(TreeNode *t)
                         numErrors++;
                         // return UndefinedType;
                     }
+                    else
+                    {
+                        t->expType = temp->expType;
+                    }
+                    
                 }
                 break;
 
@@ -165,6 +170,22 @@ void insertNode(TreeNode *t)
             case WhileK:
                 break;
             case LoopK:
+                // Create a new scope
+                if(t->child[2] != NULL)                     //Apparently Null checking makes this work if it is not a compound????
+                {
+                    if(t->child[2]->kind.stmt == CompoundK) //Set the enteredScope bool to true for the following compound statement
+                    {
+                        t->child[2]->enteredScope = true;
+                    }
+                }
+                st.enter("Loop");
+                scoped = true;
+
+                //Declare the id
+                // if(t->child[0] != NULL)
+                // {
+                //     st.insert(t->child[0]->attr.name, t->child[0]);          //Already declared
+                // }
                 break;
             case LoopForeverK:
                 break;
