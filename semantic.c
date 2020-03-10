@@ -115,7 +115,12 @@ void insertNode(TreeNode *t)
                     else                                    //Assign the ID with a type   
                     {
                         t->expType = temp->expType;
-                        //return t->expType;
+
+                        if(temp->isInit == false)
+                        {
+                            printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, t->attr.name);
+                            numWarnings++;
+                        }
                     }
                     
                 }
@@ -123,13 +128,17 @@ void insertNode(TreeNode *t)
             case AssignK:   //check the children recurisively first
                 c1 = typeCheck(t->child[0]);
                 c2 = typeCheck(t->child[1]);
-                // printf("ASSIGN child 1 type is %d\n", c1);
-                // printf("ASSIGN child 2 type is %d\n", c2);
+
+                temp = st.lookupNode(t->child[0]->attr.name);
+                if(temp != NULL)
+                {
+                    temp->isInit = true;
+                    temp->isUsed = true;
+                }
 
                 //CHECKING FOR ASSIGNMENT GOES HERE (?)
 
                 t->expType = c1;                            //Assign it to the first child -- errors not handled here
-                //return t->expType;                        Causes major errors at the moment?
                 break;
             case CallK:
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
@@ -145,7 +154,6 @@ void insertNode(TreeNode *t)
                     {
                         printf("ERROR(%d): '%s' is a simple variable and cannot be called.\n", t->lineno, t->attr.name);
                         numErrors++;
-                        // return UndefinedType;
                     }
                     else
                     {
@@ -180,12 +188,6 @@ void insertNode(TreeNode *t)
                 }
                 st.enter("Loop");
                 scoped = true;
-
-                //Declare the id
-                // if(t->child[0] != NULL)
-                // {
-                //     st.insert(t->child[0]->attr.name, t->child[0]);          //Already declared
-                // }
                 break;
             case LoopForeverK:
                 break;
@@ -239,12 +241,11 @@ void checkUse(std::string sym, void* t)
 
     if(temp != NULL)
     {
-        //This should be checked AS IT IS BEING USED!
-        // if(!temp->isInit)
-        // {
-        //     printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
-        //     numWarnings++;
-        // }
+        if(temp->isUsed == false)
+        {
+            printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
+            numWarnings++;
+        }
     }
 }
 
@@ -266,8 +267,6 @@ ExpType typeCheck(TreeNode *t)
             case OpK:
                 c1 = typeCheck(t->child[0]);
                 c2 = typeCheck(t->child[1]);
-                // printf("OP %s child 1 type is %d\n", t->attr.name, c1);
-                // printf("OP %s child 2 type is %d\n", t->attr.name, c2);
 
                 //CHECKING FOR ASSIGNMENT GOES HERE (?)
 
@@ -295,14 +294,11 @@ ExpType typeCheck(TreeNode *t)
                         t->expType = temp->expType;
                         return t->expType;
                     }
-                    
                 }
                 break;
             case AssignK:   //check the children recurisively first
                 c1 = typeCheck(t->child[0]);
                 c2 = typeCheck(t->child[1]);
-                // printf("ASSIGN child 1 type is %d\n", c1);
-                // printf("ASSIGN child 2 type is %d\n", c2);
 
                 //CHECKING FOR ASSIGNMENT GOES HERE (?)
 
