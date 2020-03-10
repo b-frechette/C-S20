@@ -133,7 +133,7 @@ void insertNode(TreeNode *t)
                 if(temp != NULL)
                 {
                     temp->isInit = true;
-                    temp->isUsed = true;
+                    // temp->isUsed = true;
                 }
 
                 //CHECKING FOR ASSIGNMENT GOES HERE (?)
