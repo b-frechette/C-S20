@@ -288,13 +288,18 @@ ExpType typeCheck(TreeNode *t)
 
                 if(temp == NULL)                            //Not declared
                 {
-                    //??
+                    return UndefinedType;
                 }
                 else
                 {
                     if(temp->kind.decl != FuncK)            //Error in calling a function as a variable
                     {
                         return UndefinedType;
+                    }
+                    else
+                    {
+                        t->expType = temp->expType;
+                        return t->expType;
                     }
                 }
                 break;
