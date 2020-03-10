@@ -11,7 +11,7 @@ typedef enum {NullK, ElsifK, IfK, WhileK, LoopK, LoopForeverK, CompoundK, RangeK
 
 typedef enum {OpK, ConstantK, IdK, AssignK, InitK, CallK} ExpKind;
 
-typedef enum {Void, Integer, Boolean, Char, CharInt, Equal, UndefinedType} ExpType;
+typedef enum {Void, Integer, Boolean, Char, CharInt, Equal, UndefinedType, Error} ExpType;
 
 typedef enum {None, Local, Global, Parameter, LocalStatic} VarKind;
 
@@ -45,7 +45,8 @@ typedef struct treeNode
     ExpType expType;		      
     bool isArray;                          
     bool isStatic;  
-    bool isDeclared;                      
+    bool enteredScope;      //for compound statements
+    bool isInit;            //Check if a variable is initialized                  
 
 } TreeNode;
 

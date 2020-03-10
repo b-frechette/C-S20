@@ -8,16 +8,9 @@ SymbolTable st;
 
 void semantic(TreeNode *syntaxTree)
 {
-    //printf("Checkpoint\n");
-    traverse(syntaxTree, insertNode, nullProcedure);
+    insertNode(syntaxTree);
 
-    if(st.depth() > 1)
-    {
-        //do check for usage and other warnings here
-        st.leave();
-    }
-
-    // st.print(pointerPrintStr);
+    //st.print(pointerPrintStr);
 
     if(st.lookupGlobal("main") == NULL)
     {
@@ -26,77 +19,100 @@ void semantic(TreeNode *syntaxTree)
     }
 }
 
-static void traverse(TreeNode *t, void (* preProcedure) (TreeNode *), void (* postProcedure) (TreeNode *))
+ExpType TypeCheck(TreeNode *t)
 {
-    if(t != NULL)
+    TreeNode *temp = t;
+
+    if(t->kind.exp == IdK)
     {
-        preProcedure(t);
+        temp = st.lookupNode(t->attr.name); 
+
+        if(temp == NULL)                            //Not declared
         {
-           int i;
-           for(i = 0 ; i < MAXCHILDREN; i++)
-           {
-               traverse(t->child[i], preProcedure, postProcedure);
-           } 
+            return UndefinedType;
         }
-
-        postProcedure(t);
-        traverse(t->sibling, preProcedure, postProcedure);
+        else                                        //Is declared
+        {
+            if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
+            {
+                return Error;
+            }
+            return temp->expType;
+        }
     }
-}
-
-static void nullProcedure(TreeNode *t)
-{
-    if(t == NULL)
-        { return; }   
     else
-        { return; }
+    {
+        return t->expType;
+    }
 }
 
 static void insertNode(TreeNode *t)
 {
     int i;
+    TreeNode *temp;
 
     if(t->nodekind == DeclK)
     {
         switch(t->kind.decl)
         {
             case VarK:
-                if(st.lookup(t->attr.name) == NULL)
-                { st.insert(t->attr.name, t); }
-                else
+                //printf("VarK\n");
+                if(st.lookup(t->attr.name) == NULL)     //Insert into table
                 {
-                    TreeNode *temp = st.lookupNode(t->attr.name);
-                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                    st.insert(t->attr.name, (TreeNode *)t);
+                }
+                else                                    //Already declared
+                {
+                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
                 }
-                break;
-            case FuncK:
-                //Leave the scope of the last function
-                if(st.depth() > 1)
-                { st.leave(); }
 
-                if(st.lookup(t->attr.name) == NULL)
-                { st.insert(t->attr.name, t); }
-                else
+                if(t->child[0] != NULL)                 //If Initializing
                 {
-                    TreeNode *temp = st.lookupNode(t->attr.name);
-                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                    t->isInit = true;
+                }
+                break;
+
+            case FuncK:
+                //printf("FuncK\n");
+                while(st.depth() > 1)                   //Leave out to Global Scope
+                {
+                    //Maybe do a check for leaving the scopes
+                    st.leave();
+                }                                    
+
+                if(st.lookup(t->attr.name) == NULL)     //Insert into table
+                {
+                    st.insert(t->attr.name, (TreeNode *)t);
+                }
+                else                                    //Already declared
+                {
+                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
                 }
-                st.enter(t->attr.name);
+
+                if(t->child[1]->kind.stmt == CompoundK) //Set the enteredScope bool to true for the following compound statement
+                {
+                    t->child[1]->enteredScope = true;
+                }
+
+                st.enter(t->attr.name);                 //Enter a new scope
                 break;
+
             case ParamK:
-                if(st.lookup(t->attr.name) == NULL)
-                { st.insert(t->attr.name, t); }
-                else
+                //printf("ParamK\n");
+                if(st.lookup(t->attr.name) == NULL)     //Insert into table
                 {
-                    TreeNode *temp = st.lookupNode(t->attr.name);
-                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                    st.insert(t->attr.name, (TreeNode *)t);
+                }
+                else                                    //Already declared
+                {
+                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
                 }
                 break;
+
             default:
-                printf("error\n");
                 break;
         }
     }
@@ -105,24 +121,75 @@ static void insertNode(TreeNode *t)
         switch(t->kind.exp)
         {
             case OpK:
+                //printf("OpK\n");
                 break;
             case ConstantK:
+                //printf("ConstantK\n");
                 break;
             case IdK:
-                if(st.lookup(t->attr.name) == NULL)
-                { 
-                    printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name); 
+                //printf("IdK\n");
+                temp = st.lookupNode(t->attr.name);        //Assign return of lookupNode to temporary TreeNode
+
+                if(temp == NULL)                            //Not declared
+                {
+                    printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
+                    numErrors++;
+                }
+                else                                        //Is declared
+                {
+                    if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
+                    {
+                        printf("ERROR(%d): Cannot use function '%s' as a variable.\n", t->lineno, t->attr.name);
+                        numErrors++;
+                    }
+                    else                                    //Assign the ID with a type   
+                    {
+                        t->expType = temp->expType;
+                    }
+                    
+                }
+                break;
+            case AssignK:
+                //printf("AssignK\n");
+                // ExpType child1, child2;
+
+                // child1 = TypeCheck(t->child[0]);
+                // child2 = TypeCheck(t->child[1]);
+
+                // if(child1 == Error || child2 == Error || child1 == UndefinedType)      //Iff Function -- Let IdK handle
+                // {
+                //     break;
+                // }
+                // else if(child1 != child2)
+                // {
+                //     printf("ERROR(%d): '%s' requires operands of the same type but lhs is %d and rhs is %d.\n", t->lineno, t->attr.name, child1, child2);
+                //     numErrors++;
+                // }
+                // else
+                // {
+                //     t->child[0]->isInit = true;
+                // }
+                break;
+            case CallK:
+                //printf("CallK\n");
+                temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
+
+                if(temp == NULL)                            //Not declared
+                {
+                    printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
                     numErrors++;
                 }
                 else
-                { /* TO DO code here */ }
+                {
+                    if(temp->kind.decl != FuncK)            //Error in calling a function as a variable
+                    {
+                        printf("ERROR(%d): '%s' is a simple variable and cannot be called.\n", t->lineno, t->attr.name);
+                        numErrors++;
+                    }
+                }
                 break;
-            case AssignK:
-                break;
-            case CallK:
-                break;
+
             default:
-                printf("error\n");
                 break;
         }
     }
@@ -131,31 +198,52 @@ static void insertNode(TreeNode *t)
         switch(t->kind.stmt)
         {
             case ElsifK:
+                //printf("ElsifK\n");
                 break;
             case IfK:
+                //printf("IfK\n");
                 break;
             case WhileK:
+                //printf("WhileK\n");
                 break;
             case LoopK:
+                //printf("LoopK\n");
                 break;
             case LoopForeverK:
+                //printf("LoopForeverK\n");
                 break;
             case CompoundK:
+                //printf("CompoundK\n");
+                if(!t->enteredScope)
+                {
+                    st.enter("Compound Scope"); 
+                }
                 break;
+
             case RangeK:
+                //printf("RangeK\n");
                 break;
             case ReturnK:
+                //printf("ReturnK\n");
                 break;
             case BreakK:
-
+                //printf("BreakK\n");
                 break;
             default:
-                printf("error\n");
                  break;
          }
     }
-    else
+
+    for(i = 0; i < MAXCHILDREN; i++)
     {
-        printf("ERROR: Unkown Node\n");
+        if(t->child[i] != NULL)
+        {
+            insertNode(t->child[i]);
+        }
+    }
+
+    if(t->sibling != NULL)
+    {
+        insertNode(t->sibling); 
     }
 }

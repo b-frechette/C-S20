@@ -13,4 +13,6 @@
 */
 void printTree(TreeNode *, int, int);
 
+void semanticPrintTree(TreeNode *, int, int);
+
 #endif

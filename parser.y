@@ -987,14 +987,13 @@ int main(int argc, char **argv)
 
         if(Pflg) 
         {
-            //TEMPORARY HOLDING FOR NOW
-            printTree(savedTree, 1, 0);
+            semanticPrintTree(savedTree, 1, 0);
         }
 
     }
     
-    printf("Number of errors: %d\n", numErrors);
     printf("Number of warnings: %d\n", numWarnings);
+    printf("Number of errors: %d\n", numErrors);
 
     return 0;
 }
