@@ -951,10 +951,10 @@ int main(int argc, char **argv)
         optind++;
     }
 
-    if(filerr == 1 )
+    if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/defused.c-", "r");
+        //filename = fopen("tests/exp.c-", "r");
 
         if(filename == NULL)
         {

@@ -19,36 +19,10 @@ void semantic(TreeNode *syntaxTree)
     }
 }
 
-ExpType TypeCheck(TreeNode *t)
-{
-    TreeNode *temp = t;
-
-    if(t->kind.exp == IdK)
-    {
-        temp = st.lookupNode(t->attr.name); 
-
-        if(temp == NULL)                            //Not declared
-        {
-            return UndefinedType;
-        }
-        else                                        //Is declared
-        {
-            if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
-            {
-                return Error;
-            }
-            return temp->expType;
-        }
-    }
-    else
-    {
-        return t->expType;
-    }
-}
-
-ExpType insertNode(TreeNode *t)
+void insertNode(TreeNode *t)
 {
     int i;
+    ExpType c1, c2;
     bool scoped = false;
     TreeNode *temp;
 
@@ -102,19 +76,28 @@ ExpType insertNode(TreeNode *t)
         switch(t->kind.exp)
         {
             case OpK:
+                c1 = typeCheck(t->child[0]);
+                c2 = typeCheck(t->child[1]);
+                // printf("OP %s child 1 type is %d\n", t->attr.name, c1);
+                // printf("OP %s child 2 type is %d\n", t->attr.name, c2);
+
+                //CHECKING FOR ASSIGNMENT GOES HERE (?)
+
+                t->expType = c1;                            //Assign it to the first child -- errors not handled here
+                //return t->expType;                        Causes major errors at the moment?
+                break;
                 break;
             case ConstantK:
-                return t->expType;
+                //return t->expType;
                 break;
             case IdK:
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
-
                 if(temp == NULL)                            //Not declared
                 {
                     t->expType = UndefinedType;             //Set to undefined type
                     printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
                     numErrors++;
-                    return t->expType;
+                    //return t->expType;
                 }
                 else                                        //Is declared
                 {
@@ -122,22 +105,21 @@ ExpType insertNode(TreeNode *t)
                     {
                         printf("ERROR(%d): Cannot use function '%s' as a variable.\n", t->lineno, t->attr.name);
                         numErrors++;
-                        return t->expType; 
+                        //return UndefinedType; 
                     }
                     else                                    //Assign the ID with a type   
                     {
                         t->expType = temp->expType;
-                        return t->expType;
+                        //return t->expType;
                     }
                     
                 }
                 break;
             case AssignK:   //check the children recurisively first
-                ExpType c1, c2;
-                c1 = insertNode(t->child[0]);
-                c2 = insertNode(t->child[1]);
-                printf("ASSIGN child 1 type is %d\n", c1);
-                printf("ASSIGN child 2 type is %d\n", c2);
+                c1 = typeCheck(t->child[0]);
+                c2 = typeCheck(t->child[1]);
+                // printf("ASSIGN child 1 type is %d\n", c1);
+                // printf("ASSIGN child 2 type is %d\n", c2);
 
                 //CHECKING FOR ASSIGNMENT GOES HERE (?)
 
@@ -231,10 +213,137 @@ void checkUse(std::string sym, void* t)
 
     if(temp != NULL)
     {
-        if(!temp->isInit)
+        //This should be checked AS IT IS BEING USED!
+        // if(!temp->isInit)
+        // {
+        //     printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+        //     numWarnings++;
+        // }
+    }
+}
+
+ExpType typeCheck(TreeNode *t)
+{
+    int i;
+    ExpType c1, c2;
+    TreeNode *temp;
+    
+    if(t == NULL)
+    {
+        return Error;
+    }
+
+    if(t->nodekind == ExpK)
+    {
+        switch(t->kind.exp)
         {
-            printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", temp->lineno, temp->attr.name);
-            numWarnings++;
+            case OpK:
+                c1 = typeCheck(t->child[0]);
+                c2 = typeCheck(t->child[1]);
+                // printf("OP %s child 1 type is %d\n", t->attr.name, c1);
+                // printf("OP %s child 2 type is %d\n", t->attr.name, c2);
+
+                //CHECKING FOR ASSIGNMENT GOES HERE (?)
+
+                t->expType = c1;                            //Assign it to the first child -- errors not handled here
+                return t->expType;                          //Causes major errors at the moment?
+                break;
+            case ConstantK:
+                return t->expType;
+                break;
+            case IdK:
+                temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
+                if(temp == NULL)                            //Not declared
+                {
+                    t->expType = UndefinedType;             //Set to undefined type
+                    return t->expType;
+                }
+                else                                        //Is declared
+                {
+                    if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
+                    {
+                        return UndefinedType; 
+                    }
+                    else                                    //Assign the ID with a type   
+                    {
+                        t->expType = temp->expType;
+                        return t->expType;
+                    }
+                    
+                }
+                break;
+            case AssignK:   //check the children recurisively first
+                c1 = typeCheck(t->child[0]);
+                c2 = typeCheck(t->child[1]);
+                // printf("ASSIGN child 1 type is %d\n", c1);
+                // printf("ASSIGN child 2 type is %d\n", c2);
+
+                //CHECKING FOR ASSIGNMENT GOES HERE (?)
+
+                t->expType = c1;                            //Assign it to the first child -- errors not handled here
+                return t->expType;                          //Causes major errors at the moment?
+                break;
+            case CallK:
+                temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
+
+                if(temp == NULL)                            //Not declared
+                {
+                    //??
+                }
+                else
+                {
+                    if(temp->kind.decl != FuncK)            //Error in calling a function as a variable
+                    {
+                        return UndefinedType;
+                    }
+                }
+                break;
+
+            default:
+                break;
         }
+    }
+    else if(t->nodekind == StmtK)
+    {
+        switch(t->kind.stmt)
+        {
+            case ElsifK:
+                break;
+            case IfK:
+                break;
+            case WhileK:
+                break;
+            case LoopK:
+                break;
+            case LoopForeverK:
+                break;
+            case CompoundK:
+                break;
+            case RangeK:
+                break;
+            case ReturnK:
+                break;
+            case BreakK:
+                break;
+            default:
+                 break;
+         }
+    }
+    else
+    {
+        printf("ERROR: Unkown Node\n");
+    }
+
+    for(i = 0; i < MAXCHILDREN; i++)
+    {
+        if(t->child[i] != NULL)
+        {
+            insertNode(t->child[i]);
+        }
+    }
+
+    if(t->sibling != NULL)
+    {
+        insertNode(t->sibling); 
     }
 }

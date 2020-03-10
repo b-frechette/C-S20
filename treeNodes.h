@@ -46,7 +46,8 @@ typedef struct treeNode
     bool isArray;                          
     bool isStatic;  
     bool enteredScope;      //for compound statements
-    bool isInit;            //Check if a variable is initialized                  
+    bool isInit;            //Check if a variable is initialized  
+    bool checked;                
 
 } TreeNode;
 

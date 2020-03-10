@@ -226,6 +226,7 @@ void printTree(TreeNode *tree, int indent, int sibling)
 void semanticPrintTree(TreeNode *tree, int indent, int sibling)
 {
     int i;
+    const char* types[] = {"void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
 
     if(tree->nodekind == DeclK)
     {
@@ -346,30 +347,30 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
         switch(tree->kind.exp)
         {
             case OpK:
-                printf("Op: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                printf("Op: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
                 break;
             case ConstantK:
                 switch (tree->expType)
                 {
                     case Char:
-                        printf("Const: \"%s\" [type: %d] [line: %d]\n", tree->attr.string, tree->expType, tree->lineno);
+                        printf("Const: \"%s\" [%s] [line: %d]\n", tree->attr.string, types[tree->expType], tree->lineno);
                         break;
                     case CharInt:
-                        printf("Const: '%c' [type: %d] [line: %d]\n", tree->attr.cvalue, tree->expType, tree->lineno);
+                        printf("Const: '%c' [%s] [line: %d]\n", tree->attr.cvalue, types[tree->expType], tree->lineno);
                         break;
                     default:
-                        printf("Const: %s [type: %d] [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
+                        printf("Const: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
                         break;
                 }
                 break;
             case IdK:
-                printf("Id: %s [type: %d] [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
+                printf("Id: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
                 break;
             case AssignK:
-                printf("Assign: %s [type: %d] [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
+                printf("Assign: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
                 break;
             case CallK:
-                printf("Call: %s [type: %d] [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
+                printf("Call: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
                 break;
             default:
                 printf("error\n");
