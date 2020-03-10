@@ -57,7 +57,7 @@ char insertNode(TreeNode *t)
         switch(t->kind.decl)
         {
             case VarK:
-                if(!st.insert(t->attr.name, t))
+                if(!st.insert(t->attr.name, t))         //Already declared
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
@@ -69,15 +69,8 @@ char insertNode(TreeNode *t)
                 }
                 break;
 
-            case FuncK:
-                //printf("FuncK\n");
-                // while(st.depth() > 1)                   //Leave out to Global Scope
-                // {
-                //     //Maybe do a check for leaving the scopes
-                //     st.leave();
-                // }                                    
-
-                if(!st.insert(t->attr.name, t))
+            case FuncK:                                  
+                if(!st.insert(t->attr.name, t))         //Already declared
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
@@ -89,11 +82,11 @@ char insertNode(TreeNode *t)
                 }
 
                 st.enter(t->attr.name);                 //Enter a new scope
-                scoped = true;
+                scoped = true;                          //Entered scope bool set
                 break;
 
             case ParamK:
-                if(!st.insert(t->attr.name, t))
+                if(!st.insert(t->attr.name, t))         //Already declared
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
@@ -109,17 +102,15 @@ char insertNode(TreeNode *t)
         switch(t->kind.exp)
         {
             case OpK:
-                //printf("OpK\n");
                 break;
             case ConstantK:
-                //printf("ConstantK\n");
                 break;
             case IdK:
-                //printf("IdK\n");
-                temp = st.lookupNode(t->attr.name);        //Assign return of lookupNode to temporary TreeNode
+                temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
 
                 if(temp == NULL)                            //Not declared
                 {
+                    t->expType = UndefinedType;             //Set to undefined type
                     printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
                     numErrors++;
                 }
@@ -127,6 +118,7 @@ char insertNode(TreeNode *t)
                 {
                     if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
                     {
+                        t->expType = UndefinedType;         //Set to undefined type
                         printf("ERROR(%d): Cannot use function '%s' as a variable.\n", t->lineno, t->attr.name);
                         numErrors++;
                     }
@@ -140,7 +132,6 @@ char insertNode(TreeNode *t)
             case AssignK:   //check the children recurisively first
                 break;
             case CallK:
-                //printf("CallK\n");
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
 
                 if(temp == NULL)                            //Not declared
@@ -167,23 +158,17 @@ char insertNode(TreeNode *t)
         switch(t->kind.stmt)
         {
             case ElsifK:
-                //printf("ElsifK\n");
                 break;
             case IfK:
-                //printf("IfK\n");
                 break;
             case WhileK:
-                //printf("WhileK\n");
                 break;
             case LoopK:
-                //printf("LoopK\n");
                 break;
             case LoopForeverK:
-                //printf("LoopForeverK\n");
                 break;
             case CompoundK:
-                //printf("CompoundK\n");
-                if(!t->enteredScope)
+                if(!t->enteredScope)                    //Check that it is not a function scope before
                 {
                     st.enter("Compound Scope"); 
                     scoped = true;
@@ -191,13 +176,10 @@ char insertNode(TreeNode *t)
                 break;
 
             case RangeK:
-                //printf("RangeK\n");
                 break;
             case ReturnK:
-                //printf("ReturnK\n");
                 break;
             case BreakK:
-                //printf("BreakK\n");
                 break;
             default:
                  break;
@@ -212,7 +194,7 @@ char insertNode(TreeNode *t)
         }
     }
 
-    if(scoped)
+    if(scoped)                          //Leaves the scope as recursive function backtracks
     {
         st.applyToAll(checkUse);
         st.leave();
