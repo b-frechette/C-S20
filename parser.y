@@ -954,7 +954,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/call.c-", "r");
+        //filename = fopen("tests/defused.c-", "r");
 
         if(filename == NULL)
         {

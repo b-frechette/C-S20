@@ -50,13 +50,18 @@ void insertNode(TreeNode *t)
                     numErrors++;
                 }
 
-                if(t->child[1]->kind.stmt == CompoundK) //Set the enteredScope bool to true for the following compound statement
+                if(t->child[1] != NULL)                     //Apparently Null checking makes this work if it is not a compound????
                 {
-                    t->child[1]->enteredScope = true;
+                    if(t->child[1]->kind.stmt == CompoundK) //Set the enteredScope bool to true for the following compound statement
+                    {
+                        t->child[1]->enteredScope = true;
+                    }
                 }
+                
 
                 st.enter(t->attr.name);                 //Enter a new scope
                 scoped = true;                          //Entered scope bool set
+
                 break;
 
             case ParamK:
