@@ -12,7 +12,7 @@ static void traverse(TreeNode *t, void (*preProcedure) (TreeNode *), void (*post
 
 static void nullProcedure(TreeNode *t);
 
-static void insertNode(TreeNode *t);
+char insertNode(TreeNode *t);
 
 //SymbolTable st;
 

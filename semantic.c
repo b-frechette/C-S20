@@ -10,7 +10,7 @@ void semantic(TreeNode *syntaxTree)
 {
     insertNode(syntaxTree);
 
-    //st.print(pointerPrintStr);
+    st.print(pointerPrintStr);
 
     if(st.lookupGlobal("main") == NULL)
     {
@@ -46,9 +46,10 @@ ExpType TypeCheck(TreeNode *t)
     }
 }
 
-static void insertNode(TreeNode *t)
+char insertNode(TreeNode *t)
 {
     int i;
+    bool scoped = false;
     TreeNode *temp;
 
     if(t->nodekind == DeclK)
@@ -97,6 +98,7 @@ static void insertNode(TreeNode *t)
                 }
 
                 st.enter(t->attr.name);                 //Enter a new scope
+                scoped = true;
                 break;
 
             case ParamK:
@@ -150,25 +152,6 @@ static void insertNode(TreeNode *t)
                 }
                 break;
             case AssignK:
-                //printf("AssignK\n");
-                // ExpType child1, child2;
-
-                // child1 = TypeCheck(t->child[0]);
-                // child2 = TypeCheck(t->child[1]);
-
-                // if(child1 == Error || child2 == Error || child1 == UndefinedType)      //Iff Function -- Let IdK handle
-                // {
-                //     break;
-                // }
-                // else if(child1 != child2)
-                // {
-                //     printf("ERROR(%d): '%s' requires operands of the same type but lhs is %d and rhs is %d.\n", t->lineno, t->attr.name, child1, child2);
-                //     numErrors++;
-                // }
-                // else
-                // {
-                //     t->child[0]->isInit = true;
-                // }
                 break;
             case CallK:
                 //printf("CallK\n");
@@ -217,6 +200,7 @@ static void insertNode(TreeNode *t)
                 if(!t->enteredScope)
                 {
                     st.enter("Compound Scope"); 
+                    scoped = true;
                 }
                 break;
 
@@ -240,6 +224,11 @@ static void insertNode(TreeNode *t)
         {
             insertNode(t->child[i]);
         }
+    }
+
+    if(scoped)
+    {
+        st.leave();
     }
 
     if(t->sibling != NULL)
