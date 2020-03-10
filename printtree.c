@@ -352,13 +352,13 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
                 switch (tree->expType)
                 {
                     case Char:
-                        printf("Const: \"%s\" [line: %d]\n", tree->attr.string, tree->lineno);
+                        printf("Const: \"%s\" [type: %d] [line: %d]\n", tree->attr.string, tree->expType, tree->lineno);
                         break;
                     case CharInt:
-                        printf("Const: '%c' [line: %d]\n", tree->attr.cvalue, tree->lineno);
+                        printf("Const: '%c' [type: %d] [line: %d]\n", tree->attr.cvalue, tree->expType, tree->lineno);
                         break;
                     default:
-                        printf("Const: %s [line: %d]\n", tree->attr.name, tree->lineno);
+                        printf("Const: %s [type: %d] [line: %d]\n", tree->attr.name, tree->expType, tree->lineno);
                         break;
                 }
                 break;

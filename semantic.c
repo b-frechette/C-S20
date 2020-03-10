@@ -10,7 +10,7 @@ void semantic(TreeNode *syntaxTree)
 {
     insertNode(syntaxTree);
 
-    st.print(pointerPrintStr);
+    //st.print(pointerPrintStr);
 
     if(st.lookupGlobal("main") == NULL)
     {
@@ -46,7 +46,7 @@ ExpType TypeCheck(TreeNode *t)
     }
 }
 
-char insertNode(TreeNode *t)
+ExpType insertNode(TreeNode *t)
 {
     int i;
     bool scoped = false;
@@ -104,6 +104,7 @@ char insertNode(TreeNode *t)
             case OpK:
                 break;
             case ConstantK:
+                return t->expType;
                 break;
             case IdK:
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
@@ -113,23 +114,35 @@ char insertNode(TreeNode *t)
                     t->expType = UndefinedType;             //Set to undefined type
                     printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
                     numErrors++;
+                    return t->expType;
                 }
                 else                                        //Is declared
                 {
                     if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
                     {
-                        t->expType = UndefinedType;         //Set to undefined type
                         printf("ERROR(%d): Cannot use function '%s' as a variable.\n", t->lineno, t->attr.name);
                         numErrors++;
+                        return t->expType; 
                     }
                     else                                    //Assign the ID with a type   
                     {
                         t->expType = temp->expType;
+                        return t->expType;
                     }
                     
                 }
                 break;
             case AssignK:   //check the children recurisively first
+                ExpType c1, c2;
+                c1 = insertNode(t->child[0]);
+                c2 = insertNode(t->child[1]);
+                printf("ASSIGN child 1 type is %d\n", c1);
+                printf("ASSIGN child 2 type is %d\n", c2);
+
+                //CHECKING FOR ASSIGNMENT GOES HERE (?)
+
+                t->expType = c1;                            //Assign it to the first child -- errors not handled here
+                //return t->expType;                        Causes major errors at the moment?
                 break;
             case CallK:
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
@@ -145,6 +158,7 @@ char insertNode(TreeNode *t)
                     {
                         printf("ERROR(%d): '%s' is a simple variable and cannot be called.\n", t->lineno, t->attr.name);
                         numErrors++;
+                        // return UndefinedType;
                     }
                 }
                 break;

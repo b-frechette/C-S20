@@ -12,7 +12,7 @@ static void traverse(TreeNode *t, void (*preProcedure) (TreeNode *), void (*post
 
 static void nullProcedure(TreeNode *t);
 
-char insertNode(TreeNode *t);
+ExpType insertNode(TreeNode *t);
 
 void checkUse(std::string, void*);
 
