@@ -99,126 +99,107 @@ ExpType insertNode(TreeNode *t)
                     t->child[1]->isChecked = true;
                 }
 
-                //A real unideal way to check
-                if(strncmp(t->attr.name, "or", 2) == 0)
+                switch(t->op)
                 {
-                    if(c1 != Boolean)
-                    {
-                        printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
-                        numErrors++;
-                    }
-                    if(c2 != Boolean)
-                    {
-                        printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
-                        numErrors++;
-                    }
-                    t->expType = Boolean;
-                }
-                else if(strncmp(t->attr.name, "and", 3) == 0)
-                {
-                    if(c1 != Boolean)
-                    {
-                        printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
-                        numErrors++;
-                    }
-                    if(c2 != Boolean)
-                    {
-                        printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
-                        numErrors++;
-                    }
-                    t->expType = Boolean;
-                }
-                else if(strncmp(t->attr.name, "not", 3) == 0)
-                {
-                    // printf("not\n");
-                    t->expType = Boolean;
-                }
-                else if(strncmp(t->attr.name, "==", 2) == 0)
-                {
-                    if(c1 != c2)
-                    {
-                        printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
-                        numErrors++;
-                    }
-                    t->expType = Boolean;
-                }
-                else if(strncmp(t->attr.name, "!=", 2) == 0)
-                {
-                    if(c1 != c2)
-                    {
-                        printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
-                        numErrors++;
-                    }
-                    t->expType = Boolean;
-                }
-                else if(strncmp(t->attr.name, "<=", 2) == 0)
-                {
-                    if(c1 != Integer)
-                    {
-                        printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
-                        numErrors++;
-                    }
-                    if(c2 != Integer)
-                    {
-                        printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
-                        numErrors++;
-                    }
-                    t->expType = Boolean;
-                }
-                else if(strncmp(t->attr.name, "<", 1) == 0)
-                {
-                    // printf("<\n");
-                    t->expType = Boolean;
-                }
-                else if(strncmp(t->attr.name, ">=", 2) == 0)
-                {
-                    // printf(">=\n");
-                    t->expType = Boolean;
-                }
-                else if(strncmp(t->attr.name, ">", 1) == 0)
-                {
-                    // printf(">\n");
-                    t->expType = Boolean;
-                }
-                else if(strncmp(t->attr.name, "*", 1) == 0)
-                {
-                    // printf("*\n");
-                    t->expType = Integer;
-                }
-                else if(strncmp(t->attr.name, "+", 1) == 0)
-                {
-                    // printf("+\n");
-                    t->expType = Integer;
-                }
-                else if(strncmp(t->attr.name, "-", 1) == 0)
-                {
-                    // printf("-\n");
-                    t->expType = Integer;
-                }
-                else if(strncmp(t->attr.name, "/", 1) == 0)
-                {
-                    // printf("/\n");
-                    t->expType = Integer;
-                }
-                else if(strncmp(t->attr.name, "%", 1) == 0)
-                {
-                    // printf("%%\n");
-                    t->expType = Integer;
-                }
-                else if(strncmp(t->attr.name, "[", 1) == 0)
-                {
-                    // printf("%%\n");
-                    t->expType = c1;
-                }
-                else if(strncmp(t->attr.name, "?", 1) == 0)
-                {
-                    // printf("%%\n");
-                    t->expType = Integer;
+                    case 1:         //OR
+                        // if(c1 != Boolean)
+                        // {
+                        //     printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
+                        //     numErrors++;
+                        // }
+                        // if(c2 != Boolean)
+                        // {
+                        //     printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
+                        //     numErrors++;
+                        // }
+                        t->expType = Boolean;
+                        break;
+                    
+                    case 2:     //AND
+                        if(c1 != Boolean)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
+                            numErrors++;
+                        }
+                        if(c2 != Boolean)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
+                            numErrors++;
+                        }
+                        t->expType = Boolean;
+                        break;
+
+                    case 3:     //NOT
+                        t->expType = Boolean;
+                        break;
+
+                    case 4:     //relop
+                        if(strncmp(t->attr.name, "==", 2)== 0 || strncmp(t->attr.name, "!=", 2)== 0)
+                        {
+                            if(c1 != c2)
+                            {
+                                printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
+                                numErrors++;
+                            }
+                            t->expType = Boolean;
+                        }
+                        //also do the <,<=,>=,>
+                        break;
+
+                    case 5:     //sumop
+                        if(c1 != Integer)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                            numErrors++;
+                        }
+                        if(c2 != Integer)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
+                            numErrors++;
+                        }
+                        t->expType = Integer;
+                        break;
+
+                    case 6:     //mulop
+                        if(c1 != Integer)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                            numErrors++;
+                        }
+                        if(c2 != Integer)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
+                            numErrors++;
+                        }
+                        t->expType = Integer;
+                        break;
+
+                    case 7:     //unaryop
+                        if(strncmp(t->attr.name, "*", 1)== 0)
+                        {
+                            //TO DO
+                        }
+                        else    // - & ?
+                        {
+                            if(c1 != Integer)
+                            {
+                                printf("ERROR(%d): Unary '%s' requires an operand of %s but was given %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                                numErrors++;
+                            }
+                        }
+                        t->expType = Integer;
+                        break;
+
+                    case 8:     // [
+                        // printf("case %s\n", t->attr.name);
+                        //To do type check the two arguments
+                        t->expType = t->child[0]->expType; //lhs
+                        break;
+
+                    default:
+                        break;
                 }
 
-                // //CHECKING FOR ASSIGNMENT GOES HERE (?)
-
-                //t->expType = c1;                            //Assign it to the first child -- errors not handled here
                 returns = t->expType;
                 break;
 
@@ -276,6 +257,12 @@ ExpType insertNode(TreeNode *t)
                 {
                     // printf("<\n");
                     t->expType = Integer;
+
+                    if(c1 != Integer)
+                    {
+                        printf("ERROR(%d): Unary '%s' requires an operand of %s but was given %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                        numErrors++;
+                    }
                 }
                 else if(strncmp(t->attr.name, "++", 2) == 0)
                 {
@@ -285,7 +272,6 @@ ExpType insertNode(TreeNode *t)
                 else if(strncmp(t->attr.name, "=", 1) == 0)
                 {
                     // printf("<\n");
-                    t->expType = c1;
                     if(c1 == UndefinedType || c2 == UndefinedType)
                     {
                         //Do nothing?
@@ -295,6 +281,7 @@ ExpType insertNode(TreeNode *t)
                         printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
                         numErrors++;
                     } 
+                    t->expType = c1;
                 }
                 else
                 {

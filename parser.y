@@ -693,6 +693,7 @@ simpleExpression        : simpleExpression OR andExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 1;         
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -705,6 +706,7 @@ andExpression           : andExpression AND unaryRelExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 2;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -716,6 +718,7 @@ unaryRelExpression      : NOT unaryRelExpression
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $2;
+                                $$->op = 3;
                                 $$->attr.name = $1->tokenstr; 
                                 $$->lineno = $1->linenum;
                             }
@@ -728,6 +731,7 @@ relExpression           : relExpression relop sumExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 4;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -754,6 +758,7 @@ sumExpression           : sumExpression sumop mulExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 5;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -772,6 +777,7 @@ mulExpression           : mulExpression mulop unaryExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 6;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -791,6 +797,7 @@ unaryExpression         : unaryop unaryExpression
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $2;
+                                $$->op = 7;
                                 $$->attr.name = $1->tokenstr;
                                 $$->lineno = $1->linenum;
                             }
@@ -823,6 +830,7 @@ mutable                 : ID
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;
+                                $$->op = 8;
                                 $$->attr.name = $2->tokenstr;
                                 $$->lineno = $2->linenum;
                             }
@@ -881,8 +889,8 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.cvalue = $1->charValue;
-                                $$->expType = CharInt;
-                                // $$->expType = Char;
+                                //$$->expType = CharInt;
+                                $$->expType = Char;
                                 $$->lineno = $1->linenum;
                             }      
                         | STRINGCONST    

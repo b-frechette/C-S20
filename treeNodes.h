@@ -26,7 +26,8 @@ typedef struct treeNode
     struct treeNode *sibling;            
 
     int lineno;                          
-    NodeKind nodekind;                   
+    NodeKind nodekind;   
+    OpKind op;                
     union                               
     {
 	    DeclKind decl;                    
@@ -35,8 +36,7 @@ typedef struct treeNode
     } kind;
     
     union                                 
-    {
-        OpKind op;                         
+    {                         
 	    int value;                        
         unsigned char cvalue;           
 	    char *string;                     
