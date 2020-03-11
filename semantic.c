@@ -286,7 +286,11 @@ ExpType insertNode(TreeNode *t)
                 {
                     // printf("<\n");
                     t->expType = c1;
-                    if(c1 != c2)                       //if they are not equal
+                    if(c1 == UndefinedType || c2 == UndefinedType)
+                    {
+                        //Do nothing?
+                    }
+                    else if(c1 != c2)                       //if they are not equal
                     { 
                         printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
                         numErrors++;
