@@ -12,11 +12,13 @@ static void traverse(TreeNode *t, void (*preProcedure) (TreeNode *), void (*post
 
 static void nullProcedure(TreeNode *t);
 
-void insertNode(TreeNode *t);
+ExpType insertNode(TreeNode *t);
 
 void checkUse(std::string, void*);
 
 ExpType typeCheck(TreeNode *t);
+
+int getOpKind(TreeNode *t);
 
 //SymbolTable st;
 

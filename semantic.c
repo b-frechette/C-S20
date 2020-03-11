@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include "treeNodes.h"
 #include "symbolTable.h"
@@ -19,13 +20,16 @@ void semantic(TreeNode *syntaxTree)
     }
 }
 
-void insertNode(TreeNode *t)
+ExpType insertNode(TreeNode *t)
 {
     int i;
-    ExpType c1, c2;
+    ExpType c1, c2, returns;
     bool scoped = false;
     const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
     TreeNode *temp;
+
+    if(t == NULL)
+    {return Error;}
 
     if(t->nodekind == DeclK)
     {
@@ -42,6 +46,8 @@ void insertNode(TreeNode *t)
                 {
                     t->isInit = true;
                 }
+
+                returns = t->expType;
                 break;
 
             case FuncK:                                  
@@ -62,7 +68,7 @@ void insertNode(TreeNode *t)
 
                 st.enter(t->attr.name);                 //Enter a new scope
                 scoped = true;                          //Entered scope bool set
-
+                returns = t->expType;
                 break;
 
             case ParamK:
@@ -71,9 +77,11 @@ void insertNode(TreeNode *t)
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
                 }
+                returns = t->expType;
                 break;
 
             default:
+                returns = Error;
                 break;
         }
     }
@@ -82,16 +90,140 @@ void insertNode(TreeNode *t)
         switch(t->kind.exp)
         {
             case OpK:
-                c1 = typeCheck(t->child[0]);
-                c2 = typeCheck(t->child[1]);
+                c1 = insertNode(t->child[0]);       //Get the types of the children
+                c2 = insertNode(t->child[1]);
 
-                //CHECKING FOR ASSIGNMENT GOES HERE (?)
+                t->child[0]->isChecked = true;      //Mark them as already checked
+                if(t->child[1] != NULL)
+                {
+                    t->child[1]->isChecked = true;
+                }
 
-                t->expType = c1;                            //Assign it to the first child -- errors not handled here
+                //A real unideal way to check
+                if(strncmp(t->attr.name, "or", 2) == 0)
+                {
+                    if(c1 != Boolean)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
+                        numErrors++;
+                    }
+                    if(c2 != Boolean)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
+                        numErrors++;
+                    }
+                    t->expType = Boolean;
+                }
+                else if(strncmp(t->attr.name, "and", 3) == 0)
+                {
+                    if(c1 != Boolean)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
+                        numErrors++;
+                    }
+                    if(c2 != Boolean)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
+                        numErrors++;
+                    }
+                    t->expType = Boolean;
+                }
+                else if(strncmp(t->attr.name, "not", 3) == 0)
+                {
+                    // printf("not\n");
+                    t->expType = Boolean;
+                }
+                else if(strncmp(t->attr.name, "==", 2) == 0)
+                {
+                    if(c1 != c2)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
+                        numErrors++;
+                    }
+                    t->expType = Boolean;
+                }
+                else if(strncmp(t->attr.name, "!=", 2) == 0)
+                {
+                    if(c1 != c2)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
+                        numErrors++;
+                    }
+                    t->expType = Boolean;
+                }
+                else if(strncmp(t->attr.name, "<=", 2) == 0)
+                {
+                    if(c1 != Integer)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                        numErrors++;
+                    }
+                    if(c2 != Integer)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
+                        numErrors++;
+                    }
+                    t->expType = Boolean;
+                }
+                else if(strncmp(t->attr.name, "<", 1) == 0)
+                {
+                    // printf("<\n");
+                    t->expType = Boolean;
+                }
+                else if(strncmp(t->attr.name, ">=", 2) == 0)
+                {
+                    // printf(">=\n");
+                    t->expType = Boolean;
+                }
+                else if(strncmp(t->attr.name, ">", 1) == 0)
+                {
+                    // printf(">\n");
+                    t->expType = Boolean;
+                }
+                else if(strncmp(t->attr.name, "*", 1) == 0)
+                {
+                    // printf("*\n");
+                    t->expType = Integer;
+                }
+                else if(strncmp(t->attr.name, "+", 1) == 0)
+                {
+                    // printf("+\n");
+                    t->expType = Integer;
+                }
+                else if(strncmp(t->attr.name, "-", 1) == 0)
+                {
+                    // printf("-\n");
+                    t->expType = Integer;
+                }
+                else if(strncmp(t->attr.name, "/", 1) == 0)
+                {
+                    // printf("/\n");
+                    t->expType = Integer;
+                }
+                else if(strncmp(t->attr.name, "%", 1) == 0)
+                {
+                    // printf("%%\n");
+                    t->expType = Integer;
+                }
+                else if(strncmp(t->attr.name, "[", 1) == 0)
+                {
+                    // printf("%%\n");
+                    t->expType = c1;
+                }
+                else if(strncmp(t->attr.name, "?", 1) == 0)
+                {
+                    // printf("%%\n");
+                    t->expType = Integer;
+                }
+
+                // //CHECKING FOR ASSIGNMENT GOES HERE (?)
+
+                //t->expType = c1;                            //Assign it to the first child -- errors not handled here
+                returns = t->expType;
                 break;
 
             case ConstantK:
-                //return t->expType;
+                returns = t->expType;
                 break;
 
             case IdK:
@@ -119,24 +251,55 @@ void insertNode(TreeNode *t)
                             // printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, t->attr.name);
                             // numWarnings++;
                         }
-                    }
-                    
+                    }   
                 }
+
+                returns = t->expType;
                 break;
+
             case AssignK:   //check the children recurisively first
-                c1 = typeCheck(t->child[0]);
-                c2 = typeCheck(t->child[1]);
+                c1 = insertNode(t->child[0]);       //Get the types of the children
+                c2 = insertNode(t->child[1]);
 
-                if(c1 == Error || c2 == Error)
-                { break; }
-                else if(c1 != c2)
+                t->child[0]->isChecked = true;      //Mark them as already checked
+                if(t->child[1] != NULL)
                 {
-                    printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
-                    numErrors++;
-                } 
+                    t->child[1]->isChecked = true;
+                }
 
-                t->expType = c1;                            //Assign it to the first child -- errors not handled here
+                if(c1 == Error || c2 == Error || c1 == UndefinedType || c2 == UndefinedType)          //If a function was called break to let error be called with the id
+                {
+                    t->expType = UndefinedType;
+                }
+                
+                if(strncmp(t->attr.name, "--", 2) == 0)
+                {
+                    // printf("<\n");
+                    t->expType = Integer;
+                }
+                else if(strncmp(t->attr.name, "++", 2) == 0)
+                {
+                    // printf("<\n");
+                    t->expType = Integer;
+                }
+                else if(strncmp(t->attr.name, "=", 1) == 0)
+                {
+                    // printf("<\n");
+                    t->expType = c1;
+                    if(c1 != c2)                       //if they are not equal
+                    { 
+                        printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
+                        numErrors++;
+                    } 
+                }
+                else
+                {
+                    t->expType = Integer;
+                }
+
+                returns = t->expType;
                 break;
+
             case CallK:
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
 
@@ -150,6 +313,7 @@ void insertNode(TreeNode *t)
                 {
                     if(temp->kind.decl != FuncK)            //Error in calling a function as a variable
                     {
+                        t->expType = temp->expType;
                         printf("ERROR(%d): '%s' is a simple variable and cannot be called.\n", t->lineno, t->attr.name);
                         numErrors++;
                     }
@@ -159,9 +323,11 @@ void insertNode(TreeNode *t)
                     }
                     
                 }
+                returns = t->expType;
                 break;
 
             default:
+                returns = Error;
                 break;
         }
     }
@@ -170,11 +336,17 @@ void insertNode(TreeNode *t)
         switch(t->kind.stmt)
         {
             case ElsifK:
+                returns = Void;
                 break;
+
             case IfK:
+                returns = Void;
                 break;
+
             case WhileK:
+                returns = Void;
                 break;
+
             case LoopK:
                 // Create a new scope
                 if(t->child[2] != NULL)                     //Apparently Null checking makes this work if it is not a compound????
@@ -186,31 +358,43 @@ void insertNode(TreeNode *t)
                 }
                 st.enter("Loop");
                 scoped = true;
+                returns = Void;
                 break;
+
             case LoopForeverK:
+                returns = Void;
                 break;
+
             case CompoundK:
                 if(!t->enteredScope)                    //Check that it is not a function scope before
                 {
                     st.enter("Compound Scope"); 
                     scoped = true;
                 }
+                returns = Void;
                 break;
 
             case RangeK:
+                returns = Void;
                 break;
+
             case ReturnK:
+                returns = Void;
                 break;
+
             case BreakK:
+                returns = Void;
                 break;
+
             default:
-                 break;
+                returns = Error;
+                break;
          }
     }
 
     for(i = 0; i < MAXCHILDREN; i++)
     {
-        if(t->child[i] != NULL)
+        if(t->child[i] != NULL && t->child[i]->isChecked == false)
         {
             insertNode(t->child[i]);
         }
@@ -226,6 +410,8 @@ void insertNode(TreeNode *t)
     {
         insertNode(t->sibling); 
     }
+
+    return returns;
 }
 
 void checkUse(std::string sym, void* t)
@@ -244,138 +430,5 @@ void checkUse(std::string sym, void* t)
             //printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
             //numWarnings++;
         }
-    }
-}
-
-ExpType typeCheck(TreeNode *t)
-{
-    int i;
-    ExpType c1, c2;
-    TreeNode *temp;
-    
-    if(t == NULL)
-    {
-        return Error;
-    }
-
-    if(t->nodekind == ExpK)
-    {
-        switch(t->kind.exp)
-        {
-            case OpK:
-                c1 = typeCheck(t->child[0]);
-                c2 = typeCheck(t->child[1]);
-
-                //CHECKING FOR ASSIGNMENT GOES HERE (?)
-
-                t->expType = c1;                            //Assign it to the first child -- errors not handled here
-                return t->expType;                          //Causes major errors at the moment?
-                break;
-
-            case ConstantK:
-                return t->expType;
-                break;
-
-            case IdK:
-                temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
-                if(temp == NULL)                            //Not declared
-                {
-                    t->expType = UndefinedType;             //Set to undefined type
-                    return t->expType;
-                }
-                else                                        //Is declared
-                {
-                    if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
-                    {
-                        // printf("ERROR(%d): Cannot use function '%s' as a variable.\n", t->lineno, t->attr.name);
-                        // numErrors++;
-                        return Error; 
-                    }
-                    else                                    //Assign the ID with a type   
-                    {
-                        t->expType = temp->expType;
-                        return t->expType;
-                    }
-                }
-                break;
-
-            case AssignK:   //check the children recurisively first
-                c1 = typeCheck(t->child[0]);
-                c2 = typeCheck(t->child[1]);
-
-                //CHECKING FOR ASSIGNMENT GOES HERE (?)
-
-                t->expType = c1;                            //Assign it to the first child -- errors not handled here
-                return t->expType;                          //Causes major errors at the moment?
-                break;
-
-            case CallK:
-                temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
-
-                if(temp == NULL)                            //Not declared
-                {
-                    return UndefinedType;
-                }
-                else
-                {
-                    if(temp->kind.decl != FuncK)            //Error in calling a function as a variable
-                    {
-                        return UndefinedType;
-                    }
-                    else
-                    {
-                        t->expType = temp->expType;
-                        return t->expType;
-                    }
-                }
-                break;
-
-            default:
-                return Error;
-                break;
-        }
-    }
-    else if(t->nodekind == StmtK)
-    {
-        switch(t->kind.stmt)
-        {
-            case ElsifK:
-                break;
-            case IfK:
-                break;
-            case WhileK:
-                break;
-            case LoopK:
-                break;
-            case LoopForeverK:
-                break;
-            case CompoundK:
-                break;
-            case RangeK:
-                break;
-            case ReturnK:
-                break;
-            case BreakK:
-                break;
-            default:
-                 break;
-         }
-    }
-    else
-    {
-        printf("ERROR: Unkown Node\n");
-    }
-
-    for(i = 0; i < MAXCHILDREN; i++)
-    {
-        if(t->child[i] != NULL)
-        {
-            insertNode(t->child[i]);
-        }
-    }
-
-    if(t->sibling != NULL)
-    {
-        insertNode(t->sibling); 
     }
 }
