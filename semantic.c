@@ -257,7 +257,16 @@ ExpType insertNode(TreeNode *t)
                         }
                         else    // - & ?
                         {
-                            if(c1 != Integer)
+                            if(t->child[0]->kind.exp == IdK)
+                            {
+                                temp = st.lookupNode(t->child[0]->attr.name);
+                                if(temp != NULL && temp->isArray == true)
+                                {
+                                    printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
+                                    numErrors++;
+                                }
+                            }
+                            else if(c1 != Integer)
                             {
                                 printf("ERROR(%d): Unary '%s' requires an operand of %s but was given %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
                                 numErrors++;
