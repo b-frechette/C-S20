@@ -48,7 +48,8 @@ typedef struct treeNode
     bool enteredScope;      //for compound statements
     bool isInit;            //Check if a variable is initialized  
     bool isUsed; 
-    bool isChecked;               
+    bool isChecked;
+    bool isIndexed;               
 
 } TreeNode;
 

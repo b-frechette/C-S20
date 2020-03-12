@@ -25,6 +25,7 @@ ExpType insertNode(TreeNode *t)
     int i, errType;
     ExpType c1, c2, returns;
     bool scoped = false;
+    bool c1F = false, c2F = false, id1 = false, id2 = false;
     const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
     TreeNode *temp;
 
@@ -90,7 +91,7 @@ ExpType insertNode(TreeNode *t)
         switch(t->kind.exp)
         {
             case OpK:
-                bool c1F, c2F;
+                bool c1F, c2F, id1, id2;
                 c1 = insertNode(t->child[0]);       //Get the types of the children
                 c2 = insertNode(t->child[1]);
 
@@ -100,6 +101,7 @@ ExpType insertNode(TreeNode *t)
                     temp = st.lookupNode(t->child[0]->attr.name);
                     if(temp != NULL && temp->isArray == true)
                     { c1F = true; }
+                    id1 = true;
                 }
 
                 if(t->child[1] != NULL)
@@ -111,6 +113,7 @@ ExpType insertNode(TreeNode *t)
                         if(temp != NULL && temp->isArray == true)
                         { c2F= true; }
                     }
+                    id2 = true;
                 }
 
 
@@ -251,8 +254,16 @@ ExpType insertNode(TreeNode *t)
                     case 5:     //sumop
                         if(c1F == true || c2F == true)
                         {
-                            printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
-                            numErrors++;
+                            if(t->child[0]->isIndexed == false)
+                            {
+                                printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
+                                numErrors++;
+                            }
+                            if(t->child[1]->isIndexed == false)
+                            {
+                                printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
+                                numErrors++;
+                            }
                         }
                         else
                         {
@@ -341,6 +352,13 @@ ExpType insertNode(TreeNode *t)
                         {
                             printf("ERROR(%d): Cannot index nonarray.\n",t->lineno);
                             numErrors++;
+                        }
+                        else
+                        {
+                            //check if the index is a valid int
+                            t->child[0]->isIndexed = true;
+                            t->isIndexed = true;
+                            c1F = false;
                         }
                         t->expType = t->child[0]->expType; //lhs
                         break;
