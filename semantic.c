@@ -161,7 +161,7 @@ ExpType insertNode(TreeNode *t)
 
                                 if(c2 == Void)
                                 {
-                                    printf("ERROR(%d): '%s' requires operands of type bool, char, or int but lhs is of %s.\n", t->lineno, t->attr.name, types[c1]);
+                                    printf("ERROR(%d): '%s' requires operands of type bool, char, or int but rhs is of %s.\n", t->lineno, t->attr.name, types[c2]);
                                     numErrors++;
                                 }
                             }
@@ -179,7 +179,6 @@ ExpType insertNode(TreeNode *t)
                         }
                         else    // <=, <, >=, >
                         {
-                            //To do check the args
                             t->expType = Boolean;
                         }
                         break;
@@ -325,7 +324,7 @@ ExpType insertNode(TreeNode *t)
 
                         if(c2 == Void)
                         {
-                            printf("ERROR(%d): '%s' requires operands of type bool, char, or int but lhs is of %s.\n", t->lineno, t->attr.name, types[c1]);
+                            printf("ERROR(%d): '%s' requires operands of type bool, char, or int but rhs is of %s.\n", t->lineno, t->attr.name, types[c2]);
                             numErrors++;
                         }
                     }
