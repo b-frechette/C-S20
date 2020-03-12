@@ -248,7 +248,12 @@ ExpType insertNode(TreeNode *t)
                         {/*Do nothing*/}
                         else if(strncmp(t->attr.name, "*", 1)== 0)
                         {
-                            //To do
+                            temp = st.lookupNode(t->child[0]->attr.name);
+                            if(temp != NULL &&temp->isArray == false)
+                            {
+                                printf("ERROR(%d): The operation '%s' only works with arrays.\n", t->lineno, t->attr.name);
+                                numErrors++;
+                            }
                         }
                         else    // - & ?
                         {
@@ -265,9 +270,7 @@ ExpType insertNode(TreeNode *t)
                         //To do type check the two arguments
                         temp = st.lookupNode(t->child[0]->attr.name);
 
-                        if(c1 == UndefinedType || c2 == UndefinedType)
-                        { /* Do nothing? */ }
-                        else if(temp != NULL && temp->isArray == false)
+                        if((temp != NULL && temp->isArray == false) || c1 == UndefinedType)
                         {
                             printf("ERROR(%d): Cannot index nonarray '%s'.\n",t->lineno, t->child[0]->attr.name);
                             numErrors++;
