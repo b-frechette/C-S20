@@ -22,7 +22,7 @@ void semantic(TreeNode *syntaxTree)
 
 ExpType insertNode(TreeNode *t)
 {
-    int i;
+    int i, errType;
     ExpType c1, c2, returns;
     bool scoped = false;
     const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
@@ -151,12 +151,29 @@ ExpType insertNode(TreeNode *t)
                     case 4:     //relop
                         if(strncmp(t->attr.name, "==", 2)== 0 || strncmp(t->attr.name, "!=", 2)== 0)
                         {
-                            if(c1 == UndefinedType || c2 == UndefinedType)
-                            {/*Do nothing*/}
-                            else if(c1 != c2)
+                            if(c1 == Void || c2 == Void)
                             {
-                                printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
-                                numErrors++;
+                                if(c1 == Void)
+                                {
+                                    printf("ERROR(%d): '%s' requires operands of type bool, char, or int but lhs is of %s.\n", t->lineno, t->attr.name, types[c1]);
+                                    numErrors++;
+                                }
+
+                                if(c2 == Void)
+                                {
+                                    printf("ERROR(%d): '%s' requires operands of type bool, char, or int but lhs is of %s.\n", t->lineno, t->attr.name, types[c1]);
+                                    numErrors++;
+                                }
+                            }
+                            else
+                            {
+                                if(c1 == UndefinedType || c2 == UndefinedType)
+                                { /* Do nothing? */ }
+                                else if(c1 != c2)                       //if they are not equal
+                                { 
+                                    printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
+                                    numErrors++;
+                                } 
                             }
                             t->expType = Boolean;
                         }
@@ -208,7 +225,7 @@ ExpType insertNode(TreeNode *t)
                         {/*Do nothing*/}
                         else if(strncmp(t->attr.name, "*", 1)== 0)
                         {
-                            //TO DO
+                            //TO do
                         }
                         else    // - & ?
                         {
@@ -222,7 +239,6 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 8:     // [
-                        // printf("case %s\n", t->attr.name);
                         //To do type check the two arguments
                         t->expType = t->child[0]->expType; //lhs
                         break;
@@ -279,10 +295,6 @@ ExpType insertNode(TreeNode *t)
                     t->child[1]->isChecked = true;
                 }
 
-                if(c1 == Error || c2 == Error || c1 == UndefinedType || c2 == UndefinedType)          //If a function was called break to let error be called with the id
-                {
-                    t->expType = UndefinedType;
-                }
                 
                 if(strncmp(t->attr.name, "--", 2) == 0)
                 {
@@ -303,18 +315,33 @@ ExpType insertNode(TreeNode *t)
                 else if(strncmp(t->attr.name, "=", 1) == 0)
                 {
                     // printf("<\n");
-                    if(c1 == UndefinedType || c2 == UndefinedType)
+                    if(c1 == Void || c2 == Void)
                     {
-                        //Do nothing?
+                        if(c1 == Void)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of type bool, char, or int but lhs is of %s.\n", t->lineno, t->attr.name, types[c1]);
+                            numErrors++;
+                        }
+
+                        if(c2 == Void)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of type bool, char, or int but lhs is of %s.\n", t->lineno, t->attr.name, types[c1]);
+                            numErrors++;
+                        }
                     }
-                    else if(c1 != c2)                       //if they are not equal
-                    { 
-                        printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
-                        numErrors++;
-                    } 
+                    else
+                    {
+                        if(c1 == UndefinedType || c2 == UndefinedType)
+                        { /* Do nothing? */ }
+                        else if(c1 != c2)                       //if they are not equal
+                        { 
+                            printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
+                            numErrors++;
+                        } 
+                    }
                     t->expType = c1;
                 }
-                else
+                else    // += -= /= *=
                 {
                     if(c1 == UndefinedType)
                     {/*Do nothing*/}
