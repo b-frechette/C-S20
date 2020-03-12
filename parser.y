@@ -965,7 +965,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/tinyType.c-", "r");
+        //filename = fopen("tests/everythingS20.c-", "r");
 
         if(filename == NULL)
         {
