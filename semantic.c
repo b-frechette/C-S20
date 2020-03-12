@@ -140,6 +140,11 @@ ExpType insertNode(TreeNode *t)
                     case 3:     //NOT
                         if(c1 == UndefinedType)
                         {/*Do nothing*/}
+                        else if(c1 != Boolean)
+                        {
+                            printf("ERROR(%d): Unary '%s' requires an operand of %s but was given %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
+                            numErrors++;
+                        }
                         t->expType = Boolean;
                         break;
 
