@@ -140,11 +140,19 @@ void printTree(TreeNode *tree, int indent, int sibling)
                 switch (tree->expType)
                 {
                     case Char:
-                        printf("Const: \"%s\" [line: %d]\n", tree->attr.string, tree->lineno);
+                        // printf("Const: \"%s\" [line: %d]\n", tree->attr.string, tree->lineno);
+                        if(tree->op == 1)
+                        {
+                            printf("Const: '%c' [line: %d]\n", tree->attr.cvalue, tree->lineno);
+                        }
+                        else
+                        {
+                            printf("Const: \"%s\" [line: %d]\n", tree->attr.string, tree->lineno);
+                        }
                         break;
-                    case CharInt:
-                        printf("Const: '%c' [line: %d]\n", tree->attr.cvalue, tree->lineno);
-                        break;
+                    // case CharInt:
+                    //     printf("Const: '%c' [line: %d]\n", tree->attr.cvalue, tree->lineno);
+                    //     break;
                     default:
                         printf("Const: %s [line: %d]\n", tree->attr.name, tree->lineno);
                         break;
@@ -353,11 +361,19 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
                 switch (tree->expType)
                 {
                     case Char:
-                        printf("Const: \"%s\" [%s] [line: %d]\n", tree->attr.string, types[tree->expType], tree->lineno);
+                        // printf("Const: \"%s\" [%s] [line: %d]\n", tree->attr.string, types[tree->expType], tree->lineno);
+                        if(tree->op == 1)
+                        {
+                            printf("Const: '%c' [%s] [line: %d]\n", tree->attr.cvalue, types[tree->expType], tree->lineno);
+                        }
+                        else
+                        {
+                            printf("Const: \"%s\" [%s] [line: %d]\n", tree->attr.string, types[tree->expType], tree->lineno);
+                        }
                         break;
-                    case CharInt:
-                        printf("Const: '%c' [%s] [line: %d]\n", tree->attr.cvalue, types[tree->expType], tree->lineno);
-                        break;
+                    // case CharInt:
+                    //     printf("Const: '%c' [%s] [line: %d]\n", tree->attr.cvalue, types[tree->expType], tree->lineno);
+                    //     break;
                     default:
                         printf("Const: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
                         break;

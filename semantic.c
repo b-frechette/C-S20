@@ -102,16 +102,16 @@ ExpType insertNode(TreeNode *t)
                 switch(t->op)
                 {
                     case 1:         //OR
-                        // if(c1 != Boolean)
-                        // {
-                        //     printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
-                        //     numErrors++;
-                        // }
-                        // if(c2 != Boolean)
-                        // {
-                        //     printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
-                        //     numErrors++;
-                        // }
+                        if(c1 != Boolean)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
+                            numErrors++;
+                        }
+                        if(c2 != Boolean)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
+                            numErrors++;
+                        }
                         t->expType = Boolean;
                         break;
                     
@@ -143,7 +143,11 @@ ExpType insertNode(TreeNode *t)
                             }
                             t->expType = Boolean;
                         }
-                        //also do the <,<=,>=,>
+                        else    // <=, <, >=, >
+                        {
+                            //To do check the args
+                            t->expType = Boolean;
+                        }
                         break;
 
                     case 5:     //sumop

@@ -891,6 +891,7 @@ constant                : NUMCONST
                                 $$->attr.cvalue = $1->charValue;
                                 //$$->expType = CharInt;
                                 $$->expType = Char;
+                                $$->op = 1;     //char flag - bad idea I know please don't judge;
                                 $$->lineno = $1->linenum;
                             }      
                         | STRINGCONST    
@@ -964,7 +965,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/array.c-", "r");
+        //filename = fopen("tests/everythingS20.c-", "r");
 
         if(filename == NULL)
         {
