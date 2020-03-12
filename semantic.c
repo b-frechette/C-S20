@@ -79,6 +79,7 @@ ExpType insertNode(TreeNode *t)
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
                 }
+                t->isInit = true; //Technically initialized since being passed in
                 returns = t->expType;
                 break;
 
@@ -94,8 +95,6 @@ ExpType insertNode(TreeNode *t)
             case OpK:
                 //bool c1F, c2F, id1, id2;
                 c1 = insertNode(t->child[0]);       //Get the types of the children
-                c2 = insertNode(t->child[1]);
-
                 if(t->child[0] != NULL)
                 {
                     t->child[0]->isChecked = true;
@@ -109,10 +108,27 @@ ExpType insertNode(TreeNode *t)
                                 c1F= true; 
                             }
                             temp->isUsed = true;
+
+
+                            if(c1 != UndefinedType)
+                            {
+                                //printf("Child 0: %s with init of %d\n", temp->attr.name, t->child[0]->isInit);
+                                if(strncmp(t->attr.name, "[", 1)== 0)
+                                {}
+                                else if(temp->isInit == false && temp->isFlagged == false)
+                                {
+                                    temp->isFlagged = true;
+                                    printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                                    numWarnings++;
+                                }
+                            }
                         }
                     }
                     id1 = true;
                 }
+
+                c2 = insertNode(t->child[1]);
+
 
                 if(t->child[1] != NULL)
                 {
@@ -127,6 +143,16 @@ ExpType insertNode(TreeNode *t)
                                 c2F= true; 
                             }
                             temp->isUsed = true;
+
+                            if(c2 != UndefinedType)
+                            {
+                                if(temp->isInit == false && temp->isFlagged == false)
+                                {
+                                    temp->isFlagged = true;
+                                    printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                                    numWarnings++;
+                                }
+                            }
                         }
                     }
                     id2 = true;
@@ -358,6 +384,7 @@ ExpType insertNode(TreeNode *t)
                     case 8:     // [
                         //To do type check the two arguments
                         temp = st.lookupNode(t->child[0]->attr.name);
+                        //printf("%s temp: %d, t: %d\n", t->child[0]->attr.name,temp->isInit, t->isInit);
 
                         if((temp != NULL && temp->isArray == false) || c1 == UndefinedType)
                         {
@@ -391,6 +418,7 @@ ExpType insertNode(TreeNode *t)
                                 }
                             }
                             //check if the index is a valid int
+                            //printf("%s temp: %d, t: %d\n", t->child[0]->attr.name,temp->isInit, t->isInit);
                             t->child[0]->isIndexed = true;
                             t->isIndexed = true;
                             c1F = false;
@@ -428,12 +456,6 @@ ExpType insertNode(TreeNode *t)
                     else                                    //Assign the ID with a type   
                     {
                         t->expType = temp->expType;
-
-                        if(temp->isInit == false)
-                        {
-                            // printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, t->attr.name);
-                            // numWarnings++;
-                        }
                     }   
                 }
 
@@ -442,7 +464,6 @@ ExpType insertNode(TreeNode *t)
 
             case AssignK:   //check the children recurisively first
                 c1 = insertNode(t->child[0]);       //Get the types of the children
-                c2 = insertNode(t->child[1]);
 
                 if(t->child[0] != NULL)
                 {
@@ -453,9 +474,17 @@ ExpType insertNode(TreeNode *t)
                         if(temp != NULL)
                         { 
                             temp->isUsed = true;
+                            temp->isInit = true;
                         }
                     }
+                    else
+                    {
+                        temp->isInit = true;
+                    }
                 }
+                
+                c2 = insertNode(t->child[1]);
+
 
                 if(t->child[1] != NULL)
                 {
@@ -466,6 +495,17 @@ ExpType insertNode(TreeNode *t)
                         if(temp != NULL)
                         { 
                             temp->isUsed = true;
+
+                            if(c2 != UndefinedType)
+                            {
+                                //printf("Assign %s child 1: %s\n", temp->attr.name, types[c2]);
+                                if(temp->isInit == false && temp->isFlagged == false)
+                                {
+                                    temp->isFlagged = true;
+                                    printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                                    numWarnings++;
+                                }
+                            }
                         }
                     }
                 }
@@ -490,6 +530,11 @@ ExpType insertNode(TreeNode *t)
                 else if(strncmp(t->attr.name, "=", 1) == 0)
                 {
                     // printf("<\n");
+                    temp = st.lookupNode(t->child[0]->attr.name);
+                    if(temp != NULL)
+                    {
+                        temp->isInit = true;
+                    }
                     if(c1 == Void || c2 == Void)
                     {
                         if(c1 == Void)
@@ -678,7 +723,7 @@ void checkUse(std::string sym, void* t)
 
     if(temp != NULL)
     {
-        if(temp->isUsed == false)
+        if(temp->isUsed == false && temp->isInit == true)
         {
             printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
             numWarnings++;

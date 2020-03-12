@@ -49,7 +49,8 @@ typedef struct treeNode
     bool isInit;            //Check if a variable is initialized  
     bool isUsed; 
     bool isChecked;
-    bool isIndexed;               
+    bool isIndexed;  
+    bool isFlagged;             
 
 } TreeNode;
 
