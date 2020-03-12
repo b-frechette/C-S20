@@ -179,6 +179,30 @@ ExpType insertNode(TreeNode *t)
                         }
                         else    // <=, <, >=, >
                         {
+                            if(c1 == Void || c2 == Void || c1 == Boolean || c2 == Boolean)
+                            {
+                                if(c1 == Void || c1 == Boolean)
+                                {
+                                    printf("ERROR(%d): '%s' requires operands of type char or type int but lhs is of %s.\n", t->lineno, t->attr.name, types[c1]);
+                                    numErrors++;
+                                }
+
+                                if(c2 == Void || c2 == Boolean)
+                                {
+                                    printf("ERROR(%d): '%s' requires operands of type char or type int but rhs is of %s.\n", t->lineno, t->attr.name, types[c2]);
+                                    numErrors++;
+                                }
+                            }
+                            else
+                            {
+                                if(c1 == UndefinedType || c2 == UndefinedType)
+                                { /* Do nothing? */ }
+                                else if(c1 != c2)
+                                {
+                                    printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
+                                    numErrors++;
+                                }
+                            }
                             t->expType = Boolean;
                         }
                         break;
