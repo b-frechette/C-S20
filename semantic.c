@@ -401,10 +401,20 @@ ExpType insertNode(TreeNode *t)
                             if(t->child[1]->kind.exp == IdK)
                             {
                                 temp = st.lookupNode(t->child[1]->attr.name);
+        
                                 if(temp != NULL && temp->expType != Integer)
                                 {
                                     printf("ERROR(%d): Array '%s' should be indexed by type int but got %s.\n", t->lineno, t->child[0]->attr.name, types[t->child[1]->expType]);
                                     numErrors++;
+                                }
+
+                                if(temp != NULL && temp->isArray)
+                                {
+                                    if(temp->isIndexed == false)
+                                    {
+                                        printf("ERROR(%d): Array index is the unindexed array '%s'.\n", t->lineno, temp->attr.name);
+                                        numErrors++;
+                                    }
                                 }
                             }
                             else
@@ -479,7 +489,7 @@ ExpType insertNode(TreeNode *t)
                     }
                     else
                     {
-                        temp->isInit = true;
+                        t->child[0]->isInit = true;
                     }
                 }
                 
