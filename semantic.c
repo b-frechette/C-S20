@@ -102,26 +102,34 @@ ExpType insertNode(TreeNode *t)
                 switch(t->op)
                 {
                     case 1:         //OR
-                        if(c1 != Boolean)
+                        if(c1 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c1 != Boolean)
                         {
                             printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
                             numErrors++;
                         }
-                        if(c2 != Boolean)
+                        if(c2 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c2 != Boolean)
                         {
                             printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
-                            numErrors++;
+                             numErrors++;
                         }
                         t->expType = Boolean;
                         break;
                     
                     case 2:     //AND
-                        if(c1 != Boolean)
+                        if(c1 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c1 != Boolean)
                         {
                             printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
                             numErrors++;
                         }
-                        if(c2 != Boolean)
+                        if(c2 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c2 != Boolean)
                         {
                             printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
                             numErrors++;
@@ -130,13 +138,17 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 3:     //NOT
+                        if(c1 == UndefinedType)
+                        {/*Do nothing*/}
                         t->expType = Boolean;
                         break;
 
                     case 4:     //relop
                         if(strncmp(t->attr.name, "==", 2)== 0 || strncmp(t->attr.name, "!=", 2)== 0)
                         {
-                            if(c1 != c2)
+                            if(c1 == UndefinedType || c2 == UndefinedType)
+                            {/*Do nothing*/}
+                            else if(c1 != c2)
                             {
                                 printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
                                 numErrors++;
@@ -151,12 +163,16 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 5:     //sumop
-                        if(c1 != Integer)
+                        if(c1 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c1 != Integer)
                         {
                             printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
                             numErrors++;
                         }
-                        if(c2 != Integer)
+                        if(c2 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c2 != Integer)
                         {
                             printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
                             numErrors++;
@@ -165,12 +181,16 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 6:     //mulop
-                        if(c1 != Integer)
+                        if(c1 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c1 != Integer)
                         {
                             printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
                             numErrors++;
                         }
-                        if(c2 != Integer)
+                        if(c2 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c2 != Integer)
                         {
                             printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
                             numErrors++;
@@ -179,7 +199,9 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 7:     //unaryop
-                        if(strncmp(t->attr.name, "*", 1)== 0)
+                        if(c1 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(strncmp(t->attr.name, "*", 1)== 0)
                         {
                             //TO DO
                         }
@@ -289,6 +311,21 @@ ExpType insertNode(TreeNode *t)
                 }
                 else
                 {
+                    if(c1 == UndefinedType)
+                    {/*Do nothing*/}
+                    else if(c1 != Integer)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                        numErrors++;
+                    }
+                    if(c2 == UndefinedType)
+                    {/*Do nothing*/}
+                    else if(c2 != Integer)
+                    {
+                        printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
+                        numErrors++;
+                    }
+
                     t->expType = Integer;
                 }
 
