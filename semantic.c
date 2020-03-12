@@ -102,9 +102,13 @@ ExpType insertNode(TreeNode *t)
                     if(t->child[0]->kind.exp == IdK)
                     {
                         temp = st.lookupNode(t->child[0]->attr.name);
-                        if(temp != NULL && temp->isArray == true)
+                        if(temp != NULL)
                         { 
-                            c1F= true;
+                            if(temp->isArray == true)
+                            {
+                                c1F= true; 
+                            }
+                            temp->isUsed = true;
                         }
                     }
                     id1 = true;
@@ -116,8 +120,14 @@ ExpType insertNode(TreeNode *t)
                     if(t->child[1]->kind.exp == IdK)
                     {
                         temp = st.lookupNode(t->child[1]->attr.name);
-                        if(temp != NULL && temp->isArray == true)
-                        { c2F= true; }
+                        if(temp != NULL)
+                        { 
+                            if(temp->isArray == true)
+                            {
+                                c2F= true; 
+                            }
+                            temp->isUsed = true;
+                        }
                     }
                     id2 = true;
                 }
@@ -434,10 +444,30 @@ ExpType insertNode(TreeNode *t)
                 c1 = insertNode(t->child[0]);       //Get the types of the children
                 c2 = insertNode(t->child[1]);
 
-                t->child[0]->isChecked = true;      //Mark them as already checked
+                if(t->child[0] != NULL)
+                {
+                    t->child[0]->isChecked = true;
+                    if(t->child[0]->kind.exp == IdK)
+                    {
+                        temp = st.lookupNode(t->child[0]->attr.name);
+                        if(temp != NULL)
+                        { 
+                            temp->isUsed = true;
+                        }
+                    }
+                }
+
                 if(t->child[1] != NULL)
                 {
                     t->child[1]->isChecked = true;
+                    if(t->child[1]->kind.exp == IdK)
+                    {
+                        temp = st.lookupNode(t->child[1]->attr.name);
+                        if(temp != NULL)
+                        { 
+                            temp->isUsed = true;
+                        }
+                    }
                 }
 
                 
@@ -530,6 +560,8 @@ ExpType insertNode(TreeNode *t)
                     {
                         t->expType = temp->expType;
                     }
+
+                    temp->isUsed = true;
                     
                 }
                 returns = t->expType;
@@ -648,8 +680,8 @@ void checkUse(std::string sym, void* t)
     {
         if(temp->isUsed == false)
         {
-            //printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
-            //numWarnings++;
+            printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
+            numWarnings++;
         }
     }
 }
