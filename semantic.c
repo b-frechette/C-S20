@@ -263,6 +263,11 @@ ExpType insertNode(TreeNode *t)
 
                     case 8:     // [
                         //To do type check the two arguments
+                        if(t->child[0]->isArray == false)
+                        {
+                            printf("ERROR(%d): Cannot index nonarray '%s'.\n",t->lineno, t->child[0]->attrn.name);
+                            numErrors++;
+                        }
                         t->expType = t->child[0]->expType; //lhs
                         break;
 
