@@ -248,7 +248,7 @@ ExpType insertNode(TreeNode *t)
                         {/*Do nothing*/}
                         else if(strncmp(t->attr.name, "*", 1)== 0)
                         {
-                            //TO do
+                            //To do
                         }
                         else    // - & ?
                         {
@@ -263,9 +263,18 @@ ExpType insertNode(TreeNode *t)
 
                     case 8:     // [
                         //To do type check the two arguments
-                        if(t->child[0]->isArray == false)
+                        temp = st.lookupNode(t->child[0]->attr.name);
+
+                        if(c1 == UndefinedType || c2 == UndefinedType)
+                        { /* Do nothing? */ }
+                        else if(temp != NULL && temp->isArray == false)
                         {
-                            printf("ERROR(%d): Cannot index nonarray '%s'.\n",t->lineno, t->child[0]->attrn.name);
+                            printf("ERROR(%d): Cannot index nonarray '%s'.\n",t->lineno, t->child[0]->attr.name);
+                            numErrors++;
+                        }
+                        else if(strncmp(t->child[0]->attr.name, "[", 1)== 0)
+                        {
+                            printf("ERROR(%d): Cannot index nonarray.\n",t->lineno);
                             numErrors++;
                         }
                         t->expType = t->child[0]->expType; //lhs
