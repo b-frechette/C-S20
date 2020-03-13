@@ -107,12 +107,13 @@ ExpType insertNode(TreeNode *t)
                             {
                                 c1F= true; 
                             }
+                            //printf("%s before\n", temp->attr.name);
                             temp->isUsed = true;
+                            //printf("%s after\n", temp->attr.name);
 
 
                             if(c1 != UndefinedType)
                             {
-                                //printf("Child 0: %s with init of %d\n", temp->attr.name, t->child[0]->isInit);
                                 if(strncmp(t->attr.name, "[", 1)== 0)
                                 {}
                                 else if(temp->isInit == false && temp->isFlagged == false)
@@ -142,7 +143,9 @@ ExpType insertNode(TreeNode *t)
                             {
                                 c2F= true; 
                             }
+                            //printf("%s before\n", temp->attr.name);
                             temp->isUsed = true;
+                            //printf("%s before\n", temp->attr.name);
 
                             if(c2 != UndefinedType)
                             {
@@ -427,8 +430,18 @@ ExpType insertNode(TreeNode *t)
                                     numErrors++;
                                 }
                             }
-                            //check if the index is a valid int
-                            //printf("%s temp: %d, t: %d\n", t->child[0]->attr.name,temp->isInit, t->isInit);
+                            if(c1 != UndefinedType)
+                            {
+                                if(temp != NULL)
+                                {
+                                    if(temp->isInit == false && temp->isFlagged == false)
+                                    {
+                                        temp->isFlagged = true;
+                                        printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, t->child[0]->attr.name);
+                                        numWarnings++;
+                                    }
+                                }
+                            }
                             t->child[0]->isIndexed = true;
                             t->isIndexed = true;
                             c1F = false;
@@ -468,7 +481,13 @@ ExpType insertNode(TreeNode *t)
                         t->expType = temp->expType;
                     }   
                 }
-
+                if(t != NULL && t->isExp == true)
+                {
+                    if(temp != NULL)
+                    {
+                        temp->isUsed = true;
+                    }
+                }
                 returns = t->expType;
                 break;
 
@@ -483,8 +502,10 @@ ExpType insertNode(TreeNode *t)
                         temp = st.lookupNode(t->child[0]->attr.name);
                         if(temp != NULL)
                         { 
+                            //printf("%s before\n", temp->attr.name);
                             temp->isUsed = true;
                             temp->isInit = true;
+                            //printf("%s after\n", temp->attr.name);
                         }
                     }
                     else
@@ -504,7 +525,9 @@ ExpType insertNode(TreeNode *t)
                         temp = st.lookupNode(t->child[1]->attr.name);
                         if(temp != NULL)
                         { 
+                            //printf("%s before\n", temp->attr.name);
                             temp->isUsed = true;
+                            //printf("%s after\n", temp->attr.name);
 
                             if(c2 != UndefinedType)
                             {
@@ -615,8 +638,9 @@ ExpType insertNode(TreeNode *t)
                     {
                         t->expType = temp->expType;
                     }
-
+                    //printf("%s before\n", temp->attr.name);
                     temp->isUsed = true;
+                    //printf("%s before\n", temp->attr.name);
                     
                 }
                 returns = t->expType;
@@ -636,6 +660,21 @@ ExpType insertNode(TreeNode *t)
                 break;
 
             case IfK:
+                // temp = st.lookupNode(t->child[0]->attr.name);
+                //     if(temp != NULL)
+                //     {
+                //         //printf("if child %s %d %d\n", temp->attr.name, temp->isInit, temp->isFlagged);
+                //         //if(temp->kind.exp == IdK)
+                //         //{
+                //             //printf("if child %s %d %d\n", temp->attr.name, temp->isInit, temp->isFlagged);
+                //             if(temp->isInit == false && temp->isFlagged == false)
+                //             {
+                //                 temp->isFlagged = true;
+                //                 printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                //                 numWarnings++;
+                //             }
+                //         //}
+                //     }
                 returns = Void;
                 break;
 
@@ -733,7 +772,7 @@ void checkUse(std::string sym, void* t)
 
     if(temp != NULL)
     {
-        if(temp->isUsed == false && temp->isInit == true)
+        if(temp->isUsed == false && temp->isInit == false)
         {
             printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
             numWarnings++;

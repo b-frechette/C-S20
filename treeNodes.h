@@ -50,7 +50,8 @@ typedef struct treeNode
     bool isUsed; 
     bool isChecked;
     bool isIndexed;  
-    bool isFlagged;             
+    bool isFlagged;  
+    bool isExp;           
 
 } TreeNode;
 

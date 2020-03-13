@@ -562,7 +562,10 @@ other_statements        : expressionStmt
                         ;
 
 expressionStmt          : expression SEMI
-                            { $$ = $1; }
+                            { 
+                                $$ = $1; 
+                                $$->isExp = true;
+                            }
                         | SEMI
                             { $$ = NULL; }
                         ;
@@ -965,7 +968,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/array.c-", "r");
+        //filename = fopen("tests/basicAll4.c-", "r");
 
         if(filename == NULL)
         {
