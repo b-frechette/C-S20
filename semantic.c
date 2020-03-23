@@ -520,7 +520,7 @@ ExpType insertNode(TreeNode *t)
                     }
                 }
                 c1 = insertNode(t->child[0]);
-                c2 = insertNode(t->child[1]);
+                
 
 
                 if(t->child[1] != NULL)
@@ -545,6 +545,7 @@ ExpType insertNode(TreeNode *t)
                         }
                     }
                 }
+                c2 = insertNode(t->child[1]);
 
                 
                 if(strncmp(t->attr.name, "--", 2) == 0)
