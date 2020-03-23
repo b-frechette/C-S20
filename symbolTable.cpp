@@ -112,6 +112,13 @@ void SymbolTable::print(void (*printData)(void*)) {
     printf("===========  ============  ===========\n");
 }
 
+// Apply function to each simple in the local scope.   The function gets both the
+// string and the associated pointer.
+void SymbolTable::applyToAll(void (*action)(std::string , void *))
+{
+    stack[stack.size()-1]->applyToAll(action);
+}
+
 void SymbolTable::applyToAllGlobal(void (*action)(std::string, void*)) {
     stack[0]->applyToAll(action);
 }
@@ -219,21 +226,21 @@ void countSymbols(std::string sym, void* ptr) {
 
 // int main()
 // {
-//     Scope s("global");
+//     // Scope s("global");
 
-//     s.insert("dog", (char *)"woof");
-//     s.insert("cat", (char *)"meow");
-//     printf("%s\n", (char *)(s.lookup("cat")));
-//     printf("%s\n", (char *)(s.lookup("dog")));
+//     // s.insert("dog", (char *)"woof");
+//     // s.insert("cat", (char *)"meow");
+//     // printf("%s\n", (char *)(s.lookup("cat")));
+//     // printf("%s\n", (char *)(s.lookup("dog")));
 
-//     if (s.lookup("fox")==NULL) printf("not found\n");
-//     else printf("found\n");
-//     s.print(pointerPrintAddr);
-//     s.print(pointerPrintStr);
+//     // if (s.lookup("fox")==NULL) printf("not found\n");
+//     // else printf("found\n");
+//     // s.print(pointerPrintAddr);
+//     // s.print(pointerPrintStr);
 
 //     SymbolTable st;
 
-//     printf("Print symbol table.\n");
+//     printf("1. Print symbol table.\n");
 //     st.print(pointerPrintStr);
 //     st.insert("alfa", (char *)"ant");
 //     st.insert("bravo", (char *)"bat");
@@ -245,7 +252,7 @@ void countSymbols(std::string sym, void* ptr) {
 //     st.insert("delta", (char *)"dog");
 //     st.insertGlobal("echo", (char *)"elk");
 
-//     printf("Print symbol table.\n");
+//     printf("2. Print symbol table.\n");
 //     st.print(pointerPrintStr);
 
 

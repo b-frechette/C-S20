@@ -4,10 +4,13 @@
 #include <strings.h>
 #include "treeUtils.h"
 #include "scanType.h"
+#include "printtree.h"
 #include "ourGetopt.h"
 #include "semantic.h"
 
 #define YYDEBUG 1
+
+int numErrors, numWarnings;
 
 extern int yylex();
 extern int yyparse();
@@ -467,8 +470,10 @@ iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
 
 iterationId             : ID    
                             { 
-                                $$ = newExpNode(IdK); 
+                                //$$ = newExpNode(IdK); 
+                                $$ = newDeclNode(VarK);
                                 $$->attr.name = $1->tokenstr;
+                                $$->expType = Integer;
                                 $$->lineno = $1->linenum;
                             }
                         ;
@@ -557,7 +562,10 @@ other_statements        : expressionStmt
                         ;
 
 expressionStmt          : expression SEMI
-                            { $$ = $1; }
+                            { 
+                                $$ = $1; 
+                                $$->isExp = true;
+                            }
                         | SEMI
                             { $$ = NULL; }
                         ;
@@ -688,6 +696,7 @@ simpleExpression        : simpleExpression OR andExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 1;         
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -700,6 +709,7 @@ andExpression           : andExpression AND unaryRelExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 2;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -711,6 +721,7 @@ unaryRelExpression      : NOT unaryRelExpression
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $2;
+                                $$->op = 3;
                                 $$->attr.name = $1->tokenstr; 
                                 $$->lineno = $1->linenum;
                             }
@@ -723,6 +734,7 @@ relExpression           : relExpression relop sumExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 4;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -749,6 +761,7 @@ sumExpression           : sumExpression sumop mulExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 5;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -767,6 +780,7 @@ mulExpression           : mulExpression mulop unaryExpression
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 6;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -786,6 +800,7 @@ unaryExpression         : unaryop unaryExpression
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $2;
+                                $$->op = 7;
                                 $$->attr.name = $1->tokenstr;
                                 $$->lineno = $1->linenum;
                             }
@@ -818,6 +833,7 @@ mutable                 : ID
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;
+                                $$->op = 8;
                                 $$->attr.name = $2->tokenstr;
                                 $$->lineno = $2->linenum;
                             }
@@ -867,8 +883,8 @@ argList                 : argList COMMA expression
 constant                : NUMCONST  
                             { 
                                 $$ = newExpNode(ConstantK); 
-                                $$->attr.value = $1->numValue;
-                                // $$->attr.name = $1->tokenstr;
+                                //$$->attr.value = $1->numValue;
+                                $$->attr.name = $1->tokenstr;
                                 $$->expType = Integer;
                                 $$->lineno = $1->linenum;
                             }        
@@ -876,8 +892,9 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.cvalue = $1->charValue;
-                                $$->expType = CharInt;
-                                // $$->expType = Char;
+                                //$$->expType = CharInt;
+                                $$->expType = Char;
+                                $$->op = 1;     //char flag - bad idea I know please don't judge;
                                 $$->lineno = $1->linenum;
                             }      
                         | STRINGCONST    
@@ -905,11 +922,11 @@ int main(int argc, char **argv)
     extern int opterr;
     extern int optind;
     extern char *optarg;
-    int c, dflg = 0, pflg = 0, filerr = 0;
+    int c, dflg = 0, pflg = 0, filerr = 0, Pflg = 0;
     char *oarg = NULL;
     FILE *filename;
 
-    while ((c = ourGetopt(argc, argv, (char *)":dp")) != EOF)
+    while ((c = ourGetopt(argc, argv, (char *)":dpP")) != EOF)
     {
         switch(c)
         {
@@ -919,6 +936,10 @@ int main(int argc, char **argv)
             
             case 'p':
                 ++pflg;
+                break;
+
+            case 'P':
+                ++Pflg;
                 break;
 
             case '?':
@@ -944,9 +965,11 @@ int main(int argc, char **argv)
         optind++;
     }
 
+    //if(filerr == 1||filerr == 0)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
+        //filename = fopen("tests/tiny.c-", "r");
 
         if(filename == NULL)
         {
@@ -963,14 +986,29 @@ int main(int argc, char **argv)
         yyin = stdin;
     }
 
+    numErrors = 0;
+    numWarnings = 0;
+
     yyparse();
 
-    //semantic(savedTree);
-
-    if(pflg) 
+    if(numErrors == 0)
     {
-        printTree(savedTree, 1, 0);
+        if(pflg) 
+        {
+            printTree(savedTree, 1, 0);
+        }
+
+        semantic(savedTree);
+
+        if(Pflg) 
+        {
+            semanticPrintTree(savedTree, 1, 0);
+        }
+
     }
+    
+    printf("Number of warnings: %d\n", numWarnings);
+    printf("Number of errors: %d\n", numErrors);
 
     return 0;
 }

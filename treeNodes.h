@@ -11,7 +11,7 @@ typedef enum {NullK, ElsifK, IfK, WhileK, LoopK, LoopForeverK, CompoundK, RangeK
 
 typedef enum {OpK, ConstantK, IdK, AssignK, InitK, CallK} ExpKind;
 
-typedef enum {Void, Integer, Boolean, Char, CharInt, Equal, UndefinedType} ExpType;
+typedef enum {Void, Integer, Boolean, Char, CharInt, Equal, UndefinedType, Error} ExpType;
 
 typedef enum {None, Local, Global, Parameter, LocalStatic} VarKind;
 
@@ -26,7 +26,8 @@ typedef struct treeNode
     struct treeNode *sibling;            
 
     int lineno;                          
-    NodeKind nodekind;                   
+    NodeKind nodekind;   
+    OpKind op;                
     union                               
     {
 	    DeclKind decl;                    
@@ -35,8 +36,7 @@ typedef struct treeNode
     } kind;
     
     union                                 
-    {
-        OpKind op;                         
+    {                         
 	    int value;                        
         unsigned char cvalue;           
 	    char *string;                     
@@ -44,7 +44,14 @@ typedef struct treeNode
     } attr;                                 
     ExpType expType;		      
     bool isArray;                          
-    bool isStatic;                        
+    bool isStatic;  
+    bool enteredScope;      //for compound statements
+    bool isInit;            //Check if a variable is initialized  
+    bool isUsed; 
+    bool isChecked;
+    bool isIndexed;  
+    bool isFlagged;  
+    bool isExp;           
 
 } TreeNode;
 

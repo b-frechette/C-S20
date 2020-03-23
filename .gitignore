@@ -7,7 +7,12 @@ parser.tab.h
 parser.tab.o 
 ourGetopt.o
 treeUtils.o
+semantic.o
+printtree.o 
+symbolTable.o 
 frechette.tar
+errorChecklist
 
 tests
 .DS_STORE
+a.out

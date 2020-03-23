@@ -76,6 +76,7 @@ public:
     int depth();                                               // what is the depth of the scope stack?
     bool isGlobal();                                           // is the only scope the global scope?
     void print(void (*printData)(void*));                      // print all scopes using data printing function
+    void applyToAll(void (*action)(std::string , void *));     // apply func to all symbol/data pairs in local scope
     void applyToAllGlobal(void (*action)(std::string, void*)); // applies func to all symbol/data pairs
     void enter(std::string name);                              // enter a scope with given name
     void leave();                                              // leave a scope (not allowed to leave global)
@@ -91,7 +92,7 @@ public:
     bool insertGlobal(std::string sym, void* ptr);             // inserts a new ptr associated with symbol sym
                                                                // returns false if already defined
     bool isInTopScope(std::string sym);                        // returns true if the symbol is in the top scope
-    bool isGlobal();                                           // is the current scope the global scope
+    //bool isGlobal();                                           // is the current scope the global scope
 };
 
 #endif
