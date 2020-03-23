@@ -11,8 +11,6 @@ void semantic(TreeNode *syntaxTree)
 {
     insertNode(syntaxTree);
 
-    //st.print(pointerPrintStr);
-
     if(st.lookupGlobal("main") == NULL)
     {
         printf("ERROR(LINKER): Procedure main is not declared.\n");
@@ -28,11 +26,12 @@ ExpType insertNode(TreeNode *t)
     bool c1F = false, c2F = false, id1 = false, id2 = false;
     bool arrayF = false;
     const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
-    TreeNode *temp;
+    TreeNode *temp, *temp2;
 
     if(t == NULL)
     {return Error;}
 
+    //VALID
     if(t->nodekind == DeclK)
     {
         switch(t->kind.decl)
@@ -88,13 +87,13 @@ ExpType insertNode(TreeNode *t)
                 break;
         }
     }
+    //INVALID
     else if(t->nodekind == ExpK)
     {
         switch(t->kind.exp)
         {
             case OpK:
-                //bool c1F, c2F, id1, id2;
-                c1 = insertNode(t->child[0]);       //Get the types of the children
+                //c1 = insertNode(t->child[0]);       //Get the types of the children
                 if(t->child[0] != NULL)
                 {
                     t->child[0]->isChecked = true;
@@ -107,15 +106,25 @@ ExpType insertNode(TreeNode *t)
                             {
                                 c1F= true; 
                             }
-                            //printf("%s before\n", temp->attr.name);
                             temp->isUsed = true;
-                            //printf("%s after\n", temp->attr.name);
 
 
                             if(c1 != UndefinedType)
                             {
+                                //POSSIBLE SOLUTION AREA
                                 if(strncmp(t->attr.name, "[", 1)== 0)
-                                {}
+                                {
+                                    if(t->isInit == true)
+                                    {
+                                        //printf("child is: %s\n", t->child[0]->attr.name);
+                                        if(t->child[0] != NULL)
+                                        {
+                                            t->child[0]->isInit = true;
+                                            //t->child[0]->isUsed = true;
+                                        }
+
+                                    }
+                                }
                                 else if(temp->isInit == false && temp->isFlagged == false)
                                 {
                                     temp->isFlagged = true;
@@ -127,6 +136,7 @@ ExpType insertNode(TreeNode *t)
                     }
                     id1 = true;
                 }
+                c1 = insertNode(t->child[0]); 
 
                 c2 = insertNode(t->child[1]);
 
@@ -143,12 +153,11 @@ ExpType insertNode(TreeNode *t)
                             {
                                 c2F= true; 
                             }
-                            //printf("%s before\n", temp->attr.name);
                             temp->isUsed = true;
-                            //printf("%s before\n", temp->attr.name);
 
                             if(c2 != UndefinedType)
                             {
+                                //POSSIBLE PROBLEM
                                 if(temp->isInit == false && temp->isFlagged == false)
                                 {
                                     temp->isFlagged = true;
@@ -385,9 +394,7 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 8:     // [
-                        //To do type check the two arguments
                         temp = st.lookupNode(t->child[0]->attr.name);
-                        //printf("%s temp: %d, t: %d\n", t->child[0]->attr.name,temp->isInit, t->isInit);
 
                         if((temp != NULL && temp->isArray == false) || c1 == UndefinedType)
                         {
@@ -399,8 +406,6 @@ ExpType insertNode(TreeNode *t)
                             printf("ERROR(%d): Cannot index nonarray.\n",t->lineno);
                             numErrors++;
                         }
-                        // else
-                        // {
                             if(t->child[1]->kind.exp == IdK)
                             {
                                 temp = st.lookupNode(t->child[1]->attr.name);
@@ -430,22 +435,21 @@ ExpType insertNode(TreeNode *t)
                                     numErrors++;
                                 }
                             }
-                            if(c1 != UndefinedType)
-                            {
-                                if(temp != NULL)
-                                {
-                                    if(temp->isInit == false && temp->isFlagged == false)
-                                    {
-                                        temp->isFlagged = true;
-                                        printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, t->child[0]->attr.name);
-                                        numWarnings++;
-                                    }
-                                }
-                            }
+                            // if(c1 != UndefinedType)
+                            // {
+                            //     if(temp != NULL)
+                            //     {
+                            //         if(temp->isInit == false && temp->isFlagged == false)
+                            //         {
+                            //             temp->isFlagged = true;
+                            //             printf("3. WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, t->child[0]->attr.name);
+                            //             numWarnings++;
+                            //         }
+                            //     }
+                            // }
                             t->child[0]->isIndexed = true;
                             t->isIndexed = true;
                             c1F = false;
-                        //}
                         t->expType = t->child[0]->expType; //lhs
                         break;
 
@@ -492,7 +496,7 @@ ExpType insertNode(TreeNode *t)
                 break;
 
             case AssignK:   //check the children recurisively first
-                c1 = insertNode(t->child[0]);       //Get the types of the children
+                //c1 = insertNode(t->child[0]);       //Get the types of the children
 
                 if(t->child[0] != NULL)
                 {
@@ -502,18 +506,20 @@ ExpType insertNode(TreeNode *t)
                         temp = st.lookupNode(t->child[0]->attr.name);
                         if(temp != NULL)
                         { 
-                            //printf("%s before\n", temp->attr.name);
                             temp->isUsed = true;
                             temp->isInit = true;
-                            //printf("%s after\n", temp->attr.name);
                         }
                     }
                     else
                     {
-                        t->child[0]->isInit = true;
+                        if(t->child[0] != NULL)
+                        {
+                            t->child[0]->isUsed = true;
+                            t->child[0]->isInit = true;
+                        }
                     }
                 }
-                
+                c1 = insertNode(t->child[0]);
                 c2 = insertNode(t->child[1]);
 
 
@@ -525,13 +531,10 @@ ExpType insertNode(TreeNode *t)
                         temp = st.lookupNode(t->child[1]->attr.name);
                         if(temp != NULL)
                         { 
-                            //printf("%s before\n", temp->attr.name);
                             temp->isUsed = true;
-                            //printf("%s after\n", temp->attr.name);
 
                             if(c2 != UndefinedType)
                             {
-                                //printf("Assign %s child 1: %s\n", temp->attr.name, types[c2]);
                                 if(temp->isInit == false && temp->isFlagged == false)
                                 {
                                     temp->isFlagged = true;
@@ -638,9 +641,7 @@ ExpType insertNode(TreeNode *t)
                     {
                         t->expType = temp->expType;
                     }
-                    //printf("%s before\n", temp->attr.name);
                     temp->isUsed = true;
-                    //printf("%s before\n", temp->attr.name);
                     
                 }
                 returns = t->expType;
@@ -651,6 +652,7 @@ ExpType insertNode(TreeNode *t)
                 break;
         }
     }
+    //INVALID
     else if(t->nodekind == StmtK)
     {
         switch(t->kind.stmt)
@@ -660,21 +662,16 @@ ExpType insertNode(TreeNode *t)
                 break;
 
             case IfK:
-                // temp = st.lookupNode(t->child[0]->attr.name);
-                //     if(temp != NULL)
-                //     {
-                //         //printf("if child %s %d %d\n", temp->attr.name, temp->isInit, temp->isFlagged);
-                //         //if(temp->kind.exp == IdK)
-                //         //{
-                //             //printf("if child %s %d %d\n", temp->attr.name, temp->isInit, temp->isFlagged);
-                //             if(temp->isInit == false && temp->isFlagged == false)
-                //             {
-                //                 temp->isFlagged = true;
-                //                 printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
-                //                 numWarnings++;
-                //             }
-                //         //}
-                //     }
+                temp = st.lookupNode(t->child[0]->attr.name);
+                    if(temp != NULL)
+                    {
+                            if(temp->isInit == false && temp->isFlagged == false)
+                            {
+                                temp->isFlagged = true;
+                                printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                                numWarnings++;
+                            }
+                    }
                 returns = Void;
                 break;
 
@@ -683,7 +680,6 @@ ExpType insertNode(TreeNode *t)
                 break;
 
             case LoopK:
-                // Create a new scope
                 if(t->child[2] != NULL)                     //Apparently Null checking makes this work if it is not a compound????
                 {
                     if(t->child[2]->kind.stmt == CompoundK) //Set the enteredScope bool to true for the following compound statement
@@ -739,6 +735,7 @@ ExpType insertNode(TreeNode *t)
          }
     }
 
+    //VALID
     for(i = 0; i < MAXCHILDREN; i++)
     {
         if(t->child[i] != NULL && t->child[i]->isChecked == false)
@@ -747,12 +744,14 @@ ExpType insertNode(TreeNode *t)
         }
     }
 
+    //VALID
     if(scoped)                          //Leaves the scope as recursive function backtracks
     {
         st.applyToAll(checkUse);
         st.leave();
     }
 
+    //VALID
     if(t->sibling != NULL)
     {
         insertNode(t->sibling); 
@@ -761,18 +760,15 @@ ExpType insertNode(TreeNode *t)
     return returns;
 }
 
+//INVALID?
 void checkUse(std::string sym, void* t)
 {
-    //Check for initialization and use before leaving scope
-    //TO DO:
-    // -> don't worry about many warnings - it will clear up once I get operators in
-    // -> use still needs to be implemented
     TreeNode *temp;
     temp = st.lookupNode(sym.c_str());
 
     if(temp != NULL)
     {
-        if(temp->isUsed == false && temp->isInit == false)
+        if(temp->isUsed == false)
         {
             printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
             numWarnings++;
