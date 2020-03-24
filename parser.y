@@ -638,6 +638,7 @@ expression              : mutable ASSIGN expression
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 1;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -645,7 +646,8 @@ expression              : mutable ASSIGN expression
                             {
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
-                                $$->child[1] = $3;  
+                                $$->child[1] = $3; 
+                                $$->op = 2; 
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -653,7 +655,8 @@ expression              : mutable ASSIGN expression
                             {
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
-                                $$->child[1] = $3;  
+                                $$->child[1] = $3;
+                                $$->op = 3;  
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -661,7 +664,8 @@ expression              : mutable ASSIGN expression
                             {
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
-                                $$->child[1] = $3;  
+                                $$->child[1] = $3; 
+                                $$->op = 4; 
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -670,6 +674,7 @@ expression              : mutable ASSIGN expression
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
+                                $$->op = 5;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -677,6 +682,7 @@ expression              : mutable ASSIGN expression
                             {
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
+                                $$->op = 6;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -684,6 +690,7 @@ expression              : mutable ASSIGN expression
                             {
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
+                                $$->op = 7;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -969,7 +976,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/tiny.c-", "r");
+        //filename = fopen("tests/basicAll4.c-", "r");
 
         if(filename == NULL)
         {
