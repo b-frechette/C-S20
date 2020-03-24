@@ -23,8 +23,7 @@ ExpType insertNode(TreeNode *t)
     int i, errType;
     ExpType c1, c2, returns;
     bool scoped = false;    //Boolean to help recursively leave scopes
-    bool arr1F = false, arr2F = false, id1 = false, id2 = false;
-    bool arrayF = false;
+    bool arr1F = false, arr2F = false, n1 = true, n2 = true;
     const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
     TreeNode *temp, *temp2;
 
@@ -96,12 +95,16 @@ ExpType insertNode(TreeNode *t)
                 {
                     t->child[0]->isChecked = true;  //CAUTION
 
-                    temp = st.lookupNode(t->child[0]->attr.name);
-
-                    if(temp != NULL)  //&& temp->kind.exp == IdK
+                    if(t->child[0]->kind.exp == IdK)
                     {
-                        if(temp->isArray == true)
-                        { arr1F = true; }
+                        temp = st.lookupNode(t->child[0]->attr.name);
+
+                        if(temp != NULL)  //&& temp->kind.exp == IdK
+                        {
+                            n1 = false;
+                            if(temp->isArray == true)
+                            { arr1F = true; }
+                        }
                     }
                 }
 
@@ -109,12 +112,16 @@ ExpType insertNode(TreeNode *t)
                 {
                     t->child[1]->isChecked = true;  //CAUTION
 
-                    temp2 = st.lookupNode(t->child[1]->attr.name);
-
-                    if(temp2 != NULL)  //&& temp2->kind.exp == IdK
+                    if(t->child[1]->kind.exp == IdK)
                     {
-                        if(temp2->isArray == true)
-                        { arr2F = true; }
+                        temp2 = st.lookupNode(t->child[1]->attr.name);
+
+                        if(temp2 != NULL)  //&& temp2->kind.exp == IdK
+                        {
+                            n2 = false;
+                            if(temp2->isArray == true)
+                            { arr2F = true; }
+                        }
                     }
                 }
 
@@ -122,15 +129,15 @@ ExpType insertNode(TreeNode *t)
                 {
                     case 1:     //OR
                     case 2:     //AND
+                        c1 = insertNode(t->child[0]);
+                        c2 = insertNode(t->child[1]);
+
                         //Check if array
                         if(arr1F || arr2F)
                         {
                             printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
                             numErrors++;  
                         }
-
-                        c1 = insertNode(t->child[0]);
-                        c2 = insertNode(t->child[1]);
 
                         if(c1 == UndefinedType)
                         { /*Do Nothing*/ }
@@ -301,52 +308,52 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 8:     // [
-                    //     temp = st.lookupNode(t->child[0]->attr.name);
+                        c1 = insertNode(t->child[0]);
+                        c2 = insertNode(t->child[1]);
 
-                    //     if((temp != NULL && temp->isArray == false) || c1 == UndefinedType)
-                    //     {
-                    //         printf("ERROR(%d): Cannot index nonarray '%s'.\n",t->lineno, t->child[0]->attr.name);
-                    //         numErrors++;
-                    //     }
-                    //     else if(strncmp(t->child[0]->attr.name, "[", 1)== 0)
-                    //     {
-                    //         printf("ERROR(%d): Cannot index nonarray.\n",t->lineno);
-                    //         numErrors++;
-                    //     }
-                    //         if(t->child[1]->kind.exp == IdK)
-                    //         {
-                    //             temp = st.lookupNode(t->child[1]->attr.name);
-        
-                    //             if(temp != NULL && temp->expType != Integer)
-                    //             {
-                    //                 printf("ERROR(%d): Array '%s' should be indexed by type int but got %s.\n", t->lineno, t->child[0]->attr.name, types[t->child[1]->expType]);
-                    //                 numErrors++;
-                    //             }
+                        //Check that child[0] is an array
+                        if(strncmp(t->child[0]->attr.name, "[", 1)== 0)
+                        {
+                            printf("ERROR(%d): Cannot index nonarray.\n",t->lineno);
+                            numErrors++;
+                        }
+                        else if((!n1 && !arr1F) || c1 == UndefinedType) //Careful
+                        {
+                            printf("ERROR(%d): Cannot index nonarray '%s'.\n",t->lineno, t->child[0]->attr.name);
+                            numErrors++;
+                        }
 
-                    //             if(temp != NULL && temp->isArray)
-                    //             {
-                    //                 if(temp->isIndexed == false)
-                    //                 {
-                    //                     printf("ERROR(%d): Array index is the unindexed array '%s'.\n", t->lineno, temp->attr.name);
-                    //                     numErrors++;
-                    //                 }
-                    //             }
-                    //         }
-                    //         else
-                    //         {
-                    //             if(t->child[1]->expType == UndefinedType)
-                    //             { /* Do nothing */ }
-                    //             else if(t->child[1]->expType != Integer)
-                    //             {
-                    //                 printf("ERROR(%d): Array '%s' should be indexed by type int but got %s.\n", t->lineno, t->child[0]->attr.name, types[t->child[1]->expType]);
-                    //                 numErrors++;
-                    //             }
-                    //         }
-                    //         t->child[0]->isIndexed = true;
-                    //         t->isIndexed = true;
-                    //         c1F = false;
-                    t->expType = t->child[0]->expType; //lhs
-                    break;
+                        if(!n2)
+                        {
+                            //Ensure array is being indexed by an Integer
+                            if(temp2->expType != Integer)
+                            {
+                                printf("ERROR(%d): Array '%s' should be indexed by type int but got %s.\n", t->lineno, t->child[0]->attr.name, types[c2]);
+                                numErrors++;
+                            }  
+
+                            //Check if array is being used for index, it is indexed
+                            if(arr2F && !temp2->isIndexed)
+                            {
+
+                                printf("ERROR(%d): Array index is the unindexed array '%s'.\n", t->lineno, temp->attr.name);
+                                numErrors++;
+                            }
+                        }
+                        else
+                        {
+                            if(t->child[1]->expType == UndefinedType)
+                            { /* Do nothing */ }
+                            else if(t->child[1]->expType != Integer)
+                            {
+                                printf("ERROR(%d): Array '%s' should be indexed by type int but got %s.\n", t->lineno, t->child[0]->attr.name, types[t->child[1]->expType]);
+                                numErrors++;
+                            }  
+                        }
+    
+                        t->child[0]->isIndexed = true;
+                        t->expType = t->child[0]->expType; //lhs
+                        break;
 
                     default:
                         break;
@@ -395,42 +402,37 @@ ExpType insertNode(TreeNode *t)
                 {
                     t->child[0]->isChecked = true;  //CAUTION
 
-                    temp = st.lookupNode(t->child[0]->attr.name);
-
-                    if(temp != NULL) // && temp->kind.exp == IdK
+                    if(t->child[0]->kind.exp == IdK)
                     {
-                        if(temp->kind.exp == IdK)
+                        temp = st.lookupNode(t->child[0]->attr.name);
+
+                        if(temp != NULL)  //&& temp->kind.exp == IdK
                         {
+                            n1 = false;
                             if(temp->isArray == true)
                             { arr1F = true; }
-
-                            id1 = true;
                         }
                     }
-                    else
-                    {
-                        temp = t->child[0];     //Catch '[' case
-                    }
-                    
                 }
 
                 if(t->child[1] != NULL)
                 {
                     t->child[1]->isChecked = true;  //CAUTION
 
-                    temp2 = st.lookupNode(t->child[1]->attr.name);
-
-                    if(temp2 != NULL)  //&& temp2->kind.exp == IdK
+                    if(t->child[1]->kind.exp == IdK)
                     {
-                        if(temp2->kind.exp == IdK)
+                        temp2 = st.lookupNode(t->child[1]->attr.name);
+
+                        if(temp2 != NULL)  //&& temp2->kind.exp == IdK
                         {
+                            n2 = false;
                             if(temp2->isArray == true)
                             { arr2F = true; }
                         }
-                    }
-                    else
-                    {
-                        temp2 = t->child[0];     //Catch '[' case
+                        else
+                        {
+                            temp2 = t->child[0];     //Catch '[' case
+                        }
                     }
                 }
 
@@ -438,16 +440,34 @@ ExpType insertNode(TreeNode *t)
                 {
                     case 1:     // =
                         //Child 1 Initialized
-                        //c1 = insertNode(t->child[0]);
-                        //t->expType = c1;
+                        c1 = insertNode(t->child[0]);
+                        c2 = insertNode(t->child[1]);
+                        t->expType = c1;
                         break;
                     case 2:     // +=
-                        break;
                     case 3:     // -=
-                        break;
                     case 4:     // *=
-                        break;
                     case 5:     // /=
+                        c1 = insertNode(t->child[0]);
+                        c2 = insertNode(t->child[1]);  
+                        
+                        if(c1 == UndefinedType)
+                        {/* Do Nothing*/ }
+                        else if(c1 != Integer)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                            numErrors++;
+                        }
+
+                        if(c2 == UndefinedType)
+                        {/* Do Nothing*/ }
+                        else if(c2 != Integer)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
+                            numErrors++;
+                        }
+
+                        t->expType = Integer;
                         break;
                     case 6:     // ++
                     case 7:     // --
