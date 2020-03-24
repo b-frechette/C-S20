@@ -579,7 +579,7 @@ ExpType insertNode(TreeNode *t)
                     if(t->child[0]->kind.exp == IdK)
                     {
                         temp = st.lookupNode(t->child[0]->attr.name);
-                        temp->isUsed = true;
+                        //temp->isUsed = true;
 
                         if(temp != NULL && temp->isArray == true)
                         {
