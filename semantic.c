@@ -132,13 +132,6 @@ ExpType insertNode(TreeNode *t)
                         c1 = insertNode(t->child[0]);
                         c2 = insertNode(t->child[1]);
 
-                        //Check if array
-                        if(arr1F || arr2F)
-                        {
-                            printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
-                            numErrors++;  
-                        }
-
                         if(c1 == UndefinedType)
                         { /*Do Nothing*/ }
                         else if(c1 != Boolean)
@@ -153,6 +146,13 @@ ExpType insertNode(TreeNode *t)
                         {
                             printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[2], types[c2]);
                             numErrors++;
+                        }
+
+                        //Check if array
+                        if(arr1F || arr2F)
+                        {
+                            printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
+                            numErrors++;  
                         }
 
                         t->expType = Boolean;
@@ -253,28 +253,28 @@ ExpType insertNode(TreeNode *t)
                         c1 = insertNode(t->child[0]);
                         c2 = insertNode(t->child[1]);
 
+                        if(c1 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c1 != Integer)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                            numErrors++;
+                        }
+
+                        if(c2 == UndefinedType)
+                        {/*Do nothing*/}
+                        else if(c2 != Integer)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
+                            numErrors++;
+                        }
+
                         if(arr1F == true || arr2F == true)
                         {
                             printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
                             numErrors++;
                         }
-                        else
-                        {
-                            if(c1 == UndefinedType)
-                            {/*Do nothing*/}
-                            else if(c1 != Integer)
-                            {
-                                printf("ERROR(%d): '%s' requires operands of %s but lhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
-                                numErrors++;
-                            }
-                            if(c2 == UndefinedType)
-                            {/*Do nothing*/}
-                            else if(c2 != Integer)
-                            {
-                                printf("ERROR(%d): '%s' requires operands of %s but rhs is of %s.\n", t->lineno, t->attr.name, types[1], types[c2]);
-                                numErrors++;
-                            }
-                        }
+
                         t->expType = Integer;
                         break;
 
@@ -293,14 +293,15 @@ ExpType insertNode(TreeNode *t)
                         }
                         else    // - & ?
                         {
+                            if(c1 != Integer)
+                            {
+                                printf("ERROR(%d): Unary '%s' requires an operand of %s but was given %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                                numErrors++;
+                            }
+
                             if(arr1F == true)
                             {
                                 printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
-                                numErrors++;
-                            }
-                            else if(c1 != Integer)
-                            {
-                                printf("ERROR(%d): Unary '%s' requires an operand of %s but was given %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
                                 numErrors++;
                             }
                         }
@@ -326,7 +327,9 @@ ExpType insertNode(TreeNode *t)
                         if(!n2)
                         {
                             //Ensure array is being indexed by an Integer
-                            if(temp2->expType != Integer)
+                            if(c2 == UndefinedType)
+                            {/*Do Nothing */}
+                            else if(c2 != Integer)
                             {
                                 printf("ERROR(%d): Array '%s' should be indexed by type int but got %s.\n", t->lineno, t->child[0]->attr.name, types[c2]);
                                 numErrors++;
@@ -442,6 +445,15 @@ ExpType insertNode(TreeNode *t)
                         //Child 1 Initialized
                         c1 = insertNode(t->child[0]);
                         c2 = insertNode(t->child[1]);
+
+                        if(c1 == UndefinedType || c2 == UndefinedType)
+                        { /* Do nothing? */ }
+                        else if(c1 != c2) 
+                        {
+                            printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
+                            numErrors++;
+                        }
+
                         t->expType = c1;
                         break;
                     case 2:     // +=
