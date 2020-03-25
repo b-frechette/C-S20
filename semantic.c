@@ -130,6 +130,22 @@ ExpType insertNode(TreeNode *t)
                 {
                     case 1:     //OR
                     case 2:     //AND
+                        //Check if child 1 is initialized
+                        if(!n1 && !temp->isInit && !temp->isFlagged)
+                        {
+                            temp->isFlagged = true;
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                            numWarnings++;
+                        }
+
+                        //Check if child 2 is initialized
+                        if(!n2 && !temp2->isInit && !temp2->isFlagged)
+                        {
+                            temp2->isFlagged = true;
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp2->attr.name);
+                            numWarnings++;
+                        }
+
                         c1 = insertNode(t->child[0]);
                         c2 = insertNode(t->child[1]);
 
@@ -180,6 +196,22 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 4:     //relop
+                        //Check if child 1 is initialized
+                        if(!n1 && !temp->isInit && !temp->isFlagged)
+                        {
+                            temp->isFlagged = true;
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                            numWarnings++;
+                        }
+
+                        //Check if child 2 is initialized
+                        if(!n2 && !temp2->isInit && !temp2->isFlagged)
+                        {
+                            temp2->isFlagged = true;
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp2->attr.name);
+                            numWarnings++;
+                        }
+
                         c1 = insertNode(t->child[0]);
                         c2 = insertNode(t->child[1]);
 
@@ -251,6 +283,22 @@ ExpType insertNode(TreeNode *t)
 
                     case 5:     //sumop
                     case 6:     //mulop
+                        //Check if child 1 is initialized
+                        if(!n1 && !temp->isInit && !temp->isFlagged)
+                        {
+                            temp->isFlagged = true;
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                            numWarnings++;
+                        }
+
+                        //Check if child 2 is initialized
+                        if(!n2 && !temp2->isInit && !temp2->isFlagged)
+                        {
+                            temp2->isFlagged = true;
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp2->attr.name);
+                            numWarnings++;
+                        }
+
                         c1 = insertNode(t->child[0]);
                         c2 = insertNode(t->child[1]);
 
@@ -280,6 +328,13 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 7:     //unaryop
+                        if(!n1 && !temp->isInit && !temp->isFlagged)
+                        {
+                            temp->isFlagged = true;
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                            numWarnings++;
+                        }
+
                         c1 = insertNode(t->child[0]);
 
                         if(c1 == UndefinedType)
@@ -315,7 +370,7 @@ ExpType insertNode(TreeNode *t)
                             if(!n1)
                             {
                                 temp->isInit = true;
-                                //printf("%s %d\n", temp->attr.name, t->lineno);
+                                // printf("%s %d\n", temp->attr.name, t->lineno);
                             }
                             else if(strncmp(t->child[0]->attr.name, "[", 1)== 0)
                             {
@@ -324,15 +379,18 @@ ExpType insertNode(TreeNode *t)
 
                         }
 
+                        c1 = insertNode(t->child[0]);
+                        c2 = insertNode(t->child[1]);
+
                         if(!n1 && !temp->isInit && !temp->isFlagged)
                         {
                             temp->isFlagged = true;
-                            printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
                             numWarnings++;
                         }
 
-                        c1 = insertNode(t->child[0]);
-                        c2 = insertNode(t->child[1]);
+                        // c1 = insertNode(t->child[0]);
+                        // c2 = insertNode(t->child[1]);
 
                         //Check that child[0] is an array
                         if(strncmp(t->child[0]->attr.name, "[", 1)== 0)
@@ -363,6 +421,13 @@ ExpType insertNode(TreeNode *t)
 
                                 printf("ERROR(%d): Array index is the unindexed array '%s'.\n", t->lineno, temp->attr.name);
                                 numErrors++;
+                            }
+
+                            if(!temp2->isInit && !temp2->isFlagged)
+                            {
+                                temp2->isFlagged = true;
+                                printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp2->attr.name);
+                                numWarnings++;
                             }
                         }
                         else
@@ -403,6 +468,7 @@ ExpType insertNode(TreeNode *t)
                 {
                     if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
                     {
+                        temp->isFlagged = true;
                         t->expType = UndefinedType;
                         printf("ERROR(%d): Cannot use function '%s' as a variable.\n", t->lineno, t->attr.name);
                         numErrors++;
@@ -468,15 +534,28 @@ ExpType insertNode(TreeNode *t)
                         if(!n1)
                         {
                             temp->isInit = true;
-                            //printf("n1: %s\n", temp->attr.name);
                         }
                         else
                         {
                             t->child[0]->isInit = true;
                         }
-            
+
                         c1 = insertNode(t->child[0]);
                         c2 = insertNode(t->child[1]);
+
+                        //Check if child 2 is initialized
+                        if(!n2 && !temp2->isInit)
+                        {
+                            if(temp2->isFlagged == false)
+                            {
+                                temp2->isFlagged = true;
+                                printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp2->attr.name);
+                                numWarnings++;
+                            }
+                        }
+            
+                        // c1 = insertNode(t->child[0]);
+                        // c2 = insertNode(t->child[1]);
 
                         if(c1 == UndefinedType || c2 == UndefinedType)
                         { /* Do nothing? */ }
@@ -571,15 +650,15 @@ ExpType insertNode(TreeNode *t)
 
             case IfK:
                 temp = st.lookupNode(t->child[0]->attr.name);
-                    if(temp != NULL)
+                if(temp != NULL)
+                {
+                    if(temp->isInit == false && temp->isFlagged == false)
                     {
-                            if(temp->isInit == false && temp->isFlagged == false)
-                            {
-                                temp->isFlagged = true;
-                                printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
-                                numWarnings++;
-                            }
+                        temp->isFlagged = true;
+                        printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                        numWarnings++;
                     }
+                }
                 returns = Void;
                 break;
 
@@ -631,9 +710,10 @@ ExpType insertNode(TreeNode *t)
                             numErrors++;
                         }
 
-                        if(temp != NULL && temp->isInit == false)
+                        if(temp != NULL && !temp->isInit && !temp->isFlagged)
                         {
-                            printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->child[0]->lineno, temp->attr.name);
+                            temp->isFlagged = true;
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->child[0]->lineno, temp->attr.name);
                             numWarnings++;
                         }
                     }
