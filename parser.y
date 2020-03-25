@@ -976,7 +976,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/undefined.c-", "r");
+        //filename = fopen("tests/array.c-", "r");
 
         if(filename == NULL)
         {

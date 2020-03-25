@@ -97,6 +97,7 @@ ExpType insertNode(TreeNode *t)
 
                     if(t->child[0]->kind.exp == IdK)
                     {
+                        //t->child[0]->isChecked = true;  //CAUTION
                         temp = st.lookupNode(t->child[0]->attr.name);
 
                         if(temp != NULL)  //&& temp->kind.exp == IdK
@@ -309,6 +310,27 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 8:     // [
+                        if(t->isInit)
+                        {
+                            if(!n1)
+                            {
+                                temp->isInit = true;
+                                //printf("%s %d\n", temp->attr.name, t->lineno);
+                            }
+                            else if(strncmp(t->child[0]->attr.name, "[", 1)== 0)
+                            {
+                                t->child[0]->isInit = true;
+                            }
+
+                        }
+
+                        if(!n1 && !temp->isInit && !temp->isFlagged)
+                        {
+                            temp->isFlagged = true;
+                            printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                            numWarnings++;
+                        }
+
                         c1 = insertNode(t->child[0]);
                         c2 = insertNode(t->child[1]);
 
@@ -443,6 +465,16 @@ ExpType insertNode(TreeNode *t)
                 {
                     case 1:     // =
                         //Child 1 Initialized
+                        if(!n1)
+                        {
+                            temp->isInit = true;
+                            //printf("n1: %s\n", temp->attr.name);
+                        }
+                        else
+                        {
+                            t->child[0]->isInit = true;
+                        }
+            
                         c1 = insertNode(t->child[0]);
                         c2 = insertNode(t->child[1]);
 
