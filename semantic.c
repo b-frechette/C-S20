@@ -160,13 +160,6 @@ ExpType insertNode(TreeNode *t)
                         break;
 
                     case 3:     //NOT
-                        //Check if array
-                        if(arr1F == true)
-                        {
-                            printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
-                            numErrors++;
-                        }
-
                         c1 = insertNode(t->child[0]);
 
                         if(c1 == UndefinedType)
@@ -176,6 +169,14 @@ ExpType insertNode(TreeNode *t)
                             printf("ERROR(%d): Unary '%s' requires an operand of %s but was given %s.\n", t->lineno, t->attr.name, types[2], types[c1]);
                             numErrors++;
                         }
+
+                        //Check if array
+                        if(arr1F == true)
+                        {
+                            printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
+                            numErrors++;
+                        }
+                        
                         t->expType = Boolean;
                         break;
 
@@ -391,6 +392,7 @@ ExpType insertNode(TreeNode *t)
                 }
                 else                                        //Is declared
                 {
+                    temp->isUsed = true;
                     if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
                     {
                         temp->isFlagged = true;
@@ -545,8 +547,6 @@ ExpType insertNode(TreeNode *t)
                     {
                         t->expType = temp->expType;
                     }
-                    temp->isUsed = true;
-                    
                 }
                 returns = t->expType;
                 break;
@@ -609,7 +609,6 @@ ExpType insertNode(TreeNode *t)
                     if(t->child[0]->kind.exp == IdK)
                     {
                         temp = st.lookupNode(t->child[0]->attr.name);
-                        //temp->isUsed = true;
 
                         if(temp != NULL && temp->isArray == true)
                         {
@@ -659,15 +658,15 @@ ExpType insertNode(TreeNode *t)
 //INVALID?
 void checkUse(std::string sym, void* t)
 {
-    // TreeNode *temp;
-    // temp = st.lookupNode(sym.c_str());
+    TreeNode *temp;
+    temp = st.lookupNode(sym.c_str());
 
-    // if(temp != NULL)
-    // {
-    //     if(temp->isUsed == false)
-    //     {
-    //         printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
-    //         numWarnings++;
-    //     }
-    // }
+    if(temp != NULL)
+    {
+        if(temp->isUsed == false)
+        {
+            printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
+            numWarnings++;
+        }
+    }
 }
