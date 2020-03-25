@@ -6,6 +6,7 @@
 #include "semantic.h"
 
 SymbolTable st;
+TreeNode *currFunc;
 
 void semantic(TreeNode *syntaxTree)
 {
@@ -65,6 +66,7 @@ ExpType insertNode(TreeNode *t)
                 
 
                 st.enter(t->attr.name);                 //Enter a new scope
+                currFunc = t;
                 scoped = true;                          //Entered scope bool set
                 returns = t->expType;
                 break;
@@ -606,6 +608,7 @@ ExpType insertNode(TreeNode *t)
             case ReturnK:
                 if(t->child[0] != NULL)
                 {
+                    t->child[0]->isChecked = true;
                     if(t->child[0]->kind.exp == IdK)
                     {
                         temp = st.lookupNode(t->child[0]->attr.name);
@@ -617,6 +620,34 @@ ExpType insertNode(TreeNode *t)
                         }
                     }
                 }
+
+                c1 = insertNode(t->child[0]);
+ 
+                if(currFunc != NULL)
+                {
+                    if(t->child[0] != NULL)
+                    {
+                        if(currFunc->expType == Void)
+                        {
+                            printf("ERROR(%d): Function '%s' at line %d is expecting no return value but return has return value.\n", t->lineno, currFunc->attr.name, currFunc->lineno);
+                            numErrors++;
+                        }
+                        else if(c1 != currFunc->expType)
+                        {
+                            printf("ERROR(%d): Function '%s' at line %d is expecting to return %s but got %s.\n", t->lineno, currFunc->attr.name, currFunc->lineno, types[currFunc->expType], types[c1]);
+                            numErrors++;
+                        }
+                    }
+                    else
+                    {
+                        if(currFunc->expType != Void)
+                        {
+                            printf("ERROR(%d): Function '%s' at line %d is expecting to return %s but return has no return value.\n", t->lineno, currFunc->attr.name, currFunc->lineno, types[currFunc->expType]);
+                            numErrors++;  
+                        }
+                    }
+                }
+
                 returns = Void;
                 break;
 
