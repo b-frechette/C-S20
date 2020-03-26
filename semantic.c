@@ -7,6 +7,7 @@
 
 SymbolTable st;
 TreeNode *currFunc;
+bool returnFlg = false;
 
 void semantic(TreeNode *syntaxTree)
 {
@@ -26,6 +27,7 @@ ExpType insertNode(TreeNode *t)
     bool scoped = false;    //Boolean to help recursively leave scopes
     bool arr1F = false, arr2F = false, n1 = true, n2 = true;
     const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
+    const char* stmt[] = { "null", "elsif", "if", "while" };
     TreeNode *temp, *temp2;
 
     //Check if Null -- return Error if true
@@ -47,23 +49,22 @@ ExpType insertNode(TreeNode *t)
                 if(t->child[0] != NULL)                 //If Initializing
                 {
                     t->isInit = true;
-                    temp = t->child[0];
-                    temp->isChecked = true;
+                    t->child[0]->isChecked = true;
 
-                    if(temp->nodekind == ExpK)
+                    c1 = insertNode(t->child[0]);
+
+                    if(t->child[0]->nodekind == ExpK)
                     {
-                        if(temp->kind.exp == ConstantK)
+                        if(t->child[0]->kind.exp == ConstantK)
                         {   
-                            if(temp->expType != t->expType)
+                            if(t->child[0]->expType != t->expType)
                             {
-                                printf("ERROR(%d): Variable '%s' is of %s but is being initialized with an expression of %s.\n", t->lineno, t->attr.name, types[t->expType], types[temp->expType]);
+                                printf("ERROR(%d): Variable '%s' is of %s but is being initialized with an expression of %s.\n", t->lineno, t->attr.name, types[t->expType], types[t->child[0]->expType]);
                                 numErrors++;
                             }  
                         }
-                        else if(temp->kind.exp == OpK)
+                        else if(t->child[0]->kind.exp == OpK)
                         {
-                            c1 = insertNode(t->child[0]);
-
                             if(c1 != t->expType)
                             {
                                 printf("ERROR(%d): Variable '%s' is of %s but is being initialized with an expression of %s.\n", t->lineno, t->attr.name, types[t->expType], types[temp->expType]);
@@ -72,6 +73,14 @@ ExpType insertNode(TreeNode *t)
                         }
                         else
                         {
+                            if(t->child[0]->kind.exp == IdK)
+                            {
+                                temp2 = st.lookupNode(t->child[0]->attr.name);
+
+                                if(temp2 != NULL)
+                                { temp2->isUsed = true; }
+                            }
+
                             printf("ERROR(%d): Initializer for variable '%s' is not a constant expression.\n", t->lineno, t->attr.name);
                             numErrors++;
                         }
@@ -597,6 +606,19 @@ ExpType insertNode(TreeNode *t)
                 break;
 
             case IfK:
+                c1 = insertNode(t->child[0]);
+
+                if(t->child[0] != NULL)
+                { t->child[0]->isChecked = true; }
+
+                if(c1 == UndefinedType)
+                { /*Do Nothing*/ }
+                else if(c1 != Boolean)
+                {
+                    printf("ERROR(%d): Expecting Boolean test condition in %s statement but got %s.\n", t->lineno, stmt[t->kind.stmt], types[c1]);
+                    numErrors++;
+                }
+
                 returns = Void;
                 break;
 
@@ -612,7 +634,22 @@ ExpType insertNode(TreeNode *t)
                         t->child[2]->enteredScope = true;
                     }
                 }
+
                 st.enter("Loop");
+                c1 = insertNode(t->child[0]);
+
+                if(t->child[0] != NULL)
+                {
+                    t->child[0]->isChecked = true;
+
+                    temp = st.lookupNode(t->child[0]->attr.name);
+
+                    if(temp != NULL)
+                    {
+                        temp->isInit = true;
+                    }
+                }
+
                 scoped = true;
                 returns = Void;
                 break;
@@ -656,7 +693,9 @@ ExpType insertNode(TreeNode *t)
                 {
                     if(t->child[0] != NULL)
                     {
-                        if(currFunc->expType == Void)
+                        if(c1 == UndefinedType)
+                        { /* Do Nothing */}
+                        else if(currFunc->expType == Void)
                         {
                             printf("ERROR(%d): Function '%s' at line %d is expecting no return value but return has return value.\n", t->lineno, currFunc->attr.name, currFunc->lineno);
                             numErrors++;
@@ -678,6 +717,7 @@ ExpType insertNode(TreeNode *t)
                 }
 
                 returns = Void;
+                returnFlg = true;
                 break;
 
             case BreakK:
@@ -702,6 +742,16 @@ ExpType insertNode(TreeNode *t)
     //VALID
     if(scoped)                          //Leaves the scope as recursive function backtracks
     {
+        if(strncmp(currFunc->attr.name, st.scope().c_str(), 10) == 0)
+        {
+            if(!returnFlg && currFunc->expType != Void)
+            {
+                printf("WARNING(%d): Expecting to return %s but function '%s' has no return statement.\n", t->lineno, types[currFunc->expType], currFunc->attr.name);
+                numWarnings++;
+            }
+            else
+            { returnFlg = false; }
+        }
         st.applyToAll(checkUse);
         st.leave();
     }
@@ -725,7 +775,7 @@ void checkUse(std::string sym, void* t)
     {
         if(temp->isUsed == false)
         {
-            printf("WARNING(%d): The variable %s seems not to be used.\n", temp->lineno, temp->attr.name);
+            printf("WARNING(%d): The variable '%s' seems not to be used.\n", temp->lineno, temp->attr.name);
             numWarnings++;
         }
     }
