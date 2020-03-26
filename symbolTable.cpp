@@ -176,8 +176,6 @@ bool SymbolTable::isInTopScope(std::string sym) {
 std::string SymbolTable::scope()
 {
     return (stack.back()->scopeName()).c_str();
-    //return scopeName();
-    //return (TreeNode*)lookup((stack.back()->scopeName()).c_str());
 }
 
 // Lookup a symbol in the global scope

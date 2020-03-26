@@ -602,10 +602,8 @@ ExpType insertNode(TreeNode *t)
         switch(t->kind.stmt)
         {
             case ElsifK:
-                returns = Void;
-                break;
-
             case IfK:
+            case WhileK:
                 c1 = insertNode(t->child[0]);
 
                 if(t->child[0] != NULL)
@@ -619,10 +617,6 @@ ExpType insertNode(TreeNode *t)
                     numErrors++;
                 }
 
-                returns = Void;
-                break;
-
-            case WhileK:
                 returns = Void;
                 break;
 
@@ -697,7 +691,7 @@ ExpType insertNode(TreeNode *t)
                         { /* Do Nothing */}
                         else if(currFunc->expType == Void)
                         {
-                            printf("ERROR(%d): Function '%s' at line %d is expecting no return value but return has return value.\n", t->lineno, currFunc->attr.name, currFunc->lineno);
+                            printf("ERROR(%d): Function '%s' at line %d is expecting no return value, but return has return value.\n", t->lineno, currFunc->attr.name, currFunc->lineno);
                             numErrors++;
                         }
                         else if(c1 != currFunc->expType)
@@ -775,8 +769,16 @@ void checkUse(std::string sym, void* t)
     {
         if(temp->isUsed == false)
         {
-            printf("WARNING(%d): The variable '%s' seems not to be used.\n", temp->lineno, temp->attr.name);
-            numWarnings++;
+            if(temp->nodekind == DeclK && temp->kind.decl == ParamK)
+            {
+                printf("WARNING(%d): The parameter '%s' seems not to be used.\n", temp->lineno, temp->attr.name);
+                numWarnings++;
+            }
+            else
+            {
+                printf("WARNING(%d): The variable '%s' seems not to be used.\n", temp->lineno, temp->attr.name);
+                numWarnings++;  
+            }
         }
     }
 }

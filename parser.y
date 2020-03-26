@@ -980,7 +980,7 @@ int main(int argc, char **argv)
 
         if(filename == NULL)
         {
-            printf("ERROR(ARGLIST): file \"%s\" could not be opened.\n", oarg);
+            printf("ERROR(ARGLIST): source file \"%s\" could not be opened.\n", oarg);
             exit(1);
         }
         else
