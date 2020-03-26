@@ -47,6 +47,35 @@ ExpType insertNode(TreeNode *t)
                 if(t->child[0] != NULL)                 //If Initializing
                 {
                     t->isInit = true;
+                    temp = t->child[0];
+                    temp->isChecked = true;
+
+                    if(temp->nodekind == ExpK)
+                    {
+                        if(temp->kind.exp == ConstantK)
+                        {   
+                            if(temp->expType != t->expType)
+                            {
+                                printf("ERROR(%d): Variable '%s' is of %s but is being initialized with an expression of %s.\n", t->lineno, t->attr.name, types[t->expType], types[temp->expType]);
+                                numErrors++;
+                            }  
+                        }
+                        else if(temp->kind.exp == OpK)
+                        {
+                            c1 = insertNode(t->child[0]);
+
+                            if(c1 != t->expType)
+                            {
+                                printf("ERROR(%d): Variable '%s' is of %s but is being initialized with an expression of %s.\n", t->lineno, t->attr.name, types[t->expType], types[temp->expType]);
+                                numErrors++;
+                            }
+                        }
+                        else
+                        {
+                            printf("ERROR(%d): Initializer for variable '%s' is not a constant expression.\n", t->lineno, t->attr.name);
+                            numErrors++;
+                        }
+                    }
                 }
 
                 returns = t->expType;
@@ -410,7 +439,7 @@ ExpType insertNode(TreeNode *t)
                     if(!temp->isInit && !temp->isFlagged)
                     {
                         temp->isFlagged = true;
-                        printf("WARNING(%d): Variable %s may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                        printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
                         numWarnings++;
                     } 
                 }
