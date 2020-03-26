@@ -13,6 +13,8 @@ void semantic(TreeNode *syntaxTree)
 {
     insertNode(syntaxTree);
 
+    st.applyToAll(checkUse);
+
     if(st.lookupGlobal("main") == NULL)
     {
         printf("ERROR(LINKER): Procedure main is not declared.\n");
@@ -769,7 +771,11 @@ void checkUse(std::string sym, void* t)
     {
         if(temp->isUsed == false)
         {
-            if(temp->nodekind == DeclK && temp->kind.decl == ParamK)
+            if(temp->nodekind == DeclK && temp->kind.decl == FuncK)
+            {
+                //To do
+            }
+            else if(temp->nodekind == DeclK && temp->kind.decl == ParamK)
             {
                 printf("WARNING(%d): The parameter '%s' seems not to be used.\n", temp->lineno, temp->attr.name);
                 numWarnings++;
