@@ -25,9 +25,9 @@ void semantic(TreeNode *syntaxTree)
 ExpType insertNode(TreeNode *t)
 {
     int i, errType;
-    ExpType c1, c2, returns;
+    ExpType c1, c2, c3, returns;
     bool scoped = false;    //Boolean to help recursively leave scopes
-    bool arr1F = false, arr2F = false, n1 = true, n2 = true;
+    bool arr1F = false, arr2F = false, n1 = true, n2 = true, func = false;
     const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
     const char* stmt[] = { "null", "elsif", "if", "while" };
     TreeNode *temp, *temp2;
@@ -98,6 +98,9 @@ ExpType insertNode(TreeNode *t)
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
                 }
+                
+                if(strncmp(t->attr.name, "main", 4) == 0)
+                { t->isUsed = true; }
 
                 if(t->child[1] != NULL && t->child[1]->kind.stmt == CompoundK) //Set the enteredScope bool to true for the following compound statement
                 {
@@ -356,7 +359,11 @@ ExpType insertNode(TreeNode *t)
                         if(t->isInit)
                         {
                             if(!n1)
-                            { temp->isInit = true; }
+                            { 
+                                temp->isInit = true; 
+                                if(temp->nodekind == DeclK && temp->kind.decl == FuncK)
+                                { func = true; }
+                            }
                             else if(strncmp(t->child[0]->attr.name, "[", 1)== 0)
                             {
                                 t->child[0]->isInit = true;
@@ -373,7 +380,9 @@ ExpType insertNode(TreeNode *t)
                             printf("ERROR(%d): Cannot index nonarray.\n",t->lineno);
                             numErrors++;
                         }
-                        else if((!n1 && !arr1F) || c1 == UndefinedType) //Careful
+                        else if (func || c1 == UndefinedType)
+                        { /*Do Nothing */ }
+                        else if((!n1 && !arr1F)) //Careful
                         {
                             printf("ERROR(%d): Cannot index nonarray '%s'.\n",t->lineno, t->child[0]->attr.name);
                             numErrors++;
@@ -518,6 +527,16 @@ ExpType insertNode(TreeNode *t)
 
                         if(c1 == UndefinedType || c2 == UndefinedType)
                         { /* Do nothing? */ }
+                        else if(c1 == Void)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of type bool, char, or int but lhs is of %s.\n", t->lineno, t->attr.name, types[c1]);
+                            numErrors++;
+                        }
+                        else if(c2 == Void)
+                        {
+                            printf("ERROR(%d): '%s' requires operands of type bool, char, or int but rhs is of %s.\n", t->lineno, t->attr.name, types[c2]);
+                            numErrors++;
+                        }
                         else if(c1 != c2) 
                         {
                             printf("ERROR(%d): '%s' requires operands of the same type but lhs is %s and rhs is %s.\n", t->lineno, t->attr.name, types[c1], types[c2]);
@@ -587,6 +606,7 @@ ExpType insertNode(TreeNode *t)
                     }
                     else
                     {
+                        temp->isUsed = true;
                         t->expType = temp->expType;
                     }
                 }
@@ -609,13 +629,23 @@ ExpType insertNode(TreeNode *t)
                 c1 = insertNode(t->child[0]);
 
                 if(t->child[0] != NULL)
-                { t->child[0]->isChecked = true; }
+                { 
+                    t->child[0]->isChecked = true; 
+                    if(t->child[0]->nodekind == ExpK && t->child[0]->kind.exp == IdK)
+                    { temp = st.lookupNode(t->child[0]->attr.name); }
+                }
 
                 if(c1 == UndefinedType)
                 { /*Do Nothing*/ }
                 else if(c1 != Boolean)
                 {
                     printf("ERROR(%d): Expecting Boolean test condition in %s statement but got %s.\n", t->lineno, stmt[t->kind.stmt], types[c1]);
+                    numErrors++;
+                }
+
+                if(temp->isArray)
+                {
+                    printf("ERROR(%d): Cannot use array as test condition in %s statement.\n", t->lineno, stmt[t->kind.stmt]);
                     numErrors++;
                 }
 
@@ -664,6 +694,54 @@ ExpType insertNode(TreeNode *t)
                 break;
 
             case RangeK:
+                c1 = insertNode(t->child[0]);
+
+                if(t->child[0] != NULL)
+                { t->child[0]->isChecked = true; }
+
+                if(t->child[1] != NULL)
+                { t->child[1]->isChecked = true; }
+
+                if(c1 == UndefinedType)
+                { /* Do Nothing*/ }
+                else if(c1 != Integer)
+                {
+                    printf("ERROR(%d): Expecting integer in range for loop statement but got %s.\n", t->lineno, types[c1]);
+                    numErrors++;
+                }
+
+                c2 = insertNode(t->child[1]);
+
+                if(c2 == UndefinedType)
+                { /* Do Nothing*/ }
+                else if(c2 != Integer)
+                {
+                    printf("ERROR(%d): Expecting integer in range for loop statement but got %s.\n", t->lineno, types[c2]);
+                    numErrors++;
+                }
+
+                switch(t->op)
+                {
+                    //case 1:     ASSIGN simpleExpression RANGE simpleExpression
+                    case 2:     //ASSIGN simpleExpression RANGE simpleExpression COLON simpleExpression
+                        c3 = insertNode(t->child[2]);
+
+                        if(t->child[2] != NULL)
+                        { t->child[2]->isChecked = true; }
+
+                        if(c3 == UndefinedType)
+                        { /* Do Nothing*/ }
+                        else if(c3 != Integer)
+                        {
+                            printf("ERROR(%d): Expecting integer in range for loop statement but got %s.\n", t->lineno, types[c3]);
+                            numErrors++;
+                        }
+
+                        break;
+
+                    default:
+                        break;
+                }
                 returns = Void;
                 break;
 
@@ -773,7 +851,8 @@ void checkUse(std::string sym, void* t)
         {
             if(temp->nodekind == DeclK && temp->kind.decl == FuncK)
             {
-                //To do
+                printf("WARNING(%d): The function '%s' seems not to be used.\n", temp->lineno, temp->attr.name);
+                numWarnings++;
             }
             else if(temp->nodekind == DeclK && temp->kind.decl == ParamK)
             {

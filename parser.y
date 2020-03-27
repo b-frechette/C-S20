@@ -447,6 +447,7 @@ iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $2;
                                 $$->child[1] = $4;
+                                $$->op = 1;
 
                                 //Solution for Exp node that appears in test cases - Ask why it's there
                                 TreeNode *t = newExpNode(ConstantK);
@@ -464,6 +465,7 @@ iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
                                 $$->child[0] = $2;
                                 $$->child[1] = $4;
                                 $$->child[2] = $6;
+                                $$->op = 2;
                                 $$->lineno = $1->linenum;
                             }
                         ;
