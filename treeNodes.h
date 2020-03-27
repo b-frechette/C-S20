@@ -27,6 +27,7 @@ typedef struct treeNode
 
     int lineno;                          
     NodeKind nodekind;   
+    VarKind var;
     OpKind op;                
     union                               
     {

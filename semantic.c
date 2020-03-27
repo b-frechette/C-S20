@@ -8,6 +8,7 @@
 SymbolTable st;
 TreeNode *currFunc;
 bool returnFlg = false;
+const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
 
 void semantic(TreeNode *syntaxTree)
 {
@@ -15,10 +16,21 @@ void semantic(TreeNode *syntaxTree)
 
     st.applyToAll(checkUse);
 
-    if(st.lookupGlobal("main") == NULL)
+    TreeNode *temp = st.lookupNode("main");
+
+    //if(st.lookupGlobal("main") == NULL)
+    if(temp == NULL)
     {
         printf("ERROR(LINKER): Procedure main is not declared.\n");
         numErrors++;
+    }
+    else
+    {
+        if(temp->nodekind == DeclK && temp->kind.decl != FuncK)
+        {
+            printf("ERROR(LINKER): Procedure main is not declared.\n");
+            numErrors++; 
+        }
     }
 }
 
@@ -28,7 +40,7 @@ ExpType insertNode(TreeNode *t)
     ExpType c1, c2, c3, returns;
     bool scoped = false;    //Boolean to help recursively leave scopes
     bool arr1F = false, arr2F = false, n1 = true, n2 = true, func = false;
-    const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
+    // const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
     const char* stmt[] = { "null", "elsif", "if", "while" };
     TreeNode *temp, *temp2;
 
@@ -589,6 +601,7 @@ ExpType insertNode(TreeNode *t)
 
             case CallK:
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
+                c1 = insertNode(t->child[0]);
 
                 if(temp == NULL)                            //Not declared
                 {   
@@ -604,10 +617,25 @@ ExpType insertNode(TreeNode *t)
                         printf("ERROR(%d): '%s' is a simple variable and cannot be called.\n", t->lineno, t->attr.name);
                         numErrors++;
                     }
-                    else
+                    else        //is a function
                     {
                         temp->isUsed = true;
                         t->expType = temp->expType;
+
+                        if(t->child[0] != NULL && temp->child[0] != NULL)
+                        {
+                            t->child[0]->isChecked = true;
+                            checkParams(temp, temp->child[0], t->child[0], 1);
+                        }
+                        else if(temp->child[0] == NULL && t->child[0] != NULL)
+                        {
+                            printf("ERROR(%d): Too many parameters passed for function '%s' declared on line %d.\n", t->lineno, t->attr.name, temp->lineno);
+                            numErrors++;   
+                        }
+                        else if (t->child[0] == NULL && temp->child[0] != NULL)
+                        {
+                            printf("Function has params and call has no params %s\n", t->attr.name);
+                        }
                     }
                 }
                 returns = t->expType;
@@ -628,13 +656,6 @@ ExpType insertNode(TreeNode *t)
             case WhileK:
                 c1 = insertNode(t->child[0]);
 
-                if(t->child[0] != NULL)
-                { 
-                    t->child[0]->isChecked = true; 
-                    if(t->child[0]->nodekind == ExpK && t->child[0]->kind.exp == IdK)
-                    { temp = st.lookupNode(t->child[0]->attr.name); }
-                }
-
                 if(c1 == UndefinedType)
                 { /*Do Nothing*/ }
                 else if(c1 != Boolean)
@@ -643,10 +664,19 @@ ExpType insertNode(TreeNode *t)
                     numErrors++;
                 }
 
-                if(temp->isArray)
-                {
-                    printf("ERROR(%d): Cannot use array as test condition in %s statement.\n", t->lineno, stmt[t->kind.stmt]);
-                    numErrors++;
+                if(t->child[0] != NULL)
+                { 
+                    t->child[0]->isChecked = true; 
+                    if(t->child[0]->nodekind == ExpK && t->child[0]->kind.exp == IdK)
+                    { 
+                        temp = st.lookupNode(t->child[0]->attr.name); 
+
+                        if(temp != NULL && temp->isArray)
+                        {
+                            printf("ERROR(%d): Cannot use array as test condition in %s statement.\n", t->lineno, stmt[t->kind.stmt]);
+                            numErrors++;
+                        }
+                    }
                 }
 
                 returns = Void;
@@ -837,6 +867,24 @@ ExpType insertNode(TreeNode *t)
     }
 
     return returns;
+}
+
+void checkParams(TreeNode *funcName, TreeNode *funcParam, TreeNode *callParam, int paramNum)
+{
+    if(funcParam != NULL && callParam != NULL)
+    {
+        // printf("(%d)child type: %s\n", callParam->lineno, types[callParam->expType]);
+        if(funcParam->expType != callParam->expType)
+        {
+            printf("ERROR(%d): Expecting %s in parameter %d of call to '%s' declared on line %d but got %s.\n", callParam->lineno, types[funcParam->expType], paramNum, funcName->attr.name, funcName->lineno, types[callParam->expType]);
+            numErrors++;
+        }
+
+        if(funcParam->sibling != NULL && callParam->sibling != NULL)
+        {
+            checkParams(funcName, funcParam->sibling, callParam->sibling, paramNum++); 
+        }
+    }
 }
 
 //INVALID?
