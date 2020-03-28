@@ -55,12 +55,6 @@ ExpType insertNode(TreeNode *t)
         switch(t->kind.decl)
         {
             case VarK:
-                if(!st.insert(t->attr.name, t))         //Already declared
-                {
-                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
-                    numErrors++;
-                }
-
                 if(t->child[0] != NULL)                 //If Initializing
                 {
                     t->isInit = true;
@@ -80,7 +74,12 @@ ExpType insertNode(TreeNode *t)
                         }
                         else if(t->child[0]->kind.exp == OpK)
                         {
-                            if(c1 != t->expType)
+                            if(t->child[0]->op == 7 && strncmp(t->child[0]->attr.name, "*", 1) == 0)
+                            {
+                                printf("ERROR(%d): Initializer for variable '%s' is not a constant expression.\n", t->lineno, t->attr.name);
+                                numErrors++;
+                            }
+                            else if(c1 != t->expType)
                             {
                                 printf("ERROR(%d): Variable '%s' is of %s but is being initialized with an expression of %s.\n", t->lineno, t->attr.name, types[t->expType], types[temp->expType]);
                                 numErrors++;
@@ -100,6 +99,22 @@ ExpType insertNode(TreeNode *t)
                             numErrors++;
                         }
                     }
+                    
+                }
+
+                if(!st.insert(t->attr.name, t))         //Already declared
+                {
+                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
+                    numErrors++;
+                }
+
+                if(st.depth() == 1)
+                { t->var = Global;}
+                else if(st.depth() > 1)
+                {
+                    t->var = Local;
+                    if(t->isStatic)
+                    { t->var = LocalStatic; }
                 }
 
                 returns = t->expType;
@@ -128,6 +143,7 @@ ExpType insertNode(TreeNode *t)
                 break;
 
             case ParamK:
+                t->var = Parameter;
                 if(!st.insert(t->attr.name, t))         //Already declared
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
@@ -469,7 +485,7 @@ ExpType insertNode(TreeNode *t)
                         t->expType = temp->expType;
                     }  
 
-                    if(!temp->isInit && !temp->isFlagged)
+                    if(!temp->isInit && !temp->isFlagged && temp->var != Global && temp->var != LocalStatic)
                     {
                         temp->isFlagged = true;
                         printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
