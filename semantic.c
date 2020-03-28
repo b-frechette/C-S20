@@ -863,10 +863,10 @@ void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, Tr
 {
     if(funcParam != NULL && callParam != NULL)
     {
-        bool temp = siblingFlg;
+        bool tempFlg = siblingFlg;
         siblingFlg = false;
         insertNode(callParam);
-        siblingFlg = temp;      //fixes call within call error with params
+        siblingFlg = tempFlg;      //fixes call within call error with params
 
         if(callParam->expType == UndefinedType)
         { /* Do Nothing */ }
@@ -874,6 +874,25 @@ void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, Tr
         {
             printf("ERROR(%d): Expecting %s in parameter %d of call to '%s' declared on line %d but got %s.\n", callNode->lineno, types[funcParam->expType], paramNum, funcNode->attr.name, funcNode->lineno, types[callParam->expType]);
             numErrors++;
+        }
+
+        if(callParam->nodekind == ExpK && callParam->kind.exp == IdK)
+        {
+            TreeNode *temp = st.lookupNode(callParam->attr.name);
+
+            if(temp != NULL)
+            {
+                if(temp->isArray && !funcParam->isArray)
+                {
+                    printf("ERROR(%d): Not expecting array in parameter %d of call to '%s' declared on line %d.\n", callNode->lineno, paramNum, funcNode->attr.name, funcNode->lineno);
+                    numErrors++;
+                }   
+                else if(!temp->isArray && funcParam->isArray)
+                {
+                    printf("ERROR(%d): Expecting array in parameter %d of call to '%s' declared on line %d.\n", callNode->lineno, paramNum, funcNode->attr.name, funcNode->lineno);
+                    numErrors++;
+                }
+            }
         }
 
         paramNum++;
