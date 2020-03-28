@@ -20,7 +20,7 @@ ExpType typeCheck(TreeNode *t);
 
 int getOpKind(TreeNode *t);
 
-void checkParams(TreeNode *funcName, TreeNode *funcParam, TreeNode *callParam, int paramNum);
+void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, TreeNode *callParam, int paramNum);
 
 //SymbolTable st;
 
