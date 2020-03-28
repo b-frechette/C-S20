@@ -487,9 +487,12 @@ ExpType insertNode(TreeNode *t)
 
                     if(!temp->isInit && !temp->isFlagged && temp->var != Global && temp->var != LocalStatic)
                     {
-                        temp->isFlagged = true;
-                        printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
-                        numWarnings++;
+                        if(!t->isInit)
+                        {
+                            temp->isFlagged = true;
+                            printf("WARNING(%d): Variable '%s' may be uninitialized when used here.\n", t->lineno, temp->attr.name);
+                            numWarnings++;
+                        }
                     } 
                 }
 
@@ -546,13 +549,17 @@ ExpType insertNode(TreeNode *t)
                 {
                     case 1:     // =
                         //Child 1 Initialized
+                        t->child[0]->isInit = true;
+                        c1 = insertNode(t->child[0]);
+                        c2 = insertNode(t->child[1]);
+
                         if(!n1)
                         { temp->isInit = true; }
                         else
                         { t->child[0]->isInit = true; }
 
-                        c1 = insertNode(t->child[0]);
-                        c2 = insertNode(t->child[1]);
+                        // c1 = insertNode(t->child[0]);
+                        //c2 = insertNode(t->child[1]);
 
                         if(c1 == UndefinedType || c2 == UndefinedType)
                         { /* Do nothing? */ }
