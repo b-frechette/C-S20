@@ -7,7 +7,8 @@
 
 SymbolTable st;
 TreeNode *currFunc;
-bool returnFlg = false, siblingFlg = true;
+int numLoops;
+bool returnFlg = false, siblingFlg = true, loopFlg = false;
 const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
 
 void semantic(TreeNode *syntaxTree)
@@ -39,7 +40,7 @@ ExpType insertNode(TreeNode *t)
     int i, errType;
     ExpType c1, c2, c3, returns;
     bool scoped = false;    //Boolean to help recursively leave scopes
-    bool arr1F = false, arr2F = false, n1 = true, n2 = true, func = false;
+    bool arr1F = false, arr2F = false, n1 = true, n2 = true, func = false, loop = false;
     // const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
     const char* stmt[] = { "null", "elsif", "if", "while" };
     TreeNode *temp, *temp2;
@@ -643,7 +644,6 @@ ExpType insertNode(TreeNode *t)
         {
             case ElsifK:
             case IfK:
-            case WhileK:
                 c1 = insertNode(t->child[0]);
 
                 if(c1 == UndefinedType)
@@ -672,6 +672,37 @@ ExpType insertNode(TreeNode *t)
                 returns = Void;
                 break;
 
+            case WhileK:
+                c1 = insertNode(t->child[0]);
+
+                if(c1 == UndefinedType)
+                { /*Do Nothing*/ }
+                else if(c1 != Boolean)
+                {
+                    printf("ERROR(%d): Expecting Boolean test condition in %s statement but got %s.\n", t->lineno, stmt[t->kind.stmt], types[c1]);
+                    numErrors++;
+                }
+
+                if(t->child[0] != NULL)
+                { 
+                    t->child[0]->isChecked = true; 
+                    if(t->child[0]->nodekind == ExpK && t->child[0]->kind.exp == IdK)
+                    { 
+                        temp = st.lookupNode(t->child[0]->attr.name); 
+
+                        if(temp != NULL && temp->isArray)
+                        {
+                            printf("ERROR(%d): Cannot use array as test condition in %s statement.\n", t->lineno, stmt[t->kind.stmt]);
+                            numErrors++;
+                        }
+                    }
+                }
+
+                loop = loopFlg = true;
+                numLoops++;
+                returns = Void;
+                break;
+
             case LoopK:
                 if(t->child[2] != NULL)                     //Apparently Null checking makes this work if it is not a compound????
                 {
@@ -696,11 +727,15 @@ ExpType insertNode(TreeNode *t)
                     }
                 }
 
+                loop = loopFlg = true;
+                numLoops++;
                 scoped = true;
                 returns = Void;
                 break;
 
             case LoopForeverK:
+                loop = loopFlg = true;
+                numLoops++;
                 returns = Void;
                 break;
 
@@ -815,6 +850,12 @@ ExpType insertNode(TreeNode *t)
                 break;
 
             case BreakK:
+                if(!loopFlg)
+                {
+                    printf("ERROR(%d): Cannot have a break statement outside of loop.\n", t->lineno);
+                    numErrors++;
+                }
+
                 returns = Void;
                 break;
 
@@ -848,6 +889,16 @@ ExpType insertNode(TreeNode *t)
         }
         st.applyToAll(checkUse);
         st.leave();
+    }
+
+    if(loop)
+    {
+        numLoops--;
+    }
+
+    if(numLoops == 0)
+    {
+        loopFlg = false;
     }
 
     //VALID
