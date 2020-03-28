@@ -602,13 +602,16 @@ ExpType insertNode(TreeNode *t)
 
             case CallK:
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
-                //c1 = insertNode(t->child[0]);
 
                 if(temp == NULL)                            //Not declared
-                {   
-                    t->expType = UndefinedType;
-                    printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
-                    numErrors++;
+                {  
+                    t->expType = ioCheck(t);
+
+                    if(t->expType == UndefinedType)
+                    {
+                        printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
+                        numErrors++;
+                    }
                 }
                 else
                 {
@@ -908,6 +911,40 @@ ExpType insertNode(TreeNode *t)
     }
 
     return returns;
+}
+
+ExpType ioCheck(TreeNode *t)
+{
+    if(strncmp(t->attr.name, "output", 7) == 0)
+    { 
+        return Void;
+    }
+    else if(strncmp(t->attr.name, "outputb", 7) == 0)
+    { 
+        return Void;
+    }
+    else if(strncmp(t->attr.name, "outputc", 7) == 0)
+    { 
+        return Void;
+    }
+    else if(strncmp(t->attr.name, "input", 7) == 0)
+    { 
+        return Integer;
+    }
+    else if(strncmp(t->attr.name, "inputb", 7) == 0)
+    { 
+        return Boolean;
+    }
+    else if(strncmp(t->attr.name, "inputc", 7) == 0)
+    { 
+        return Char;
+    }
+    else if(strncmp(t->attr.name, "outnl", 7) == 0)
+    { 
+        return Void;
+    }
+    else
+    { return UndefinedType; }
 }
 
 void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, TreeNode *callParam, int paramNum)

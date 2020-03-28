@@ -22,6 +22,8 @@ int getOpKind(TreeNode *t);
 
 void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, TreeNode *callParam, int paramNum);
 
+ExpType ioCheck(TreeNode *t);
+
 //SymbolTable st;
 
 #endif
