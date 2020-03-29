@@ -24,6 +24,8 @@ void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, Tr
 
 ExpType ioCheck(TreeNode *t);
 
+void ioSetup(const char*, ExpType, ExpType);
+
 //SymbolTable st;
 
 #endif

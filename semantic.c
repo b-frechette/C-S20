@@ -13,13 +13,18 @@ const char* types[] = {"type void", "type int", "type bool", "type char", "type 
 
 void semantic(TreeNode *syntaxTree)
 {
+    ioSetup("output", Void, Integer);
+    ioSetup("outputb", Void, Boolean);
+    ioSetup("outputc", Void, Char);
+    ioSetup("input", Integer, Void);
+    ioSetup("inputb", Boolean, Void);
+    ioSetup("inputc", Char, Void);
+    ioSetup("outnl", Void, Void);
+
     insertNode(syntaxTree);
-
     st.applyToAll(checkUse);
-
     TreeNode *temp = st.lookupNode("main");
 
-    //if(st.lookupGlobal("main") == NULL)
     if(temp == NULL)
     {
         printf("ERROR(LINKER): Procedure main is not declared.\n");
@@ -41,7 +46,6 @@ ExpType insertNode(TreeNode *t)
     ExpType c1, c2, c3, returns;
     bool scoped = false;    //Boolean to help recursively leave scopes
     bool arr1F = false, arr2F = false, n1 = true, n2 = true, func = false, loop = false;
-    // const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
     const char* stmt[] = { "null", "elsif", "if", "while" };
     TreeNode *temp, *temp2;
 
@@ -628,13 +632,14 @@ ExpType insertNode(TreeNode *t)
 
                 if(temp == NULL)                            //Not declared
                 {  
-                    t->expType = ioCheck(t);
+                    //t->expType = ioCheck(t);
 
-                    if(t->expType == UndefinedType)
-                    {
+                    //if(t->expType == UndefinedType)
+                    //{
+                        t->expType = UndefinedType;
                         printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
                         numErrors++;
-                    }
+                    //}
                 }
                 else
                 {
@@ -936,38 +941,46 @@ ExpType insertNode(TreeNode *t)
     return returns;
 }
 
-ExpType ioCheck(TreeNode *t)
+void ioSetup(const char *funcName, ExpType returnType, ExpType paramType)
 {
-    if(strncmp(t->attr.name, "output", 7) == 0)
-    { 
-        return Void;
-    }
-    else if(strncmp(t->attr.name, "outputb", 7) == 0)
-    { 
-        return Void;
-    }
-    else if(strncmp(t->attr.name, "outputc", 7) == 0)
-    { 
-        return Void;
-    }
-    else if(strncmp(t->attr.name, "input", 7) == 0)
-    { 
-        return Integer;
-    }
-    else if(strncmp(t->attr.name, "inputb", 7) == 0)
-    { 
-        return Boolean;
-    }
-    else if(strncmp(t->attr.name, "inputc", 7) == 0)
-    { 
-        return Char;
-    }
-    else if(strncmp(t->attr.name, "outnl", 7) == 0)
-    { 
-        return Void;
-    }
-    else
-    { return UndefinedType; }
+    TreeNode *t = (TreeNode *) malloc(sizeof(TreeNode));
+    TreeNode *c = (TreeNode *) malloc(sizeof(TreeNode));
+
+    if(t != NULL)
+    {
+        for(int i = 0; i < MAXCHILDREN; i++)
+        { 
+            t->child[i] = NULL;
+        }
+
+        t->sibling = NULL;
+        t->nodekind = DeclK;
+        t->kind.decl = FuncK;
+        t->attr.name = funcName;
+        t->expType = returnType;
+        t->isUsed = true;
+        t->lineno = -1;
+
+        if(paramType != Void && c != NULL)
+        {
+            for(int i = 0; i < MAXCHILDREN; i++)
+            { 
+                c->child[i] = NULL;
+            }
+
+            c->sibling = NULL;
+            c->nodekind = DeclK;
+            c->kind.decl = ParamK;
+            c->attr.name = "*dummy*";
+            c->expType = paramType;
+            c->lineno = -1;
+
+            t->child[0] = c;
+        }
+
+        if(!st.insert(t->attr.name, t))
+        {printf("Error inserting IO function %s \n", t->attr.name);}
+    }    
 }
 
 void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, TreeNode *callParam, int paramNum)
