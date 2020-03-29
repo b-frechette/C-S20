@@ -173,6 +173,11 @@ bool SymbolTable::isInTopScope(std::string sym) {
     return (stack.back())->lookup(sym) != NULL;
 }
 
+std::string SymbolTable::scope()
+{
+    return (stack.back()->scopeName()).c_str();
+}
+
 // Lookup a symbol in the global scope
 // returns NULL if symbol not found, otherwise it returns the stored void *
 // associated with the symbol

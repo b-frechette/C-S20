@@ -93,6 +93,7 @@ public:
                                                                // returns false if already defined
     bool isInTopScope(std::string sym);                        // returns true if the symbol is in the top scope
     //bool isGlobal();                                           // is the current scope the global scope
+    std::string scope();
 };
 
 #endif
