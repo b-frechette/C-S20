@@ -26,7 +26,8 @@ typedef struct treeNode
     struct treeNode *sibling;            
 
     int lineno;                          
-    NodeKind nodekind;   
+    NodeKind nodekind; 
+    ExpType expType;  
     VarKind var;
     OpKind op;                
     union                               
@@ -42,17 +43,16 @@ typedef struct treeNode
         unsigned char cvalue;           
 	    char *string;                     
 	    const char *name;                        
-    } attr;                                 
-    ExpType expType;		      
-    bool isArray;                          
-    bool isStatic;  
-    bool enteredScope;      //for compound statements
-    bool isInit;            //Check if a variable is initialized  
-    bool isUsed; 
-    bool isChecked;
-    bool isIndexed;  
-    bool isFlagged;         //For Initialization
-    bool isExp;           
+    } attr;     
+		      
+    bool isArray;           //Array flag                        
+    bool isStatic;          //Static flag
+    bool enteredScope;      //Scope flag for compound scope
+    bool isInit;            //Initialization flag 
+    bool isUsed;            //Use flag
+    bool isChecked;         //Check flag for children
+    bool isIndexed;         //Index flag for arrays
+    bool isFlagged;         //Warning flag for checking if warning has already been flagged          
 
 } TreeNode;
 

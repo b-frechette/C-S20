@@ -566,7 +566,6 @@ other_statements        : expressionStmt
 expressionStmt          : expression SEMI
                             { 
                                 $$ = $1; 
-                                $$->isExp = true;
                             }
                         | SEMI
                             { $$ = NULL; }

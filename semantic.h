@@ -6,26 +6,41 @@
 
 extern int numErrors, numWarnings;
 
-void semantic(TreeNode *syntaxTree);
+/* descr: Semantic analysis of AST
+*  param: TreeNode -> Pointer to the head treeNode of the AST
+*  return: void
+*/
+void semantic(TreeNode *);
 
-static void traverse(TreeNode *t, void (*preProcedure) (TreeNode *), void (*postProcedure) (TreeNode *));
+/* descr: Semantically analyze node from AST tree
+*  param: TreeNode -> Pointer to the treeNode
+*  return: ExpType
+*/
+ExpType insertNode(TreeNode *);
 
-static void nullProcedure(TreeNode *t);
-
-ExpType insertNode(TreeNode *t);
-
+/* descr: Function to check if a variable has been use
+*  param: std::string -> Name of the node being checked
+*  param: void* 
+*  return: void
+*/
 void checkUse(std::string, void*);
 
-ExpType typeCheck(TreeNode *t);
+/* descr: Check parameters of a call against the function paramaters
+*  param: TreeNode -> Original function node
+*  param: TreeNode -> Call function node
+*  param: TreeNode -> Function param node
+*  param: TreeNode -> Call param node
+*  param: int -> Parameter number
+*  return: void
+*/
+void checkParams(TreeNode *, TreeNode *, TreeNode *, TreeNode *, int);
 
-int getOpKind(TreeNode *t);
-
-void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, TreeNode *callParam, int paramNum);
-
-ExpType ioCheck(TreeNode *t);
-
+/* descr: Insert the IO functions into the symbol table
+*  param: char -> Function name
+*  param: ExpType -> Function return type
+*  param: ExpType -> Parameter type 
+*  return: void
+*/
 void ioSetup(const char*, ExpType, ExpType);
-
-//SymbolTable st;
 
 #endif

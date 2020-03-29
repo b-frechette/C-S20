@@ -500,13 +500,6 @@ ExpType insertNode(TreeNode *t)
                     } 
                 }
 
-                if(t != NULL && t->isExp == true)
-                {
-                    if(temp != NULL)
-                    {
-                        temp->isUsed = true;
-                    }
-                }
                 returns = t->expType;
                 break;
 
@@ -561,9 +554,6 @@ ExpType insertNode(TreeNode *t)
                         { temp->isInit = true; }
                         else
                         { t->child[0]->isInit = true; }
-
-                        // c1 = insertNode(t->child[0]);
-                        //c2 = insertNode(t->child[1]);
 
                         if(c1 == UndefinedType || c2 == UndefinedType)
                         { /* Do nothing? */ }
@@ -632,14 +622,9 @@ ExpType insertNode(TreeNode *t)
 
                 if(temp == NULL)                            //Not declared
                 {  
-                    //t->expType = ioCheck(t);
-
-                    //if(t->expType == UndefinedType)
-                    //{
-                        t->expType = UndefinedType;
-                        printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
-                        numErrors++;
-                    //}
+                    t->expType = UndefinedType;
+                    printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
+                    numErrors++;
                 }
                 else
                 {
@@ -1035,7 +1020,6 @@ void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, Tr
     }
 }
 
-//INVALID?
 void checkUse(std::string sym, void* t)
 {
     TreeNode *temp;
