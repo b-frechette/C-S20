@@ -7,8 +7,10 @@
     #include "treeNodes.h"
     #include "scanType.h"
     #include "parser.tab.h"
+    #include "yyerror.h"
 
-    static int line = 1;
+    int line = 1;
+    extern int numWarnings;
 
     /* descr: Convert the given char * to uppercase. Used
     *  for KEYWORDs for the tokenname.

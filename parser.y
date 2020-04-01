@@ -7,7 +7,9 @@
 #include "printtree.h"
 #include "ourGetopt.h"
 #include "semantic.h"
+#include "yyerror.h"
 
+#define YYERROR_VERBOSE
 #define YYDEBUG 1
 
 int numErrors, numWarnings;
@@ -16,10 +18,10 @@ extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
 
-void yyerror(const char *msg)
-{
-      printf("ERROR(PARSER): %s\n", msg);
-}
+// void yyerror(const char *msg)
+// {
+//       printf("ERROR(PARSER): %s\n", msg);
+// }
 
 /* descr: Recursively add sibling to end of the list
 *
@@ -996,6 +998,8 @@ int main(int argc, char **argv)
 
     numErrors = 0;
     numWarnings = 0;
+
+    initErrorProcessing();
 
     yyparse();
 
