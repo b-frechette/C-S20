@@ -198,15 +198,15 @@ INVALIDCHAR \'[^'\n]*\'
 STRINGCONST \"(\\.|[^"\n])*\"
 
 %%
-\;                                  { return setValue(line, yytext[1], yytext); } 
-\,                                  { return setValue(line, yytext[1], yytext); } 
-\[                                  { return setValue(line, yytext[1], yytext); }
-\]                                  { return setValue(line, yytext[1], yytext); }
-\:                                  { return setValue(line, yytext[1], yytext); }
-\(                                  { return setValue(line, yytext[1], yytext); }
-\)                                  { return setValue(line, yytext[1], yytext); }
-\{                                  { return setValue(line, yytext[1], yytext); }
-\}                                  { return setValue(line, yytext[1], yytext); }
+\;                                  { return setValue(line, *yytext, yytext); } 
+\,                                  { return setValue(line, *yytext, yytext); } 
+\[                                  { return setValue(line, *yytext, yytext); }
+\]                                  { return setValue(line, *yytext, yytext); }
+\:                                  { return setValue(line, *yytext, yytext); }
+\(                                  { return setValue(line, *yytext, yytext); }
+\)                                  { return setValue(line, *yytext, yytext); }
+\{                                  { return setValue(line, *yytext, yytext); }
+\}                                  { return setValue(line, *yytext, yytext); }
 \=                                  { return setValue(line, ASSIGN, yytext); }
 \>                                  { return setValue(line, GRT, yytext); }
 \<                                  { return setValue(line, LESS, yytext); }

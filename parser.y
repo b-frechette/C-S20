@@ -10,7 +10,6 @@
 #include "yyerror.h"
 
 #define YYERROR_VERBOSE
-#define YYDEBUG 1
 
 int numErrors, numWarnings;
 
@@ -227,64 +226,50 @@ program                 : declarationList
 
 declarationList         : declarationList declaration
                             {
-                                if($1 == NULL)
-                                {
-                                    $$ = $2;
-                                }
-                                else
-                                {
-                                    addSibling($1, $2);
-                                    $$ = $1;
-                                }
+                                addSibling($1, $2);
+                                $$ = $1;
                             }
                         | declaration
                             { $$ = $1; }
-                        | error
-                            { $$ = NULL; }
                         ;
 
 declaration             : varDeclaration
                             { $$ = $1; }
                         | funDeclaration
                             { $$ = $1; }
+                        | error
+                            { $$ = NULL; }
                         ;
 
 varDeclaration          : typeSpecifier varDeclList ';'
                             {
+                                yyerrok;
                                 setType($1, $2);
                                 $$ = $2;
-                                yyerrok;
                             }
                         | error varDeclList ';'                
                             { $$ = NULL; }
                         | typeSpecifier error ';'                   
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         ;
 
 scopedVarDeclaration    : scopedTypeSpecifier varDeclList ';'
                             {
+                                yyerrok;
                                 setType($1, $2);
                                 $$ = $2;
-                                yyerrok;
                             }
-                        | typeSpecifier error ';'                   
-                            { $$ = NULL; yyerrok; }
+                        | scopedTypeSpecifier error ';'                   
+                            { yyerrok; $$ = NULL; }
                         | error varDeclList ';'                
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         ;
 
 varDeclList             : varDeclList ',' varDeclInitialize
                             {
-                                // if($1 == NULL)
-                                // {
-                                //     $$ = $3;
-                                // }
-                                // else
-                                // {
-                                    addSibling($1, $3);
-                                    $$ = $1;
-                                    yyerrok;
-                                // }
+                                yyerrok;
+                                addSibling($1, $3);
+                                $$ = $1;
                             }
                         | varDeclInitialize
                             { $$ = $1; }
@@ -302,7 +287,7 @@ varDeclInitialize       : varDeclId
                                 $$->child[0] = $3;
                             }
                         | error ':' simpleExpression                  
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         | varDeclId ':' error                  
                             { $$ = NULL; }
                         ;
@@ -325,7 +310,7 @@ varDeclId               : ID
                         | ID '[' error                         
                             { $$ = NULL; }
                         | error ']'                            
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         ;
 
 scopedTypeSpecifier     : STATIC typeSpecifier
@@ -393,15 +378,9 @@ params                  : paramList
 
 paramList               : paramList ';' paramTypeList
                             {
-                                if($1 == NULL)
-                                {
-                                    $$ = $3;
-                                }
-                                else
-                                {
-                                    $$ = $1;
-                                    addSibling($1, $3);
-                                }
+                                yyerrok;
+                                $$ = $1;
+                                addSibling($1, $3);
                             }
                         | paramTypeList
                             { $$ = $1; }
@@ -422,16 +401,9 @@ paramTypeList           : typeSpecifier paramIdList
 
 paramIdList             : paramIdList ',' paramId 
                             {
-                                // if($1 == NULL)
-                                // {
-                                //     $$ = $3;
-                                // }
-                                // else
-                                // {
-                                    addSibling($1, $3);
-                                    $$ = $1;
-                                    yyerrok;
-                                // }
+                                yyerrok;
+                                addSibling($1, $3);
+                                $$ = $1;
                             }
                         | paramId
                             { $$ = $1; }
@@ -574,14 +546,14 @@ matched                 : IF simpleExpression THEN matched matchedelsif
                             { $$ = $1; }
                         | IF error                             
                             { $$ = NULL;}
-                        | IF error THEN matched ELSE matched   
-                            { $$ = NULL; yyerrok;}
+                        | IF error THEN matched ELSE matched matchedelsif  
+                            { yyerrok; $$ = NULL; }
                         | WHILE error DO matched               
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         | WHILE error                          
                             { $$ = NULL;}
                         | LOOP iterationId ASSIGN error DO matched         
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         | LOOP iterationId ASSIGN error                    
                             { $$ = NULL; }
                         | LOOP iterationId error                            
@@ -631,14 +603,14 @@ unmatched               : IF simpleExpression THEN unmatched
                                 $$->child[2] = $6;
                                 $$->lineno = $1->linenum;
                             }
-                        | IF error THEN statement              
-                            { $$ = NULL; yyerrok;}
-                        | IF error THEN matched ELSE unmatched 
-                            { $$ = NULL; yyerrok;}
+                        | IF error THEN unmatched              
+                            { yyerrok; $$ = NULL; }
+                        | IF error THEN matched unmatchedelsif
+                            { yyerrok; $$ = NULL; }
                         | WHILE error DO unmatched             
-                            { $$ = NULL; yyerrok;}
+                            { yyerrok; $$ = NULL; }
                         | LOOP iterationId ASSIGN error DO unmatched       
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         ;
 
 other_statements        : expressionStmt
@@ -653,28 +625,28 @@ other_statements        : expressionStmt
 
 expressionStmt          : expression ';'
                             { 
-                                $$ = $1; 
                                 yyerrok;
+                                $$ = $1;
                             }
                         | ';'
                             {  
-                                $$ = NULL;
                                 yyerrok;
+                                $$ = NULL;
                             }
                         ;
 
 compoundStmt            : '{' localDeclarations statementList '}'
                             {
+                                yyerrok;
                                 $$ = newStmtNode(CompoundK);
                                 $$->child[0] = $2;
                                 $$->child[1] = $3;
                                 $$->lineno = $1->linenum;
-                                yyerrok;
                             }
                         | '{' error statementList '}'          
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         | '{' localDeclarations error '}'             
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
  
                         ;
 
@@ -714,15 +686,16 @@ statementList           : statementList statement
 
 returnStmt              : RETURN ';'
                             {
+                                yyerrok;
                                 $$ = newStmtNode(ReturnK);
                                 $$->lineno = $1->linenum;
                             }
                         | RETURN expression ';'
                             {
+                                yyerrok;
                                 $$ = newStmtNode(ReturnK);
                                 $$->child[0] = $2;
                                 $$->lineno = $1->linenum;
-                                yyerrok;
                             }
                         ;
 
@@ -744,30 +717,30 @@ expression              : mutable assignop expression
                             }
                         | mutable INC
                             {
+                                yyerrok;
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
                                 $$->op = 6;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
-                                yyerrok;
                             }
                         | mutable DEC 
                             {
+                                yyerrok;
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
                                 $$->op = 7;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
-                                yyerrok;
                             }
                         | simpleExpression       
                             { $$ = $1; }
                         | error assignop error                 
                             { $$ = NULL; }
                         | error INC                            
-                            { $$=NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         | error DEC                            
-                            { $$=NULL; yyerrok;}
+                            { yyerrok; $$ = NULL; }
                         ;
 
 assignop                : ASSIGN
@@ -840,7 +813,7 @@ relExpression           : sumExpression relop sumExpression
                         | sumExpression relop error                   
                             { $$ = NULL; }
                         | error relop sumExpression                   
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         ;
 
 relop                   : LESSEQ
@@ -869,7 +842,7 @@ sumExpression           : sumExpression sumop mulExpression
                         | mulExpression
                             { $$ = $1; }
                         | sumExpression sumop error                   
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         ;
 
 sumop                   : PLUS
@@ -948,8 +921,8 @@ mutable                 : ID
 
 immutable               : '(' expression ')'
                             { 
-                                $$ = $2; 
                                 yyerrok;
+                                $$ = $2; 
                             }
                         | call
                             { $$ = $1; }
@@ -958,7 +931,7 @@ immutable               : '(' expression ')'
                         | '(' error                            
                             { $$ = NULL; }
                         | error ')'                            
-                            { $$ = NULL; yyerrok; }
+                            { yyerrok; $$ = NULL; }
                         ;
 
 call                    : ID '(' args ')'
@@ -969,7 +942,7 @@ call                    : ID '(' args ')'
                                 $$->lineno = $1->linenum;  
                             }
                         | error '('                            
-                            { $$ = NULL; yyerrok;}
+                            { yyerrok; $$ = NULL; }
                         ;
 
 /**** EPSILON ****/
@@ -981,17 +954,19 @@ args                    : argList
 
 argList                 : argList ',' expression
                             {
-                                // if($1 == NULL)
-                                // {
-                                //     $$ = $3;
-                                // }
-                                // else
-                                // {
+                                if($1 == NULL)
+                                {
+                                    $$ = $3;
+                                }
+                                else
+                                {
+                                    yyerrok;
                                     addSibling($1, $3);
                                     $$ = $1;
-                                    yyerrok;
-                                // }
+                                }
                             }
+                        | expression
+                            { $$ = $1; }
                         | argList ',' error                    
                             { $$=NULL; }
                         ;
@@ -1107,7 +1082,6 @@ int main(int argc, char **argv)
     numWarnings = 0;
 
     initErrorProcessing();
-
     yyparse();
 
     if(numErrors == 0)
