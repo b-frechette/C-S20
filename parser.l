@@ -198,15 +198,15 @@ INVALIDCHAR \'[^'\n]*\'
 STRINGCONST \"(\\.|[^"\n])*\"
 
 %%
-\;                                  { return setValue(line, SEMI, yytext); } 
-\,                                  { return setValue(line, COMMA, yytext); } 
-\[                                  { return setValue(line, LBRACKET, yytext); }
-\]                                  { return setValue(line, RBRACKET, yytext); }
-\:                                  { return setValue(line, COLON, yytext); }
-\(                                  { return setValue(line, LPAREN, yytext); }
-\)                                  { return setValue(line, RPAREN, yytext); }
-\{                                  { return setValue(line, LCURL, yytext); }
-\}                                  { return setValue(line, RCURL, yytext); }
+\;                                  { return setValue(line, yytext[1], yytext); } 
+\,                                  { return setValue(line, yytext[1], yytext); } 
+\[                                  { return setValue(line, yytext[1], yytext); }
+\]                                  { return setValue(line, yytext[1], yytext); }
+\:                                  { return setValue(line, yytext[1], yytext); }
+\(                                  { return setValue(line, yytext[1], yytext); }
+\)                                  { return setValue(line, yytext[1], yytext); }
+\{                                  { return setValue(line, yytext[1], yytext); }
+\}                                  { return setValue(line, yytext[1], yytext); }
 \=                                  { return setValue(line, ASSIGN, yytext); }
 \>                                  { return setValue(line, GRT, yytext); }
 \<                                  { return setValue(line, LESS, yytext); }
@@ -257,5 +257,5 @@ STRINGCONST \"(\\.|[^"\n])*\"
 "//".*\n                            { line++; }
 [ \t]                               ;  // white space
 \n                                  { line++; }
-.                                   { printf("ERROR(%d): Invalid or misplaced input character: \"%s\"\n", line, yytext); }
+.                                   { printf("WARNING(%d): Invalid or misplaced input character: \"%s\"\n", line, yytext); numWarnings++; }
 %%

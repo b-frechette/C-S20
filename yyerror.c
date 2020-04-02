@@ -5,7 +5,7 @@
 #include <string>
 #include "yyerror.h"
 
-//extern char *lastToken;  // the last token scanned and saved in your token struct or class
+//extern char *yytext;  // the last token scanned and saved in your token struct or class
 extern char *yytext;
 
 // // // // // // // // // // // // // // // // // // // // 

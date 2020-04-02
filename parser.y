@@ -140,15 +140,16 @@ TreeNode * savedTree;
 %token <tokenData> BREAK
 
 /* PUNCTUATION */
-%token <tokenData> SEMI
-%token <tokenData> COMMA
-%token <tokenData> LBRACKET
-%token <tokenData> RBRACKET
-%token <tokenData> COLON
-%token <tokenData> LPAREN
-%token <tokenData> RPAREN
-%token <tokenData> LCURL
-%token <tokenData> RCURL 
+// %token <tokenData> SEMI
+%token <tokenData> ';'
+%token <tokenData> ','
+%token <tokenData> '['
+%token <tokenData> ']'
+%token <tokenData> ':'
+%token <tokenData> '('
+%token <tokenData> ')'
+%token <tokenData> '{'
+%token <tokenData> '}' 
 
 /* UNSURE */
 %token INVALIDCHAR 
@@ -162,6 +163,7 @@ TreeNode * savedTree;
 %type <vardata> scopedTypeSpecifier
 
 /* TOKENDATA */
+%type <tokenData> assignop
 %type <tokenData> unaryop
 %type <tokenData> mulop
 %type <tokenData> sumop
@@ -237,6 +239,8 @@ declarationList         : declarationList declaration
                             }
                         | declaration
                             { $$ = $1; }
+                        | error
+                            { $$ = NULL; }
                         ;
 
 declaration             : varDeclaration
@@ -245,43 +249,62 @@ declaration             : varDeclaration
                             { $$ = $1; }
                         ;
 
-varDeclaration          : typeSpecifier varDeclList SEMI
+varDeclaration          : typeSpecifier varDeclList ';'
                             {
                                 setType($1, $2);
                                 $$ = $2;
+                                yyerrok;
                             }
+                        | error varDeclList ';'                
+                            { $$ = NULL; }
+                        | typeSpecifier error ';'                   
+                            { $$ = NULL; yyerrok; }
                         ;
 
-scopedVarDeclaration    : scopedTypeSpecifier varDeclList SEMI
+scopedVarDeclaration    : scopedTypeSpecifier varDeclList ';'
                             {
                                 setType($1, $2);
                                 $$ = $2;
+                                yyerrok;
                             }
+                        | typeSpecifier error ';'                   
+                            { $$ = NULL; yyerrok; }
+                        | error varDeclList ';'                
+                            { $$ = NULL; yyerrok; }
                         ;
 
-varDeclList             : varDeclList COMMA varDeclInitialize
+varDeclList             : varDeclList ',' varDeclInitialize
                             {
-                                if($1 == NULL)
-                                {
-                                    $$ = $3;
-                                }
-                                else
-                                {
+                                // if($1 == NULL)
+                                // {
+                                //     $$ = $3;
+                                // }
+                                // else
+                                // {
                                     addSibling($1, $3);
                                     $$ = $1;
-                                }
+                                    yyerrok;
+                                // }
                             }
                         | varDeclInitialize
                             { $$ = $1; }
+                        | varDeclList ',' error                
+                            { $$ = NULL; }
+                        | error                                
+                            { $$ = NULL; }
                         ;
 
 varDeclInitialize       : varDeclId
                             { $$ = $1; }
-                        | varDeclId COLON simpleExpression
+                        | varDeclId ':' simpleExpression
                             {
                                 $$ = $1;
                                 $$->child[0] = $3;
                             }
+                        | error ':' simpleExpression                  
+                            { $$ = NULL; yyerrok; }
+                        | varDeclId ':' error                  
+                            { $$ = NULL; }
                         ;
 
 varDeclId               : ID 
@@ -291,7 +314,7 @@ varDeclId               : ID
                                 $$->attr.name = $1->tokenstr;
                                 $$->expType = UndefinedType;
                             }
-                        | ID LBRACKET NUMCONST RBRACKET
+                        | ID '[' NUMCONST ']'
                             {
                                 $$ = newDeclNode(VarK);
                                 $$->lineno = $1->linenum;
@@ -299,6 +322,10 @@ varDeclId               : ID
                                 $$->isArray = true;
                                 $$->expType = UndefinedType;
                             }
+                        | ID '[' error                         
+                            { $$ = NULL; }
+                        | error ']'                            
+                            { $$ = NULL; yyerrok; }
                         ;
 
 scopedTypeSpecifier     : STATIC typeSpecifier
@@ -327,7 +354,7 @@ typeSpecifier           : INT
                             }
                         ;
 
-funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
+funDeclaration          : typeSpecifier ID '(' params ')' statement
                             {
                                 $$ = newDeclNode(FuncK);
                                 $$->child[0] = $4;
@@ -336,7 +363,7 @@ funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
                                 $$->attr.name = $2->tokenstr;
                                 $$->lineno = $1.linenum;
                             }
-                        | ID LPAREN params RPAREN statement
+                        | ID '(' params ')' statement
                             {
                                 $$ = newDeclNode(FuncK);
                                 $$->child[0] = $3;
@@ -345,6 +372,16 @@ funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
                                 $$->expType = Void;
                                 $$->lineno = $1->linenum;
                             }
+                        | typeSpecifier error                       
+                            { $$ = NULL;}
+                        | typeSpecifier ID '(' error                
+                            { $$ = NULL;}
+                        | typeSpecifier ID '(' params ')' error     
+                            { $$ = NULL;}
+                        | ID '(' error                         
+                            { $$ = NULL;}
+                        | ID '(' params ')' error              
+                            { $$ = NULL;}
                         ;
 
 /**** EPSILON ****/
@@ -354,7 +391,7 @@ params                  : paramList
                             { $$ = NULL; }
                         ;
 
-paramList               : paramList SEMI paramTypeList
+paramList               : paramList ';' paramTypeList
                             {
                                 if($1 == NULL)
                                 {
@@ -368,6 +405,10 @@ paramList               : paramList SEMI paramTypeList
                             }
                         | paramTypeList
                             { $$ = $1; }
+                        | paramList ';' error                  
+                            { $$ = NULL; }
+                        | error                                
+                            { $$ = NULL; }
                         ;
 
 paramTypeList           : typeSpecifier paramIdList
@@ -375,22 +416,29 @@ paramTypeList           : typeSpecifier paramIdList
                                 setType($1, $2);
                                 $$ = $2;
                             }
+                        | typeSpecifier error                       
+                            { $$ = NULL; }
                         ;
 
-paramIdList             : paramIdList COMMA paramId 
+paramIdList             : paramIdList ',' paramId 
                             {
-                                if($1 == NULL)
-                                {
-                                    $$ = $3;
-                                }
-                                else
-                                {
+                                // if($1 == NULL)
+                                // {
+                                //     $$ = $3;
+                                // }
+                                // else
+                                // {
                                     addSibling($1, $3);
                                     $$ = $1;
-                                }
+                                    yyerrok;
+                                // }
                             }
                         | paramId
                             { $$ = $1; }
+                        | paramIdList ',' error                
+                            { $$ = NULL; }
+                        | error                                
+                            { $$ = NULL; } 
                         ;
 
 paramId                 : ID
@@ -400,7 +448,7 @@ paramId                 : ID
                                 $$->lineno = $1->linenum;
                                 $$->expType = UndefinedType;
                             }
-                        | ID LBRACKET RBRACKET
+                        | ID '[' ']'
                             {
                                 $$ = newDeclNode(ParamK);
                                 $$->attr.name = $1->tokenstr;
@@ -408,6 +456,8 @@ paramId                 : ID
                                 $$->lineno = $1->linenum;
                                 $$->expType = UndefinedType;
                             }
+                        | error ']' 
+                            {yyerrok; $$ = NULL; }
                         ;
 
 statement               : matched
@@ -426,6 +476,8 @@ matchedelsif            : ELSIF simpleExpression THEN matched matchedelsif
                             }
                         | ELSE matched
                             { $$ = $2; }
+                        | ELSIF error                          
+                            { $$ = NULL; }
                         ;
 
 /**** EPSILON ****/
@@ -441,14 +493,16 @@ unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
                             { $$ = $2; }
                         | /*epsilon*/
                             { $$ = NULL; }
+                        | ELSIF error                          
+                            { $$ = NULL; }
                         ;
 
 /**** QUESTION ****/
-iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
+iterationRange          : simpleExpression RANGE simpleExpression
                             {
                                 $$ = newStmtNode(RangeK);
-                                $$->child[0] = $2;
-                                $$->child[1] = $4;
+                                $$->child[0] = $1;
+                                $$->child[1] = $3;
                                 $$->op = 1;
 
                                 //Solution for Exp node that appears in test cases - Ask why it's there
@@ -456,20 +510,24 @@ iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
                                 t->attr.value = 1;
                                 t->attr.name = "1";
                                 t->expType = Integer;
-                                t->lineno = $3->linenum;
+                                t->lineno = $2->linenum;
 
                                 $$->child[2] = t;
-                                $$->lineno = $3->linenum;
+                                $$->lineno = $1->lineno;
                             }
-                        | ASSIGN simpleExpression RANGE simpleExpression COLON simpleExpression
+                        | simpleExpression RANGE simpleExpression ':' simpleExpression
                             { 
                                 $$ = newStmtNode(RangeK);
-                                $$->child[0] = $2;
-                                $$->child[1] = $4;
-                                $$->child[2] = $6;
+                                $$->child[0] = $1;
+                                $$->child[1] = $3;
+                                $$->child[2] = $5;
                                 $$->op = 2;
-                                $$->lineno = $1->linenum;
+                                $$->lineno = $1->lineno;
                             }
+                        | simpleExpression RANGE simpleExpression ':' error  
+                            { $$ = NULL; }
+                        | simpleExpression RANGE error                
+                            { $$ = NULL; }
                         ;
 
 iterationId             : ID    
@@ -504,16 +562,36 @@ matched                 : IF simpleExpression THEN matched matchedelsif
                                 $$->child[1] = $3;                  //Why is the child 1 and not 0 in tests?
                                 $$->lineno = $1->linenum;
                             }
-                        | LOOP iterationId iterationRange DO matched
+                        | LOOP iterationId ASSIGN iterationRange DO matched
                             {
                                 $$ = newStmtNode(LoopK);
                                 $$->child[0] = $2;
-                                $$->child[1] = $3;
-                                $$->child[2] = $5;
+                                $$->child[1] = $4;
+                                $$->child[2] = $6;
                                 $$->lineno = $1->linenum;
                             }
                         | other_statements
                             { $$ = $1; }
+                        | IF error                             
+                            { $$ = NULL;}
+                        | IF error THEN matched ELSE matched   
+                            { $$ = NULL; yyerrok;}
+                        | WHILE error DO matched               
+                            { $$ = NULL; yyerrok; }
+                        | WHILE error                          
+                            { $$ = NULL;}
+                        | LOOP iterationId ASSIGN error DO matched         
+                            { $$ = NULL; yyerrok; }
+                        | LOOP iterationId ASSIGN error                    
+                            { $$ = NULL; }
+                        | LOOP iterationId error                            
+                            { $$ = NULL; }
+                        | LOOP FOREVER error                   
+                            { $$ = NULL; }
+                        | LOOP error                           
+                            { $$ = NULL; }
+                        | error                                
+                            { $$ = NULL; }
                         ;
 
 /**** QUESTION ****/
@@ -545,14 +623,22 @@ unmatched               : IF simpleExpression THEN unmatched
                                 $$->child[1] = $3;                  //Why is the child 1 and not 0 in tests?
                                 $$->lineno = $1->linenum;
                             }
-                        | LOOP iterationId iterationRange DO unmatched
+                        | LOOP iterationId ASSIGN iterationRange DO unmatched
                             {
                                 $$ = newStmtNode(LoopK);
                                 $$->child[0] = $2;
-                                $$->child[1] = $3;
-                                $$->child[2] = $5;
+                                $$->child[1] = $4;
+                                $$->child[2] = $6;
                                 $$->lineno = $1->linenum;
                             }
+                        | IF error THEN statement              
+                            { $$ = NULL; yyerrok;}
+                        | IF error THEN matched ELSE unmatched 
+                            { $$ = NULL; yyerrok;}
+                        | WHILE error DO unmatched             
+                            { $$ = NULL; yyerrok;}
+                        | LOOP iterationId ASSIGN error DO unmatched       
+                            { $$ = NULL; yyerrok; }
                         ;
 
 other_statements        : expressionStmt
@@ -565,21 +651,31 @@ other_statements        : expressionStmt
                             { $$ = $1; }
                         ;
 
-expressionStmt          : expression SEMI
+expressionStmt          : expression ';'
                             { 
                                 $$ = $1; 
+                                yyerrok;
                             }
-                        | SEMI
-                            { $$ = NULL; }
+                        | ';'
+                            {  
+                                $$ = NULL;
+                                yyerrok;
+                            }
                         ;
 
-compoundStmt            : LCURL localDeclarations statementList RCURL
+compoundStmt            : '{' localDeclarations statementList '}'
                             {
                                 $$ = newStmtNode(CompoundK);
                                 $$->child[0] = $2;
                                 $$->child[1] = $3;
                                 $$->lineno = $1->linenum;
+                                yyerrok;
                             }
+                        | '{' error statementList '}'          
+                            { $$ = NULL; yyerrok; }
+                        | '{' localDeclarations error '}'             
+                            { $$ = NULL; yyerrok; }
+ 
                         ;
 
 /**** EPSILON ****/
@@ -616,68 +712,33 @@ statementList           : statementList statement
                             { $$ = NULL; } 
                         ;
 
-returnStmt              : RETURN SEMI
+returnStmt              : RETURN ';'
                             {
                                 $$ = newStmtNode(ReturnK);
                                 $$->lineno = $1->linenum;
                             }
-                        | RETURN expression SEMI
+                        | RETURN expression ';'
                             {
                                 $$ = newStmtNode(ReturnK);
                                 $$->child[0] = $2;
                                 $$->lineno = $1->linenum;
+                                yyerrok;
                             }
                         ;
 
-breakStmt               : BREAK SEMI
+breakStmt               : BREAK ';'
                             {
                                 $$ = newStmtNode(BreakK);
                                 $$->lineno = $1->linenum;
                             }
                         ;
 
-expression              : mutable ASSIGN expression
+expression              : mutable assignop expression
                             {
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
-                                $$->op = 1;
-                                $$->attr.name = $2->tokenstr; 
-                                $$->lineno = $2->linenum;
-                            }
-                        | mutable ADDASS expression
-                            {
-                                $$ = newExpNode(AssignK);
-                                $$->child[0] = $1;
-                                $$->child[1] = $3; 
-                                $$->op = 2; 
-                                $$->attr.name = $2->tokenstr; 
-                                $$->lineno = $2->linenum;
-                            }
-                        | mutable SUBASS expression
-                            {
-                                $$ = newExpNode(AssignK);
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                                $$->op = 3;  
-                                $$->attr.name = $2->tokenstr; 
-                                $$->lineno = $2->linenum;
-                            }
-                        | mutable MULASS expression
-                            {
-                                $$ = newExpNode(AssignK);
-                                $$->child[0] = $1;
-                                $$->child[1] = $3; 
-                                $$->op = 4; 
-                                $$->attr.name = $2->tokenstr; 
-                                $$->lineno = $2->linenum;
-                            }
-                        | mutable DIVASS expression
-                            {
-                                $$ = newExpNode(AssignK);
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;  
-                                $$->op = 5;
+                                $$->op = $2->numValue;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
@@ -688,6 +749,7 @@ expression              : mutable ASSIGN expression
                                 $$->op = 6;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
+                                yyerrok;
                             }
                         | mutable DEC 
                             {
@@ -696,10 +758,28 @@ expression              : mutable ASSIGN expression
                                 $$->op = 7;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
+                                yyerrok;
                             }
                         | simpleExpression       
                             { $$ = $1; }
+                        | error assignop error                 
+                            { $$ = NULL; }
+                        | error INC                            
+                            { $$=NULL; yyerrok; }
+                        | error DEC                            
+                            { $$=NULL; yyerrok;}
                         ;
+
+assignop                : ASSIGN
+                            { $1->numValue = 1; $$ = $1; }
+                        | ADDASS
+                            { $1->numValue = 2; $$ = $1; }
+                        | SUBASS
+                            { $1->numValue = 3; $$ = $1; }
+                        | MULASS
+                            { $1->numValue = 4; $$ = $1; }
+                        | DIVASS
+                            { $1->numValue = 5; $$ = $1; }
 
 simpleExpression        : simpleExpression OR andExpression
                             {
@@ -712,6 +792,8 @@ simpleExpression        : simpleExpression OR andExpression
                             }
                         | andExpression  
                             { $$ = $1; }
+                        | simpleExpression OR error                   
+                            { $$=NULL;}
                         ;
 
 andExpression           : andExpression AND unaryRelExpression
@@ -725,6 +807,9 @@ andExpression           : andExpression AND unaryRelExpression
                             }
                         | unaryRelExpression
                             { $$ = $1; }
+                        | andExpression AND error                      
+                            { $$ = NULL; }
+ 
                         ;
 
 unaryRelExpression      : NOT unaryRelExpression
@@ -737,9 +822,11 @@ unaryRelExpression      : NOT unaryRelExpression
                             }
                         | relExpression
                             { $$ = $1; }
+                        | NOT error                            
+                            { $$ = NULL; }
                         ;
 
-relExpression           : relExpression relop sumExpression
+relExpression           : sumExpression relop sumExpression
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
@@ -750,6 +837,10 @@ relExpression           : relExpression relop sumExpression
                             }
                         | sumExpression  
                             { $$ = $1; }
+                        | sumExpression relop error                   
+                            { $$ = NULL; }
+                        | error relop sumExpression                   
+                            { $$ = NULL; yyerrok; }
                         ;
 
 relop                   : LESSEQ
@@ -777,6 +868,8 @@ sumExpression           : sumExpression sumop mulExpression
                             }
                         | mulExpression
                             { $$ = $1; }
+                        | sumExpression sumop error                   
+                            { $$ = NULL; yyerrok; }
                         ;
 
 sumop                   : PLUS
@@ -796,6 +889,8 @@ mulExpression           : mulExpression mulop unaryExpression
                             }
                         | unaryExpression
                             { $$ = $1; }
+                        | mulExpression mulop error                     
+                            { $$ = NULL; }
                         ;
 
 mulop                   : MUL
@@ -816,6 +911,8 @@ unaryExpression         : unaryop unaryExpression
                             }
                         | factor
                             { $$ = $1; }
+                        | unaryop error                        
+                            { $$ = NULL; }
                         ;
 
 unaryop                 : MINUS
@@ -838,7 +935,7 @@ mutable                 : ID
                                 $$->attr.name = $1->tokenstr;
                                 $$->lineno = $1->linenum;
                             }
-                        | mutable LBRACKET expression RBRACKET
+                        | mutable '[' expression ']'
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
@@ -849,21 +946,30 @@ mutable                 : ID
                             }
                         ;
 
-immutable               : LPAREN expression RPAREN
-                            { $$ = $2; }
-                        | ID call
-                            {
-                                $$ = newExpNode(CallK);
-                                $$->child[0] = $2;  
-                                $$->attr.name = $1->tokenstr;
-                                $$->lineno = $1->linenum;            
+immutable               : '(' expression ')'
+                            { 
+                                $$ = $2; 
+                                yyerrok;
                             }
+                        | call
+                            { $$ = $1; }
                         | constant                 
                             { $$ = $1; }
+                        | '(' error                            
+                            { $$ = NULL; }
+                        | error ')'                            
+                            { $$ = NULL; yyerrok; }
                         ;
 
-call                    : LPAREN args RPAREN
-                            { $$ = $2; }
+call                    : ID '(' args ')'
+                            { 
+                                $$ = newExpNode(CallK);
+                                $$->child[0] = $3;  
+                                $$->attr.name = $1->tokenstr;
+                                $$->lineno = $1->linenum;  
+                            }
+                        | error '('                            
+                            { $$ = NULL; yyerrok;}
                         ;
 
 /**** EPSILON ****/
@@ -873,20 +979,21 @@ args                    : argList
                             { $$ = NULL; }
                         ;
 
-argList                 : argList COMMA expression
+argList                 : argList ',' expression
                             {
-                                if($1 == NULL)
-                                {
-                                    $$ = $3;
-                                }
-                                else
-                                {
+                                // if($1 == NULL)
+                                // {
+                                //     $$ = $3;
+                                // }
+                                // else
+                                // {
                                     addSibling($1, $3);
                                     $$ = $1;
-                                }
+                                    yyerrok;
+                                // }
                             }
-                        | expression 
-                            { $$ = $1; }
+                        | argList ',' error                    
+                            { $$=NULL; }
                         ;
 
 /**** CHECK ****/
@@ -979,7 +1086,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/control.c-", "r");
+        //filename = fopen("tests/syntaxerr-badchar.c-", "r");
 
         if(filename == NULL)
         {
