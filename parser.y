@@ -41,8 +41,8 @@ void addSibling(TreeNode *t1, TreeNode *t2)
             addSibling(t1->sibling, t2);
         }
     }
-    else
-    { printf("error\n"); }
+    // else
+    // { printf("error\n"); }
 }
 
 /* descr: Recursively add the type for a var or param kind. This is 
@@ -98,7 +98,7 @@ TreeNode * savedTree;
 /* OPERATORS */
 %token <tokenData> GRT 
 %token <tokenData> LESS 
-%token <tokenData> PLUS 
+%token <tokenData> '+' 
 %token <tokenData> MINUS 
 %token <tokenData> MUL 
 %token <tokenData> DIV 
@@ -115,7 +115,7 @@ TreeNode * savedTree;
 %token <tokenData> GRTEQ
 %token <tokenData> EQ
 %token <tokenData> NOTEQ
-%token <tokenData> ASSIGN
+%token <tokenData> '='
 %token <tokenData> OR
 %token <tokenData> AND
 %token <tokenData> NOT
@@ -534,7 +534,7 @@ matched                 : IF simpleExpression THEN matched matchedelsif
                                 $$->child[1] = $3;                  //Why is the child 1 and not 0 in tests?
                                 $$->lineno = $1->linenum;
                             }
-                        | LOOP iterationId ASSIGN iterationRange DO matched
+                        | LOOP iterationId '=' iterationRange DO matched
                             {
                                 $$ = newStmtNode(LoopK);
                                 $$->child[0] = $2;
@@ -552,9 +552,9 @@ matched                 : IF simpleExpression THEN matched matchedelsif
                             { yyerrok; $$ = NULL; }
                         | WHILE error                          
                             { $$ = NULL;}
-                        | LOOP iterationId ASSIGN error DO matched         
+                        | LOOP iterationId '=' error DO matched         
                             { yyerrok; $$ = NULL; }
-                        | LOOP iterationId ASSIGN error                    
+                        | LOOP iterationId '=' error                    
                             { $$ = NULL; }
                         | LOOP iterationId error                            
                             { $$ = NULL; }
@@ -595,7 +595,7 @@ unmatched               : IF simpleExpression THEN unmatched
                                 $$->child[1] = $3;                  //Why is the child 1 and not 0 in tests?
                                 $$->lineno = $1->linenum;
                             }
-                        | LOOP iterationId ASSIGN iterationRange DO unmatched
+                        | LOOP iterationId '=' iterationRange DO unmatched
                             {
                                 $$ = newStmtNode(LoopK);
                                 $$->child[0] = $2;
@@ -609,7 +609,7 @@ unmatched               : IF simpleExpression THEN unmatched
                             { yyerrok; $$ = NULL; }
                         | WHILE error DO unmatched             
                             { yyerrok; $$ = NULL; }
-                        | LOOP iterationId ASSIGN error DO unmatched       
+                        | LOOP iterationId '=' error DO unmatched       
                             { yyerrok; $$ = NULL; }
                         ;
 
@@ -743,7 +743,7 @@ expression              : mutable assignop expression
                             { yyerrok; $$ = NULL; }
                         ;
 
-assignop                : ASSIGN
+assignop                : '='
                             { $1->numValue = 1; $$ = $1; }
                         | ADDASS
                             { $1->numValue = 2; $$ = $1; }
@@ -845,7 +845,7 @@ sumExpression           : sumExpression sumop mulExpression
                             { yyerrok; $$ = NULL; }
                         ;
 
-sumop                   : PLUS
+sumop                   : '+'
                             { $$ = $1; }
                         | MINUS
                             { $$ = $1; }

@@ -207,10 +207,10 @@ STRINGCONST \"(\\.|[^"\n])*\"
 \)                                  { return setValue(line, *yytext, yytext); }
 \{                                  { return setValue(line, *yytext, yytext); }
 \}                                  { return setValue(line, *yytext, yytext); }
-\=                                  { return setValue(line, ASSIGN, yytext); }
+\=                                  { return setValue(line, *yytext, yytext); }
 \>                                  { return setValue(line, GRT, yytext); }
 \<                                  { return setValue(line, LESS, yytext); }
-\+                                  { return setValue(line, PLUS, yytext); }
+\+                                  { return setValue(line, *yytext, yytext); }
 \-                                  { return setValue(line, MINUS, yytext); }
 \*                                  { return setValue(line, MUL, yytext); }
 \/                                  { return setValue(line, DIV, yytext); }
@@ -257,5 +257,5 @@ STRINGCONST \"(\\.|[^"\n])*\"
 "//".*\n                            { line++; }
 [ \t]                               ;  // white space
 \n                                  { line++; }
-.                                   { printf("WARNING(%d): Invalid or misplaced input character: \"%s\"\n", line, yytext); numWarnings++; }
+.                                   { printf("WARNING(%d): Invalid or misplaced input character: \'%s\'. Character Ignored\n", line, yytext); numWarnings++; }
 %%
