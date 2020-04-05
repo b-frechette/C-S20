@@ -96,15 +96,15 @@ TreeNode * savedTree;
 %token <tokenData> ID
 
 /* OPERATORS */
-%token <tokenData> GRT 
-%token <tokenData> LESS 
+%token <tokenData> '>' 
+%token <tokenData> '<' 
 %token <tokenData> '+' 
-%token <tokenData> MINUS 
-%token <tokenData> MUL 
-%token <tokenData> DIV 
-%token <tokenData> RAND 
-%token <tokenData> TRUNC
-%token <tokenData> RANGE
+%token <tokenData> '-' 
+%token <tokenData> '*' 
+%token <tokenData> '/' 
+%token <tokenData> '?' 
+%token <tokenData> '%'
+%token <tokenData> '..'
 %token <tokenData> ADDASS
 %token <tokenData> SUBASS
 %token <tokenData> MULASS
@@ -470,7 +470,7 @@ unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
                         ;
 
 /**** QUESTION ****/
-iterationRange          : simpleExpression RANGE simpleExpression
+iterationRange          : simpleExpression '..' simpleExpression
                             {
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $1;
@@ -487,7 +487,7 @@ iterationRange          : simpleExpression RANGE simpleExpression
                                 $$->child[2] = t;
                                 $$->lineno = $1->lineno;
                             }
-                        | simpleExpression RANGE simpleExpression ':' simpleExpression
+                        | simpleExpression '..' simpleExpression ':' simpleExpression
                             { 
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $1;
@@ -496,9 +496,9 @@ iterationRange          : simpleExpression RANGE simpleExpression
                                 $$->op = 2;
                                 $$->lineno = $1->lineno;
                             }
-                        | simpleExpression RANGE simpleExpression ':' error  
+                        | simpleExpression '..' simpleExpression ':' error  
                             { $$ = NULL; }
-                        | simpleExpression RANGE error                
+                        | simpleExpression '..' error                
                             { $$ = NULL; }
                         ;
 
@@ -818,9 +818,9 @@ relExpression           : sumExpression relop sumExpression
 
 relop                   : LESSEQ
                             { $$ = $1; }
-                        | LESS
+                        | '<'
                             { $$ = $1; }
-                        | GRT
+                        | '>'
                             { $$ = $1; }
                         | GRTEQ
                             { $$ = $1; }
@@ -847,7 +847,7 @@ sumExpression           : sumExpression sumop mulExpression
 
 sumop                   : '+'
                             { $$ = $1; }
-                        | MINUS
+                        | '-'
                             { $$ = $1; }
                         ;
 
@@ -866,11 +866,11 @@ mulExpression           : mulExpression mulop unaryExpression
                             { $$ = NULL; }
                         ;
 
-mulop                   : MUL
+mulop                   : '*'
                             { $$ = $1; }
-                        | DIV
+                        | '/'
                             { $$ = $1; }
-                        | TRUNC
+                        | '%'
                             { $$ = $1; }
                         ;
 
@@ -888,11 +888,11 @@ unaryExpression         : unaryop unaryExpression
                             { $$ = NULL; }
                         ;
 
-unaryop                 : MINUS
+unaryop                 : '-'
                             { $$ = $1; }
-                        | MUL
+                        | '*'
                             { $$ = $1; }
-                        | RAND
+                        | '?'
                             { $$ = $1; }
                         ;
 

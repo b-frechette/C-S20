@@ -208,15 +208,15 @@ STRINGCONST \"(\\.|[^"\n])*\"
 \{                                  { return setValue(line, *yytext, yytext); }
 \}                                  { return setValue(line, *yytext, yytext); }
 \=                                  { return setValue(line, *yytext, yytext); }
-\>                                  { return setValue(line, GRT, yytext); }
-\<                                  { return setValue(line, LESS, yytext); }
+\>                                  { return setValue(line, *yytext, yytext); }
+\<                                  { return setValue(line, *yytext, yytext); }
 \+                                  { return setValue(line, *yytext, yytext); }
-\-                                  { return setValue(line, MINUS, yytext); }
-\*                                  { return setValue(line, MUL, yytext); }
-\/                                  { return setValue(line, DIV, yytext); }
-\%                                  { return setValue(line, TRUNC, yytext); }
-\?                                  { return setValue(line, RAND, yytext); }
-\.\.                                { return setValue(line, RANGE, yytext); }
+\-                                  { return setValue(line, *yytext, yytext); }
+\*                                  { return setValue(line, *yytext, yytext); }
+\/                                  { return setValue(line, *yytext, yytext); }
+\%                                  { return setValue(line, *yytext, yytext); }
+\?                                  { return setValue(line, *yytext, yytext); }
+\.\.                                { return setValue(line, *yytext, yytext); }
 \+\=                                { return setValue(line, ADDASS, yytext); }
 \-\=                                { return setValue(line, SUBASS, yytext); }
 \*\=                                { return setValue(line, MULASS, yytext); }
@@ -257,5 +257,5 @@ STRINGCONST \"(\\.|[^"\n])*\"
 "//".*\n                            { line++; }
 [ \t]                               ;  // white space
 \n                                  { line++; }
-.                                   { printf("WARNING(%d): Invalid or misplaced input character: \'%s\'. Character Ignored\n", line, yytext); numWarnings++; }
+.                                   { printf("WARNING(%d): Invalid or misplaced input character: \'%s\'. Character Ignored.\n", line, yytext); numWarnings++; }
 %%
