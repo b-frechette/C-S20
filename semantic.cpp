@@ -985,7 +985,7 @@ void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, Tr
             numErrors++;
         }
 
-        if(callParam->nodekind == ExpK && callParam->kind.exp == IdK)
+        if(callParam->nodekind == ExpK && (callParam->kind.exp == IdK || callParam->kind.exp == CallK || callParam->kind.exp == OpK))
         {
             TreeNode *temp = st.lookupNode(callParam->attr.name);
 
@@ -1001,6 +1001,11 @@ void checkParams(TreeNode *funcNode, TreeNode *callNode, TreeNode *funcParam, Tr
                     printf("ERROR(%d): Expecting array in parameter %d of call to '%s' declared on line %d.\n", callNode->lineno, paramNum, funcNode->attr.name, funcNode->lineno);
                     numErrors++;
                 }
+            }
+            else if(callParam->kind.exp == OpK && funcParam->isArray)
+            {
+                printf("ERROR(%d): Expecting array in parameter %d of call to '%s' declared on line %d.\n", callNode->lineno, paramNum, funcNode->attr.name, funcNode->lineno);
+                numErrors++;
             }
         }
 

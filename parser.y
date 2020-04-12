@@ -924,25 +924,25 @@ immutable               : '(' expression ')'
                                 yyerrok;
                                 $$ = $2; 
                             }
-                        | call
-                            { $$ = $1; }
+                        | ID call
+                            { 
+                                $$ = newExpNode(CallK);
+                                $$->child[0] = $2;  
+                                $$->attr.name = $1->tokenstr;
+                                $$->lineno = $1->linenum; 
+                            }
                         | constant                 
                             { $$ = $1; }
                         | '(' error                            
                             { $$ = NULL; }
                         | error ')'                            
                             { yyerrok; $$ = NULL; }
-                        ;
-
-call                    : ID '(' args ')'
-                            { 
-                                $$ = newExpNode(CallK);
-                                $$->child[0] = $3;  
-                                $$->attr.name = $1->tokenstr;
-                                $$->lineno = $1->linenum;  
-                            }
                         | error '('                            
                             { yyerrok; $$ = NULL; }
+                        ;
+
+call                    : '(' args ')'
+                            { $$ = $2; }
                         ;
 
 /**** EPSILON ****/
