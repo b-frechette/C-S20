@@ -7,8 +7,10 @@
     #include "treeNodes.h"
     #include "scanType.h"
     #include "parser.tab.h"
+    #include "yyerror.h"
 
-    static int line = 1;
+    int line = 1;
+    extern int numWarnings;
 
     /* descr: Convert the given char * to uppercase. Used
     *  for KEYWORDs for the tokenname.
@@ -196,25 +198,25 @@ INVALIDCHAR \'[^'\n]*\'
 STRINGCONST \"(\\.|[^"\n])*\"
 
 %%
-\;                                  { return setValue(line, SEMI, yytext); } 
-\,                                  { return setValue(line, COMMA, yytext); } 
-\[                                  { return setValue(line, LBRACKET, yytext); }
-\]                                  { return setValue(line, RBRACKET, yytext); }
-\:                                  { return setValue(line, COLON, yytext); }
-\(                                  { return setValue(line, LPAREN, yytext); }
-\)                                  { return setValue(line, RPAREN, yytext); }
-\{                                  { return setValue(line, LCURL, yytext); }
-\}                                  { return setValue(line, RCURL, yytext); }
-\=                                  { return setValue(line, ASSIGN, yytext); }
-\>                                  { return setValue(line, GRT, yytext); }
-\<                                  { return setValue(line, LESS, yytext); }
-\+                                  { return setValue(line, PLUS, yytext); }
-\-                                  { return setValue(line, MINUS, yytext); }
-\*                                  { return setValue(line, MUL, yytext); }
-\/                                  { return setValue(line, DIV, yytext); }
-\%                                  { return setValue(line, TRUNC, yytext); }
-\?                                  { return setValue(line, RAND, yytext); }
-\.\.                                { return setValue(line, RANGE, yytext); }
+\;                                  { return setValue(line, *yytext, yytext); } 
+\,                                  { return setValue(line, *yytext, yytext); } 
+\[                                  { return setValue(line, *yytext, yytext); }
+\]                                  { return setValue(line, *yytext, yytext); }
+\:                                  { return setValue(line, *yytext, yytext); }
+\(                                  { return setValue(line, *yytext, yytext); }
+\)                                  { return setValue(line, *yytext, yytext); }
+\{                                  { return setValue(line, *yytext, yytext); }
+\}                                  { return setValue(line, *yytext, yytext); }
+\=                                  { return setValue(line, *yytext, yytext); }
+\>                                  { return setValue(line, *yytext, yytext); }
+\<                                  { return setValue(line, *yytext, yytext); }
+\+                                  { return setValue(line, *yytext, yytext); }
+\-                                  { return setValue(line, *yytext, yytext); }
+\*                                  { return setValue(line, *yytext, yytext); }
+\/                                  { return setValue(line, *yytext, yytext); }
+\%                                  { return setValue(line, *yytext, yytext); }
+\?                                  { return setValue(line, *yytext, yytext); }
+\.\.                                { return setValue(line, *yytext, yytext); }
 \+\=                                { return setValue(line, ADDASS, yytext); }
 \-\=                                { return setValue(line, SUBASS, yytext); }
 \*\=                                { return setValue(line, MULASS, yytext); }
@@ -255,5 +257,5 @@ STRINGCONST \"(\\.|[^"\n])*\"
 "//".*\n                            { line++; }
 [ \t]                               ;  // white space
 \n                                  { line++; }
-.                                   { printf("ERROR(%d): Invalid or misplaced input character: \"%s\"\n", line, yytext); }
+.                                   { printf("WARNING(%d): Invalid or misplaced input character: \'%s\'. Character Ignored.\n", line, yytext); numWarnings++; }
 %%

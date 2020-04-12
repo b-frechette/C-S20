@@ -7,8 +7,9 @@
 #include "printtree.h"
 #include "ourGetopt.h"
 #include "semantic.h"
+#include "yyerror.h"
 
-#define YYDEBUG 1
+#define YYERROR_VERBOSE
 
 int numErrors, numWarnings;
 
@@ -16,10 +17,10 @@ extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
 
-void yyerror(const char *msg)
-{
-      printf("ERROR(PARSER): %s\n", msg);
-}
+// void yyerror(const char *msg)
+// {
+//       printf("ERROR(PARSER): %s\n", msg);
+// }
 
 /* descr: Recursively add sibling to end of the list
 *
@@ -40,8 +41,8 @@ void addSibling(TreeNode *t1, TreeNode *t2)
             addSibling(t1->sibling, t2);
         }
     }
-    else
-    { printf("error\n"); }
+    // else
+    // { printf("error\n"); }
 }
 
 /* descr: Recursively add the type for a var or param kind. This is 
@@ -95,15 +96,15 @@ TreeNode * savedTree;
 %token <tokenData> ID
 
 /* OPERATORS */
-%token <tokenData> GRT 
-%token <tokenData> LESS 
-%token <tokenData> PLUS 
-%token <tokenData> MINUS 
-%token <tokenData> MUL 
-%token <tokenData> DIV 
-%token <tokenData> RAND 
-%token <tokenData> TRUNC
-%token <tokenData> RANGE
+%token <tokenData> '>' 
+%token <tokenData> '<' 
+%token <tokenData> '+' 
+%token <tokenData> '-' 
+%token <tokenData> '*' 
+%token <tokenData> '/' 
+%token <tokenData> '?' 
+%token <tokenData> '%'
+%token <tokenData> '..'
 %token <tokenData> ADDASS
 %token <tokenData> SUBASS
 %token <tokenData> MULASS
@@ -114,7 +115,7 @@ TreeNode * savedTree;
 %token <tokenData> GRTEQ
 %token <tokenData> EQ
 %token <tokenData> NOTEQ
-%token <tokenData> ASSIGN
+%token <tokenData> '='
 %token <tokenData> OR
 %token <tokenData> AND
 %token <tokenData> NOT
@@ -138,15 +139,16 @@ TreeNode * savedTree;
 %token <tokenData> BREAK
 
 /* PUNCTUATION */
-%token <tokenData> SEMI
-%token <tokenData> COMMA
-%token <tokenData> LBRACKET
-%token <tokenData> RBRACKET
-%token <tokenData> COLON
-%token <tokenData> LPAREN
-%token <tokenData> RPAREN
-%token <tokenData> LCURL
-%token <tokenData> RCURL 
+// %token <tokenData> SEMI
+%token <tokenData> ';'
+%token <tokenData> ','
+%token <tokenData> '['
+%token <tokenData> ']'
+%token <tokenData> ':'
+%token <tokenData> '('
+%token <tokenData> ')'
+%token <tokenData> '{'
+%token <tokenData> '}' 
 
 /* UNSURE */
 %token INVALIDCHAR 
@@ -160,6 +162,7 @@ TreeNode * savedTree;
 %type <vardata> scopedTypeSpecifier
 
 /* TOKENDATA */
+%type <tokenData> assignop
 %type <tokenData> unaryop
 %type <tokenData> mulop
 %type <tokenData> sumop
@@ -223,15 +226,8 @@ program                 : declarationList
 
 declarationList         : declarationList declaration
                             {
-                                if($1 == NULL)
-                                {
-                                    $$ = $2;
-                                }
-                                else
-                                {
-                                    addSibling($1, $2);
-                                    $$ = $1;
-                                }
+                                addSibling($1, $2);
+                                $$ = $1;
                             }
                         | declaration
                             { $$ = $1; }
@@ -241,45 +237,59 @@ declaration             : varDeclaration
                             { $$ = $1; }
                         | funDeclaration
                             { $$ = $1; }
+                        | error
+                            { $$ = NULL; }
                         ;
 
-varDeclaration          : typeSpecifier varDeclList SEMI
+varDeclaration          : typeSpecifier varDeclList ';'
                             {
+                                yyerrok;
                                 setType($1, $2);
                                 $$ = $2;
                             }
+                        | error varDeclList ';'                
+                            { $$ = NULL; }
+                        | typeSpecifier error ';'                   
+                            { yyerrok; $$ = NULL; }
                         ;
 
-scopedVarDeclaration    : scopedTypeSpecifier varDeclList SEMI
+scopedVarDeclaration    : scopedTypeSpecifier varDeclList ';'
                             {
+                                yyerrok;
                                 setType($1, $2);
                                 $$ = $2;
                             }
+                        | scopedTypeSpecifier error ';'                   
+                            { yyerrok; $$ = NULL; }
+                        | error varDeclList ';'                
+                            { yyerrok; $$ = NULL; }
                         ;
 
-varDeclList             : varDeclList COMMA varDeclInitialize
+varDeclList             : varDeclList ',' varDeclInitialize
                             {
-                                if($1 == NULL)
-                                {
-                                    $$ = $3;
-                                }
-                                else
-                                {
-                                    addSibling($1, $3);
-                                    $$ = $1;
-                                }
+                                yyerrok;
+                                addSibling($1, $3);
+                                $$ = $1;
                             }
                         | varDeclInitialize
                             { $$ = $1; }
+                        | varDeclList ',' error                
+                            { $$ = NULL; }
+                        | error                                
+                            { $$ = NULL; }
                         ;
 
 varDeclInitialize       : varDeclId
                             { $$ = $1; }
-                        | varDeclId COLON simpleExpression
+                        | varDeclId ':' simpleExpression
                             {
                                 $$ = $1;
                                 $$->child[0] = $3;
                             }
+                        | error ':' simpleExpression                  
+                            { yyerrok; $$ = NULL; }
+                        | varDeclId ':' error                  
+                            { $$ = NULL; }
                         ;
 
 varDeclId               : ID 
@@ -289,7 +299,7 @@ varDeclId               : ID
                                 $$->attr.name = $1->tokenstr;
                                 $$->expType = UndefinedType;
                             }
-                        | ID LBRACKET NUMCONST RBRACKET
+                        | ID '[' NUMCONST ']'
                             {
                                 $$ = newDeclNode(VarK);
                                 $$->lineno = $1->linenum;
@@ -297,6 +307,10 @@ varDeclId               : ID
                                 $$->isArray = true;
                                 $$->expType = UndefinedType;
                             }
+                        | ID '[' error                         
+                            { $$ = NULL; }
+                        | error ']'                            
+                            { yyerrok; $$ = NULL; }
                         ;
 
 scopedTypeSpecifier     : STATIC typeSpecifier
@@ -325,7 +339,7 @@ typeSpecifier           : INT
                             }
                         ;
 
-funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
+funDeclaration          : typeSpecifier ID '(' params ')' statement
                             {
                                 $$ = newDeclNode(FuncK);
                                 $$->child[0] = $4;
@@ -334,7 +348,7 @@ funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
                                 $$->attr.name = $2->tokenstr;
                                 $$->lineno = $1.linenum;
                             }
-                        | ID LPAREN params RPAREN statement
+                        | ID '(' params ')' statement
                             {
                                 $$ = newDeclNode(FuncK);
                                 $$->child[0] = $3;
@@ -343,6 +357,16 @@ funDeclaration          : typeSpecifier ID LPAREN params RPAREN statement
                                 $$->expType = Void;
                                 $$->lineno = $1->linenum;
                             }
+                        | typeSpecifier error                       
+                            { $$ = NULL;}
+                        | typeSpecifier ID '(' error                
+                            { $$ = NULL;}
+                        | typeSpecifier ID '(' params ')' error     
+                            { $$ = NULL;}
+                        | ID '(' error                         
+                            { $$ = NULL;}
+                        | ID '(' params ')' error              
+                            { $$ = NULL;}
                         ;
 
 /**** EPSILON ****/
@@ -352,20 +376,18 @@ params                  : paramList
                             { $$ = NULL; }
                         ;
 
-paramList               : paramList SEMI paramTypeList
+paramList               : paramList ';' paramTypeList
                             {
-                                if($1 == NULL)
-                                {
-                                    $$ = $3;
-                                }
-                                else
-                                {
-                                    $$ = $1;
-                                    addSibling($1, $3);
-                                }
+                                yyerrok;
+                                $$ = $1;
+                                addSibling($1, $3);
                             }
                         | paramTypeList
                             { $$ = $1; }
+                        | paramList ';' error                  
+                            { $$ = NULL; }
+                        | error                                
+                            { $$ = NULL; }
                         ;
 
 paramTypeList           : typeSpecifier paramIdList
@@ -373,22 +395,22 @@ paramTypeList           : typeSpecifier paramIdList
                                 setType($1, $2);
                                 $$ = $2;
                             }
+                        | typeSpecifier error                       
+                            { $$ = NULL; }
                         ;
 
-paramIdList             : paramIdList COMMA paramId 
+paramIdList             : paramIdList ',' paramId 
                             {
-                                if($1 == NULL)
-                                {
-                                    $$ = $3;
-                                }
-                                else
-                                {
-                                    addSibling($1, $3);
-                                    $$ = $1;
-                                }
+                                yyerrok;
+                                addSibling($1, $3);
+                                $$ = $1;
                             }
                         | paramId
                             { $$ = $1; }
+                        | paramIdList ',' error                
+                            { $$ = NULL; }
+                        | error                                
+                            { $$ = NULL; } 
                         ;
 
 paramId                 : ID
@@ -398,7 +420,7 @@ paramId                 : ID
                                 $$->lineno = $1->linenum;
                                 $$->expType = UndefinedType;
                             }
-                        | ID LBRACKET RBRACKET
+                        | ID '[' ']'
                             {
                                 $$ = newDeclNode(ParamK);
                                 $$->attr.name = $1->tokenstr;
@@ -406,6 +428,8 @@ paramId                 : ID
                                 $$->lineno = $1->linenum;
                                 $$->expType = UndefinedType;
                             }
+                        | error ']' 
+                            {yyerrok; $$ = NULL; }
                         ;
 
 statement               : matched
@@ -424,6 +448,8 @@ matchedelsif            : ELSIF simpleExpression THEN matched matchedelsif
                             }
                         | ELSE matched
                             { $$ = $2; }
+                        | ELSIF error                          
+                            { $$ = NULL; }
                         ;
 
 /**** EPSILON ****/
@@ -439,14 +465,16 @@ unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
                             { $$ = $2; }
                         | /*epsilon*/
                             { $$ = NULL; }
+                        | ELSIF error                          
+                            { $$ = NULL; }
                         ;
 
 /**** QUESTION ****/
-iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
+iterationRange          : simpleExpression '..' simpleExpression
                             {
                                 $$ = newStmtNode(RangeK);
-                                $$->child[0] = $2;
-                                $$->child[1] = $4;
+                                $$->child[0] = $1;
+                                $$->child[1] = $3;
                                 $$->op = 1;
 
                                 //Solution for Exp node that appears in test cases - Ask why it's there
@@ -454,20 +482,24 @@ iterationRange          : ASSIGN simpleExpression RANGE simpleExpression
                                 t->attr.value = 1;
                                 t->attr.name = "1";
                                 t->expType = Integer;
-                                t->lineno = $3->linenum;
+                                t->lineno = $2->linenum;
 
                                 $$->child[2] = t;
-                                $$->lineno = $3->linenum;
+                                $$->lineno = $1->lineno;
                             }
-                        | ASSIGN simpleExpression RANGE simpleExpression COLON simpleExpression
+                        | simpleExpression '..' simpleExpression ':' simpleExpression
                             { 
                                 $$ = newStmtNode(RangeK);
-                                $$->child[0] = $2;
-                                $$->child[1] = $4;
-                                $$->child[2] = $6;
+                                $$->child[0] = $1;
+                                $$->child[1] = $3;
+                                $$->child[2] = $5;
                                 $$->op = 2;
-                                $$->lineno = $1->linenum;
+                                $$->lineno = $1->lineno;
                             }
+                        | simpleExpression '..' simpleExpression ':' error  
+                            { $$ = NULL; }
+                        | simpleExpression '..' error                
+                            { $$ = NULL; }
                         ;
 
 iterationId             : ID    
@@ -502,16 +534,36 @@ matched                 : IF simpleExpression THEN matched matchedelsif
                                 $$->child[1] = $3;                  //Why is the child 1 and not 0 in tests?
                                 $$->lineno = $1->linenum;
                             }
-                        | LOOP iterationId iterationRange DO matched
+                        | LOOP iterationId '=' iterationRange DO matched
                             {
                                 $$ = newStmtNode(LoopK);
                                 $$->child[0] = $2;
-                                $$->child[1] = $3;
-                                $$->child[2] = $5;
+                                $$->child[1] = $4;
+                                $$->child[2] = $6;
                                 $$->lineno = $1->linenum;
                             }
                         | other_statements
                             { $$ = $1; }
+                        | IF error                             
+                            { $$ = NULL;}
+                        | IF error THEN matched ELSE matched matchedelsif  
+                            { yyerrok; $$ = NULL; }
+                        | WHILE error DO matched               
+                            { yyerrok; $$ = NULL; }
+                        | WHILE error                          
+                            { $$ = NULL;}
+                        | LOOP iterationId '=' error DO matched         
+                            { yyerrok; $$ = NULL; }
+                        | LOOP iterationId '=' error                    
+                            { $$ = NULL; }
+                        | LOOP iterationId error                            
+                            { $$ = NULL; }
+                        | LOOP FOREVER error                   
+                            { $$ = NULL; }
+                        | LOOP error                           
+                            { $$ = NULL; }
+                        | error                                
+                            { $$ = NULL; }
                         ;
 
 /**** QUESTION ****/
@@ -543,14 +595,22 @@ unmatched               : IF simpleExpression THEN unmatched
                                 $$->child[1] = $3;                  //Why is the child 1 and not 0 in tests?
                                 $$->lineno = $1->linenum;
                             }
-                        | LOOP iterationId iterationRange DO unmatched
+                        | LOOP iterationId '=' iterationRange DO unmatched
                             {
                                 $$ = newStmtNode(LoopK);
                                 $$->child[0] = $2;
-                                $$->child[1] = $3;
-                                $$->child[2] = $5;
+                                $$->child[1] = $4;
+                                $$->child[2] = $6;
                                 $$->lineno = $1->linenum;
                             }
+                        | IF error THEN unmatched              
+                            { yyerrok; $$ = NULL; }
+                        | IF error THEN matched unmatchedelsif
+                            { yyerrok; $$ = NULL; }
+                        | WHILE error DO unmatched             
+                            { yyerrok; $$ = NULL; }
+                        | LOOP iterationId '=' error DO unmatched       
+                            { yyerrok; $$ = NULL; }
                         ;
 
 other_statements        : expressionStmt
@@ -563,21 +623,31 @@ other_statements        : expressionStmt
                             { $$ = $1; }
                         ;
 
-expressionStmt          : expression SEMI
+expressionStmt          : expression ';'
                             { 
-                                $$ = $1; 
+                                yyerrok;
+                                $$ = $1;
                             }
-                        | SEMI
-                            { $$ = NULL; }
+                        | ';'
+                            {  
+                                yyerrok;
+                                $$ = NULL;
+                            }
                         ;
 
-compoundStmt            : LCURL localDeclarations statementList RCURL
+compoundStmt            : '{' localDeclarations statementList '}'
                             {
+                                yyerrok;
                                 $$ = newStmtNode(CompoundK);
                                 $$->child[0] = $2;
                                 $$->child[1] = $3;
                                 $$->lineno = $1->linenum;
                             }
+                        | '{' error statementList '}'          
+                            { yyerrok; $$ = NULL; }
+                        | '{' localDeclarations error '}'             
+                            { yyerrok; $$ = NULL; }
+ 
                         ;
 
 /**** EPSILON ****/
@@ -614,73 +684,40 @@ statementList           : statementList statement
                             { $$ = NULL; } 
                         ;
 
-returnStmt              : RETURN SEMI
+returnStmt              : RETURN ';'
                             {
+                                yyerrok;
                                 $$ = newStmtNode(ReturnK);
                                 $$->lineno = $1->linenum;
                             }
-                        | RETURN expression SEMI
+                        | RETURN expression ';'
                             {
+                                yyerrok;
                                 $$ = newStmtNode(ReturnK);
                                 $$->child[0] = $2;
                                 $$->lineno = $1->linenum;
                             }
                         ;
 
-breakStmt               : BREAK SEMI
+breakStmt               : BREAK ';'
                             {
                                 $$ = newStmtNode(BreakK);
                                 $$->lineno = $1->linenum;
                             }
                         ;
 
-expression              : mutable ASSIGN expression
+expression              : mutable assignop expression
                             {
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
                                 $$->child[1] = $3;  
-                                $$->op = 1;
-                                $$->attr.name = $2->tokenstr; 
-                                $$->lineno = $2->linenum;
-                            }
-                        | mutable ADDASS expression
-                            {
-                                $$ = newExpNode(AssignK);
-                                $$->child[0] = $1;
-                                $$->child[1] = $3; 
-                                $$->op = 2; 
-                                $$->attr.name = $2->tokenstr; 
-                                $$->lineno = $2->linenum;
-                            }
-                        | mutable SUBASS expression
-                            {
-                                $$ = newExpNode(AssignK);
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;
-                                $$->op = 3;  
-                                $$->attr.name = $2->tokenstr; 
-                                $$->lineno = $2->linenum;
-                            }
-                        | mutable MULASS expression
-                            {
-                                $$ = newExpNode(AssignK);
-                                $$->child[0] = $1;
-                                $$->child[1] = $3; 
-                                $$->op = 4; 
-                                $$->attr.name = $2->tokenstr; 
-                                $$->lineno = $2->linenum;
-                            }
-                        | mutable DIVASS expression
-                            {
-                                $$ = newExpNode(AssignK);
-                                $$->child[0] = $1;
-                                $$->child[1] = $3;  
-                                $$->op = 5;
+                                $$->op = $2->numValue;
                                 $$->attr.name = $2->tokenstr; 
                                 $$->lineno = $2->linenum;
                             }
                         | mutable INC
                             {
+                                yyerrok;
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
                                 $$->op = 6;
@@ -689,6 +726,7 @@ expression              : mutable ASSIGN expression
                             }
                         | mutable DEC 
                             {
+                                yyerrok;
                                 $$ = newExpNode(AssignK);
                                 $$->child[0] = $1;
                                 $$->op = 7;
@@ -697,7 +735,24 @@ expression              : mutable ASSIGN expression
                             }
                         | simpleExpression       
                             { $$ = $1; }
+                        | error assignop error                 
+                            { $$ = NULL; }
+                        | error INC                            
+                            { yyerrok; $$ = NULL; }
+                        | error DEC                            
+                            { yyerrok; $$ = NULL; }
                         ;
+
+assignop                : '='
+                            { $1->numValue = 1; $$ = $1; }
+                        | ADDASS
+                            { $1->numValue = 2; $$ = $1; }
+                        | SUBASS
+                            { $1->numValue = 3; $$ = $1; }
+                        | MULASS
+                            { $1->numValue = 4; $$ = $1; }
+                        | DIVASS
+                            { $1->numValue = 5; $$ = $1; }
 
 simpleExpression        : simpleExpression OR andExpression
                             {
@@ -710,6 +765,8 @@ simpleExpression        : simpleExpression OR andExpression
                             }
                         | andExpression  
                             { $$ = $1; }
+                        | simpleExpression OR error                   
+                            { $$=NULL;}
                         ;
 
 andExpression           : andExpression AND unaryRelExpression
@@ -723,6 +780,9 @@ andExpression           : andExpression AND unaryRelExpression
                             }
                         | unaryRelExpression
                             { $$ = $1; }
+                        | andExpression AND error                      
+                            { $$ = NULL; }
+ 
                         ;
 
 unaryRelExpression      : NOT unaryRelExpression
@@ -735,9 +795,11 @@ unaryRelExpression      : NOT unaryRelExpression
                             }
                         | relExpression
                             { $$ = $1; }
+                        | NOT error                            
+                            { $$ = NULL; }
                         ;
 
-relExpression           : relExpression relop sumExpression
+relExpression           : sumExpression relop sumExpression
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
@@ -748,13 +810,17 @@ relExpression           : relExpression relop sumExpression
                             }
                         | sumExpression  
                             { $$ = $1; }
+                        | sumExpression relop error                   
+                            { $$ = NULL; }
+                        | error relop sumExpression                   
+                            { yyerrok; $$ = NULL; }
                         ;
 
 relop                   : LESSEQ
                             { $$ = $1; }
-                        | LESS
+                        | '<'
                             { $$ = $1; }
-                        | GRT
+                        | '>'
                             { $$ = $1; }
                         | GRTEQ
                             { $$ = $1; }
@@ -775,11 +841,13 @@ sumExpression           : sumExpression sumop mulExpression
                             }
                         | mulExpression
                             { $$ = $1; }
+                        | sumExpression sumop error                   
+                            { yyerrok; $$ = NULL; }
                         ;
 
-sumop                   : PLUS
+sumop                   : '+'
                             { $$ = $1; }
-                        | MINUS
+                        | '-'
                             { $$ = $1; }
                         ;
 
@@ -794,13 +862,15 @@ mulExpression           : mulExpression mulop unaryExpression
                             }
                         | unaryExpression
                             { $$ = $1; }
+                        | mulExpression mulop error                     
+                            { $$ = NULL; }
                         ;
 
-mulop                   : MUL
+mulop                   : '*'
                             { $$ = $1; }
-                        | DIV
+                        | '/'
                             { $$ = $1; }
-                        | TRUNC
+                        | '%'
                             { $$ = $1; }
                         ;
 
@@ -814,13 +884,15 @@ unaryExpression         : unaryop unaryExpression
                             }
                         | factor
                             { $$ = $1; }
+                        | unaryop error                        
+                            { $$ = NULL; }
                         ;
 
-unaryop                 : MINUS
+unaryop                 : '-'
                             { $$ = $1; }
-                        | MUL
+                        | '*'
                             { $$ = $1; }
-                        | RAND
+                        | '?'
                             { $$ = $1; }
                         ;
 
@@ -836,7 +908,7 @@ mutable                 : ID
                                 $$->attr.name = $1->tokenstr;
                                 $$->lineno = $1->linenum;
                             }
-                        | mutable LBRACKET expression RBRACKET
+                        | mutable '[' expression ']'
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
@@ -847,20 +919,29 @@ mutable                 : ID
                             }
                         ;
 
-immutable               : LPAREN expression RPAREN
-                            { $$ = $2; }
+immutable               : '(' expression ')'
+                            { 
+                                yyerrok;
+                                $$ = $2; 
+                            }
                         | ID call
-                            {
+                            { 
                                 $$ = newExpNode(CallK);
                                 $$->child[0] = $2;  
                                 $$->attr.name = $1->tokenstr;
-                                $$->lineno = $1->linenum;            
+                                $$->lineno = $1->linenum; 
                             }
                         | constant                 
                             { $$ = $1; }
+                        | '(' error                            
+                            { $$ = NULL; }
+                        | error ')'                            
+                            { yyerrok; $$ = NULL; }
+                        | error '('                            
+                            { yyerrok; $$ = NULL; }
                         ;
 
-call                    : LPAREN args RPAREN
+call                    : '(' args ')'
                             { $$ = $2; }
                         ;
 
@@ -871,7 +952,7 @@ args                    : argList
                             { $$ = NULL; }
                         ;
 
-argList                 : argList COMMA expression
+argList                 : argList ',' expression
                             {
                                 if($1 == NULL)
                                 {
@@ -879,12 +960,15 @@ argList                 : argList COMMA expression
                                 }
                                 else
                                 {
+                                    yyerrok;
                                     addSibling($1, $3);
                                     $$ = $1;
                                 }
                             }
-                        | expression 
+                        | expression
                             { $$ = $1; }
+                        | argList ',' error                    
+                            { $$=NULL; }
                         ;
 
 /**** CHECK ****/
@@ -977,7 +1061,7 @@ int main(int argc, char **argv)
     if(filerr == 1)
     {
         filename = fopen(oarg, "r");
-        //filename = fopen("tests/control.c-", "r");
+        //filename = fopen("tests/syntaxerr-badchar.c-", "r");
 
         if(filename == NULL)
         {
@@ -997,6 +1081,7 @@ int main(int argc, char **argv)
     numErrors = 0;
     numWarnings = 0;
 
+    initErrorProcessing();
     yyparse();
 
     if(numErrors == 0)
