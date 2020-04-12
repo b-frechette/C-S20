@@ -19,45 +19,82 @@ lex.yy.c: parser.l parser.tab.h
 
 test:
 	./c-  tests/array.c-
+	./c-  tests/arrays.c-
+	./c-  tests/arrays2.c-
 	./c-  tests/assignSmall.c-
 	./c-  tests/badcontrol.c-
 	./c-  tests/basicAll5.c-
 	./c-  tests/call.c-
+	./c-  tests/call4.c-
+	./c-  tests/callconst.c-
 	./c-  tests/callerr.c-
+	./c-  tests/callframes.c-
+	./c-  tests/callglobal.c-
+	./c-  tests/calllocal.c-
+	./c-  tests/callparam.c-
+	./c-  tests/callstatic.c-
 	./c-  tests/control.c-
 	./c-  tests/control2.c-
 	./c-  tests/decllists.c-
 	./c-  tests/defused.c-
 	./c-  tests/elsif.c-
+	./c-  tests/empty.c-
+	./c-  tests/err.c-
+	./c-  tests/errorloc.c-
+	./c-  tests/errormessages.c-
 	./c-  tests/everythingS20.c-
 	./c-  tests/exp.c-
 	./c-  tests/exp2.c-
 	./c-  tests/exp3.c-
+	./c-  tests/factor.c-
+	./c-  tests/factorial.c-
+	./c-  tests/factorial2.c-
+	./c-  tests/factorialr.c-
 	./c-  tests/gcd.c-
 	./c-  tests/gcd2.c-
+	./c-  tests/gcdsm.c-
 	./c-  tests/if.c-
 	./c-  tests/ifevil.c-
 	./c-  tests/init.c-
 	./c-  tests/initbad.c-
+	./c-  tests/invalidChar.c-
 	./c-  tests/io.c-
 	./c-  tests/loops.c-
 	./c-  tests/loopscope.c-
 	./c-  tests/loopscope2.c-
 	./c-  tests/matchunmatch.c-
+	./c-  tests/memory.c-
+	./c-  tests/memory2.c-
 	./c-  tests/minus.c-
 	./c-  tests/nano.c-
 	./c-  tests/nested.c-
 	./c-  tests/notused.c-
+	./c-  tests/op.c-
 	./c-  tests/oparray.c-
 	./c-  tests/optype.c-
+	./c-  tests/overkill.c-
+	./c-  tests/overlay.c-
+	./c-  tests/overlayArray.c-
+	./c-  tests/overlayCall.c-
+	./c-  tests/overlayTmp.c-
+	./c-  tests/overlayTmp2.c-
+	./c-  tests/overlayTmp3.c-
 	./c-  tests/param.c-
 	./c-  tests/paramerr.c-
 	./c-  tests/paramerr2.c-
+	./c-  tests/parmtiny.c-
 	./c-  tests/precassoc.c-
 	./c-  tests/redefined.c-
 	./c-  tests/scope.c-
+	./c-  tests/scope3.c-
+	./c-  tests/scope4.c-
+	./c-  tests/scope5.c-
+	./c-  tests/scope6.c-
+	./c-  tests/scope35.c-
 	./c-  tests/simple.c-
+	./c-  tests/simpleDefine.c-
 	./c-  tests/small.c-
+	./c-  tests/strand.c-
 	./c-  tests/strange.c-
 	./c-  tests/syntaxerr-assign.c-
 	./c-  tests/syntaxerr-badchar.c-
@@ -86,6 +123,8 @@ test:
 	./c-  tests/types.c-
 	./c-  tests/undefined.c-
 	./c-  tests/uninitialized.c-
+	./c-  tests/unused.c-
+	./c-  tests/walsh.c-
 	./c-  tests/whileif.c-
 
 clean:
