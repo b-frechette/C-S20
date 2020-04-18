@@ -52,7 +52,10 @@ typedef struct treeNode
     bool isUsed;            //Use flag
     bool isChecked;         //Check flag for children
     bool isIndexed;         //Index flag for arrays
-    bool isFlagged;         //Warning flag for checking if warning has already been flagged          
+    bool isFlagged;         //Warning flag for checking if warning has already been flagged    
+
+    int size;
+    int offset;      
 
 } TreeNode;
 

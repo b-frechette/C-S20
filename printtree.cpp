@@ -232,6 +232,7 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
 {
     int i;
     const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
+    const char* mem[] = {"none", "Local", "Global", "Parameter", "Local", "LocalStatic"};
 
     if(tree->nodekind == DeclK)
     {
@@ -243,31 +244,31 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
                     case Integer:
                         if(tree->isArray)
                         {
-                            printf("Var %s is array of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Var %s is array of type int [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         else
                         {
-                            printf("Var %s of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Var %s of type int [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         break;
                     case Boolean:
                         if(tree->isArray)
                         {
-                            printf("Var %s is array of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Var %s is array of type bool [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         else
                         {
-                            printf("Var %s of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Var %s of type bool [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         break;
                     case Char:
                         if(tree->isArray)
                         {
-                            printf("Var %s is array of type char [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Var %s is array of type char [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         else
                         {
-                            printf("Var %s of type char [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Var %s of type char [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         break;
                     case UndefinedType:
@@ -282,16 +283,16 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
                 switch(tree->expType)
                 {
                     case Void:
-                        printf("Func %s returns type void [line: %d]\n", tree->attr.name, tree->lineno);
+                        printf("Func %s returns type void [mem: %s  loc: %d]\n", tree->attr.name, mem[tree->var], tree->offset);
                         break;
                     case Integer:
-                        printf("Func %s returns type int [line: %d]\n", tree->attr.name, tree->lineno);
+                        printf("Func %s returns type int [mem: %s  loc: %d]\n", tree->attr.name, mem[tree->var], tree->offset);
                         break;
                     case Boolean:
-                        printf("Func %s returns type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                        printf("Func %s returns type bool [mem: %s  loc: %d]\n", tree->attr.name, mem[tree->var], tree->offset);
                         break;
                     case Char:
-                        printf("Func %s returns type char [line: %d]\n", tree->attr.name, tree->lineno);
+                        printf("Func %s returns type char [mem: %s  loc: %d]\n", tree->attr.name, mem[tree->var], tree->offset);
                         break;
                     case UndefinedType:
                         printf("ERROR FUNC: Undefined Type [line: %d]\n",tree->lineno);
@@ -307,31 +308,31 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
                     case Integer:
                         if(tree->isArray)
                         {
-                            printf("Param %s is array of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Param %s is array of type int [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         else
                         {
-                            printf("Param %s of type int [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Param %s of type int [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         break;
                     case Boolean:
                         if(tree->isArray)
                         {
-                            printf("Param %s is array of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Param %s is array of type bool [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         else
                         {
-                            printf("Param %s of type bool [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Param %s of type bool [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         break;
                     case Char:
                         if(tree->isArray)
                         {
-                            printf("Param %s is array of type char [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Param %s is array of type char [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         else
                         {
-                            printf("Param %s of type char [line: %d]\n", tree->attr.name, tree->lineno);
+                            printf("Param %s of type char [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                         }
                         break;
                     case UndefinedType:
@@ -352,7 +353,7 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
         switch(tree->kind.exp)
         {
             case OpK:
-                printf("Op: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
+                printf("Op: %s\n", tree->attr.name);
                 break;
             case ConstantK:
                 switch (tree->expType)
@@ -360,24 +361,24 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
                     case Char:
                         if(tree->op == 1)
                         {
-                            printf("Const: '%c' [%s] [line: %d]\n", tree->attr.cvalue, types[tree->expType], tree->lineno);
+                            printf("Const: '%c'\n", tree->attr.cvalue);
                         }
                         else
                         {
-                            printf("Const: \"%s\" [%s] [line: %d]\n", tree->attr.string, types[tree->expType], tree->lineno);
+                            printf("Const: \"%s\"\n", tree->attr.string);
                         }
                         break;
                         
                     default:
-                        printf("Const: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
+                        printf("Const: %s\n", tree->attr.name);
                         break;
                 }
                 break;
             case IdK:
-                printf("Id: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
+                printf("Id: %s [mem: %s  size: %d  loc: %d]\n", tree->attr.name, mem[tree->var], tree->size, tree->offset);
                 break;
             case AssignK:
-                printf("Assign: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
+                printf("Assign: %s\n", tree->attr.name);
                 break;
             case CallK:
                 printf("Call: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
@@ -392,31 +393,31 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
         switch(tree->kind.stmt)
         {
             case ElsifK:
-                printf("Elsif [line: %d]\n", tree->lineno);
+                printf("Elsif\n");
                 break;
             case IfK:
-                printf("If [line: %d]\n", tree->lineno);
+                printf("If\n");
                 break;
             case WhileK:
-                printf("While [line: %d]\n", tree->lineno);
+                printf("While\n");
                 break;
             case LoopK:
-                printf("Loop [line: %d]\n", tree->lineno);
+                printf("Loop\n");
                 break;
             case LoopForeverK:
-                printf("LoopForever [line: %d]\n", tree->lineno);
+                printf("LoopForever\n");
                 break;
             case CompoundK:
-                printf("Compound [line: %d]\n", tree->lineno);
+                printf("Compound\n");
                 break;
             case RangeK:
-                printf("Range [line: %d]\n", tree->lineno);
+                printf("Range\n");
                 break;
             case ReturnK:
-                printf("Return [line: %d]\n", tree->lineno);
+                printf("Return\n");
                 break;
             case BreakK:
-                printf("Break [line: %d]\n", tree->lineno);
+                printf("Break\n");
                 break;
             default:
                 printf("error\n");

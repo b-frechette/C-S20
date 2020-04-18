@@ -139,7 +139,7 @@ ExpType insertNode(TreeNode *t)
                     t->child[1]->enteredScope = true;
                 }
                 
-
+                t->var = Global;
                 st.enter(t->attr.name);                 //Enter a new scope
                 currFunc = t;
                 scoped = true;                          //Entered scope bool set
@@ -477,6 +477,7 @@ ExpType insertNode(TreeNode *t)
                 else                                        //Is declared
                 {
                     temp->isUsed = true;
+                    t->var = temp->var;
                     if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
                     {
                         temp->isFlagged = true;
