@@ -5,6 +5,8 @@
 #include "symbolTable.h"
 #include "semantic.h"
 
+#define CONSTANTSIZE 1 
+
 SymbolTable st;
 TreeNode *currFunc;
 int numLoops;
@@ -66,6 +68,7 @@ ExpType insertNode(TreeNode *t)
 
                     c1 = insertNode(t->child[0]);
 
+
                     if(t->child[0]->nodekind == ExpK)
                     {
                         if(t->child[0]->kind.exp == ConstantK)
@@ -112,6 +115,12 @@ ExpType insertNode(TreeNode *t)
                     numErrors++;
                 }
 
+                if(t->isArray)
+                { t->size = CONSTANTSIZE + t->size; }
+                else
+                { t->size = CONSTANTSIZE; }
+                
+
                 if(st.depth() == 1)
                 { t->var = Global;}
                 else if(st.depth() > 1)
@@ -148,6 +157,7 @@ ExpType insertNode(TreeNode *t)
 
             case ParamK:
                 t->var = Parameter;
+                t->size = CONSTANTSIZE;
                 if(!st.insert(t->attr.name, t))         //Already declared
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
@@ -478,6 +488,8 @@ ExpType insertNode(TreeNode *t)
                 {
                     temp->isUsed = true;
                     t->var = temp->var;
+                    t->offset = temp->offset;
+                    t->size = temp->size;
                     if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
                     {
                         temp->isFlagged = true;

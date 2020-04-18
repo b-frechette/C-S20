@@ -381,7 +381,7 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
                 printf("Assign: %s\n", tree->attr.name);
                 break;
             case CallK:
-                printf("Call: %s [%s] [line: %d]\n", tree->attr.name, types[tree->expType], tree->lineno);
+                printf("Call: %s\n", tree->attr.name);
                 break;
             default:
                 printf("error\n");

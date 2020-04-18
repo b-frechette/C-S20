@@ -305,6 +305,7 @@ varDeclId               : ID
                                 $$->lineno = $1->linenum;
                                 $$->attr.name = $1->tokenstr;
                                 $$->isArray = true;
+                                $$->size = $3->numValue;
                                 $$->expType = UndefinedType;
                             }
                         | ID '[' error                         
