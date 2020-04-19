@@ -10,7 +10,9 @@
 SymbolTable st;
 TreeNode *currFunc;
 int numLoops;
-bool returnFlg = false, siblingFlg = true, loopFlg = false;
+int Goffset = 0;
+int Loffset;
+bool returnFlg = false, siblingFlg = true, loopFlg = false, errFlg = false;
 const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
 
 void semantic(TreeNode *syntaxTree)
@@ -44,7 +46,7 @@ void semantic(TreeNode *syntaxTree)
 
 ExpType insertNode(TreeNode *t)
 {
-    int i, errType;
+    int i, errType, tmpLoffset;
     ExpType c1, c2, c3, returns;
     bool scoped = false;    //Boolean to help recursively leave scopes
     bool arr1F = false, arr2F = false, n1 = true, n2 = true, func = false, loop = false;
@@ -61,6 +63,7 @@ ExpType insertNode(TreeNode *t)
         switch(t->kind.decl)
         {
             case VarK:
+
                 if(t->child[0] != NULL)                 //If Initializing
                 {
                     t->isInit = true;
@@ -109,27 +112,42 @@ ExpType insertNode(TreeNode *t)
                     
                 }
 
-                if(!st.insert(t->attr.name, t))         //Already declared
+                if(st.depth() == 1)
+                { t->var = Global;}
+                else if(st.depth() > 1)
                 {
-                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
-                    numErrors++;
+                    if(t->isStatic)
+                    { t->var = LocalStatic; }
+                    else
+                    { t->var = Local; } 
                 }
 
                 if(t->isArray)
                 { t->size = CONSTANTSIZE + t->size; }
                 else
                 { t->size = CONSTANTSIZE; }
-                
 
-                if(st.depth() == 1)
-                { t->var = Global;}
-                else if(st.depth() > 1)
+                if(!st.insert(t->attr.name, t))         //Already declared
                 {
-                    t->var = Local;
-                    if(t->isStatic)
-                    { t->var = LocalStatic; }
+                    printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
+                    numErrors++;
+                }
+                else{
+                    if(t->var == Local)
+                    {
+                        t->offset = Loffset;
+                        Loffset -= t->size;
+                    }
+                    else if(t->var == LocalStatic || t->var == Global)
+                    {
+                        t->offset = Goffset;
+                        Goffset -= t->size;
+                    }
                 }
 
+
+                if(t->isArray)
+                { t->offset--; }
                 returns = t->expType;
                 break;
 
@@ -149,6 +167,7 @@ ExpType insertNode(TreeNode *t)
                 }
                 
                 t->var = Global;
+                Loffset -= 2;
                 st.enter(t->attr.name);                 //Enter a new scope
                 currFunc = t;
                 scoped = true;                          //Entered scope bool set
@@ -162,6 +181,11 @@ ExpType insertNode(TreeNode *t)
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
+                }
+                else
+                {
+                    t->offset = Loffset;
+                    Loffset -= t->size;
                 }
                 t->isInit = true; //Technically initialized since being passed in
                 returns = t->expType;
@@ -480,6 +504,7 @@ ExpType insertNode(TreeNode *t)
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
                 if(temp == NULL)                            //Not declared
                 {
+                    t->size = CONSTANTSIZE;
                     t->expType = UndefinedType;             //Set to undefined type
                     printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
                     numErrors++;
@@ -737,11 +762,15 @@ ExpType insertNode(TreeNode *t)
                 {
                     if(t->child[2]->kind.stmt == CompoundK) //Set the enteredScope bool to true for the following compound statement
                     {
+                        //compoundFlg = true;
                         t->child[2]->enteredScope = true;
+                        // tmpLoffset = Loffset;
+                        // Loffset = -2;
                     }
                 }
 
                 st.enter("Loop");
+                tmpLoffset = Loffset;
                 c1 = insertNode(t->child[0]);
 
                 if(t->child[0] != NULL)
@@ -772,7 +801,10 @@ ExpType insertNode(TreeNode *t)
                 if(!t->enteredScope)                    //Check that it is not a function scope before
                 {
                     st.enter("Compound Scope"); 
+                    // compoundFlg = true;
                     scoped = true;
+                    tmpLoffset = Loffset;
+                    // Loffset = -2;
                 }
                 returns = Void;
                 break;
@@ -908,6 +940,10 @@ ExpType insertNode(TreeNode *t)
     {
         if(strncmp(currFunc->attr.name, st.scope().c_str(), 10) == 0)
         {
+            temp = st.lookupNode(currFunc->attr.name);
+            if(temp != NULL && temp->nodekind == DeclK && temp->kind.decl == FuncK)
+            { temp->size = Loffset;}
+            Loffset = 0;
             if(!returnFlg && currFunc->expType != Void)
             {
                 printf("WARNING(%d): Expecting to return %s but function '%s' has no return statement.\n", t->lineno, types[currFunc->expType], currFunc->attr.name);
@@ -916,6 +952,11 @@ ExpType insertNode(TreeNode *t)
             else
             { returnFlg = false; }
         }
+        else 
+        { 
+            Loffset = tmpLoffset;
+        }
+        
         st.applyToAll(checkUse);
         st.leave();
     }

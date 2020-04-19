@@ -16,11 +16,7 @@ int numErrors, numWarnings;
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
-
-// void yyerror(const char *msg)
-// {
-//       printf("ERROR(PARSER): %s\n", msg);
-// }
+extern int Goffset;
 
 /* descr: Recursively add sibling to end of the list
 *
@@ -1100,7 +1096,7 @@ int main(int argc, char **argv)
         }
 
     }
-    
+    printf("Offset for end of global space: %d\n", Goffset);
     printf("Number of warnings: %d\n", numWarnings);
     printf("Number of errors: %d\n", numErrors);
 

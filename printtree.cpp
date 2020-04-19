@@ -232,7 +232,7 @@ void semanticPrintTree(TreeNode *tree, int indent, int sibling)
 {
     int i;
     const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
-    const char* mem[] = {"none", "Local", "Global", "Parameter", "Local", "LocalStatic"};
+    const char* mem[] = {"None", "Local", "Global", "Parameter", "LocalStatic"};
 
     if(tree->nodekind == DeclK)
     {
