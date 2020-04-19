@@ -343,7 +343,8 @@ funDeclaration          : typeSpecifier ID '(' params ')' statement
                                 $$->child[1] = $6;
                                 $$->expType = $1.expType;
                                 $$->attr.name = $2->tokenstr;
-                                $$->lineno = $1.linenum;
+                                //$$->lineno = $1.linenum;
+                                $$->lineno = $2->linenum;
                             }
                         | ID '(' params ')' statement
                             {

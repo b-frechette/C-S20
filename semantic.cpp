@@ -326,12 +326,7 @@ ExpType insertNode(TreeNode *t)
                         }
                         else    // <=, <, >=, >
                         {
-                            if(arr1F == true || arr2F == true)
-                            {
-                                printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
-                                numErrors++;
-                            }
-                            else
+                             //else
                             {
                                 if(c1 == Void || c2 == Void || c1 == Boolean || c2 == Boolean)
                                 {
@@ -357,6 +352,12 @@ ExpType insertNode(TreeNode *t)
                                         numErrors++;
                                     }
                                 }
+                            }
+
+                            if(arr1F == true || arr2F == true)
+                            {
+                                printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
+                                numErrors++;
                             }
                             t->expType = Boolean;
                         }
@@ -637,6 +638,12 @@ ExpType insertNode(TreeNode *t)
                             numErrors++;
                         }
 
+                        if(arr1F || arr2F)
+                        {
+                            printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
+                            numErrors++;  
+                        }
+
                         t->expType = Integer;
                         break;
 
@@ -647,6 +654,12 @@ ExpType insertNode(TreeNode *t)
                         if(c1 != Integer)
                         {
                             printf("ERROR(%d): Unary '%s' requires an operand of %s but was given %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                            numErrors++;
+                        }
+
+                        if(arr1F == true)
+                        {
+                            printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
                             numErrors++;
                         }
                         t->expType = Integer;
