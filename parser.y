@@ -16,11 +16,7 @@ int numErrors, numWarnings;
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
-
-// void yyerror(const char *msg)
-// {
-//       printf("ERROR(PARSER): %s\n", msg);
-// }
+extern int Goffset;
 
 /* descr: Recursively add sibling to end of the list
 *
@@ -305,6 +301,7 @@ varDeclId               : ID
                                 $$->lineno = $1->linenum;
                                 $$->attr.name = $1->tokenstr;
                                 $$->isArray = true;
+                                $$->size = $3->numValue;
                                 $$->expType = UndefinedType;
                             }
                         | ID '[' error                         
@@ -346,7 +343,8 @@ funDeclaration          : typeSpecifier ID '(' params ')' statement
                                 $$->child[1] = $6;
                                 $$->expType = $1.expType;
                                 $$->attr.name = $2->tokenstr;
-                                $$->lineno = $1.linenum;
+                                //$$->lineno = $1.linenum;
+                                $$->lineno = $2->linenum;
                             }
                         | ID '(' params ')' statement
                             {
@@ -1099,7 +1097,7 @@ int main(int argc, char **argv)
         }
 
     }
-    
+    printf("Offset for end of global space: %d\n", Goffset);
     printf("Number of warnings: %d\n", numWarnings);
     printf("Number of errors: %d\n", numErrors);
 

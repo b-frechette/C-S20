@@ -5,10 +5,14 @@
 #include "symbolTable.h"
 #include "semantic.h"
 
+#define CONSTANTSIZE 1 
+
 SymbolTable st;
 TreeNode *currFunc;
 int numLoops;
-bool returnFlg = false, siblingFlg = true, loopFlg = false;
+int Goffset = 0;
+int Loffset;
+bool returnFlg = false, siblingFlg = true, loopFlg = false, errFlg = false;
 const char* types[] = {"type void", "type int", "type bool", "type char", "type char", "equal", "undefined type", "error"};
 
 void semantic(TreeNode *syntaxTree)
@@ -42,7 +46,7 @@ void semantic(TreeNode *syntaxTree)
 
 ExpType insertNode(TreeNode *t)
 {
-    int i, errType;
+    int i, errType, tmpLoffset;
     ExpType c1, c2, c3, returns;
     bool scoped = false;    //Boolean to help recursively leave scopes
     bool arr1F = false, arr2F = false, n1 = true, n2 = true, func = false, loop = false;
@@ -59,12 +63,14 @@ ExpType insertNode(TreeNode *t)
         switch(t->kind.decl)
         {
             case VarK:
+
                 if(t->child[0] != NULL)                 //If Initializing
                 {
                     t->isInit = true;
                     t->child[0]->isChecked = true;
 
                     c1 = insertNode(t->child[0]);
+
 
                     if(t->child[0]->nodekind == ExpK)
                     {
@@ -106,21 +112,42 @@ ExpType insertNode(TreeNode *t)
                     
                 }
 
+                if(st.depth() == 1)
+                { t->var = Global;}
+                else if(st.depth() > 1)
+                {
+                    if(t->isStatic)
+                    { t->var = LocalStatic; }
+                    else
+                    { t->var = Local; } 
+                }
+
+                if(t->isArray)
+                { t->size = CONSTANTSIZE + t->size; }
+                else
+                { t->size = CONSTANTSIZE; }
+
                 if(!st.insert(t->attr.name, t))         //Already declared
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
                 }
-
-                if(st.depth() == 1)
-                { t->var = Global;}
-                else if(st.depth() > 1)
-                {
-                    t->var = Local;
-                    if(t->isStatic)
-                    { t->var = LocalStatic; }
+                else{
+                    if(t->var == Local)
+                    {
+                        t->offset = Loffset;
+                        Loffset -= t->size;
+                    }
+                    else if(t->var == LocalStatic || t->var == Global)
+                    {
+                        t->offset = Goffset;
+                        Goffset -= t->size;
+                    }
                 }
 
+
+                if(t->isArray)
+                { t->offset--; }
                 returns = t->expType;
                 break;
 
@@ -139,7 +166,8 @@ ExpType insertNode(TreeNode *t)
                     t->child[1]->enteredScope = true;
                 }
                 
-
+                t->var = Global;
+                Loffset -= 2;
                 st.enter(t->attr.name);                 //Enter a new scope
                 currFunc = t;
                 scoped = true;                          //Entered scope bool set
@@ -148,10 +176,16 @@ ExpType insertNode(TreeNode *t)
 
             case ParamK:
                 t->var = Parameter;
+                t->size = CONSTANTSIZE;
                 if(!st.insert(t->attr.name, t))         //Already declared
                 {
                     printf("ERROR(%d): Symbol '%s' is already declared at line %d.\n", t->lineno, t->attr.name, st.lookupNode(t->attr.name)->lineno);
                     numErrors++;
+                }
+                else
+                {
+                    t->offset = Loffset;
+                    Loffset -= t->size;
                 }
                 t->isInit = true; //Technically initialized since being passed in
                 returns = t->expType;
@@ -292,12 +326,7 @@ ExpType insertNode(TreeNode *t)
                         }
                         else    // <=, <, >=, >
                         {
-                            if(arr1F == true || arr2F == true)
-                            {
-                                printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
-                                numErrors++;
-                            }
-                            else
+                             //else
                             {
                                 if(c1 == Void || c2 == Void || c1 == Boolean || c2 == Boolean)
                                 {
@@ -323,6 +352,12 @@ ExpType insertNode(TreeNode *t)
                                         numErrors++;
                                     }
                                 }
+                            }
+
+                            if(arr1F == true || arr2F == true)
+                            {
+                                printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
+                                numErrors++;
                             }
                             t->expType = Boolean;
                         }
@@ -470,6 +505,7 @@ ExpType insertNode(TreeNode *t)
                 temp = st.lookupNode(t->attr.name);         //Assign return of lookupNode to temporary TreeNode
                 if(temp == NULL)                            //Not declared
                 {
+                    t->size = CONSTANTSIZE;
                     t->expType = UndefinedType;             //Set to undefined type
                     printf("ERROR(%d): Symbol '%s' is not declared.\n", t->lineno, t->attr.name);
                     numErrors++;
@@ -477,6 +513,9 @@ ExpType insertNode(TreeNode *t)
                 else                                        //Is declared
                 {
                     temp->isUsed = true;
+                    t->var = temp->var;
+                    t->offset = temp->offset;
+                    t->size = temp->size;
                     if(temp->kind.decl == FuncK)            //Error in calling a function as a variable
                     {
                         temp->isFlagged = true;
@@ -599,6 +638,12 @@ ExpType insertNode(TreeNode *t)
                             numErrors++;
                         }
 
+                        if(arr1F || arr2F)
+                        {
+                            printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
+                            numErrors++;  
+                        }
+
                         t->expType = Integer;
                         break;
 
@@ -609,6 +654,12 @@ ExpType insertNode(TreeNode *t)
                         if(c1 != Integer)
                         {
                             printf("ERROR(%d): Unary '%s' requires an operand of %s but was given %s.\n", t->lineno, t->attr.name, types[1], types[c1]);
+                            numErrors++;
+                        }
+
+                        if(arr1F == true)
+                        {
+                            printf("ERROR(%d): The operation '%s' does not work with arrays.\n", t->lineno, t->attr.name);
                             numErrors++;
                         }
                         t->expType = Integer;
@@ -724,11 +775,15 @@ ExpType insertNode(TreeNode *t)
                 {
                     if(t->child[2]->kind.stmt == CompoundK) //Set the enteredScope bool to true for the following compound statement
                     {
+                        //compoundFlg = true;
                         t->child[2]->enteredScope = true;
+                        // tmpLoffset = Loffset;
+                        // Loffset = -2;
                     }
                 }
 
                 st.enter("Loop");
+                tmpLoffset = Loffset;
                 c1 = insertNode(t->child[0]);
 
                 if(t->child[0] != NULL)
@@ -759,7 +814,10 @@ ExpType insertNode(TreeNode *t)
                 if(!t->enteredScope)                    //Check that it is not a function scope before
                 {
                     st.enter("Compound Scope"); 
+                    // compoundFlg = true;
                     scoped = true;
+                    tmpLoffset = Loffset;
+                    // Loffset = -2;
                 }
                 returns = Void;
                 break;
@@ -895,6 +953,10 @@ ExpType insertNode(TreeNode *t)
     {
         if(strncmp(currFunc->attr.name, st.scope().c_str(), 10) == 0)
         {
+            temp = st.lookupNode(currFunc->attr.name);
+            if(temp != NULL && temp->nodekind == DeclK && temp->kind.decl == FuncK)
+            { temp->size = Loffset;}
+            Loffset = 0;
             if(!returnFlg && currFunc->expType != Void)
             {
                 printf("WARNING(%d): Expecting to return %s but function '%s' has no return statement.\n", t->lineno, types[currFunc->expType], currFunc->attr.name);
@@ -903,6 +965,11 @@ ExpType insertNode(TreeNode *t)
             else
             { returnFlg = false; }
         }
+        else 
+        { 
+            Loffset = tmpLoffset;
+        }
+        
         st.applyToAll(checkUse);
         st.leave();
     }
