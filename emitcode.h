@@ -22,10 +22,6 @@
 #define NO_COMMENT (char *)""
 
 
-//
-//  We always trace the code
-//
-#define TraceCode   1
 
 //
 //  The following functions were borrowed from Tiny compiler code generator

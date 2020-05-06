@@ -45,7 +45,7 @@ void emitComment(char *c)
 // r = target register
 // s = 1st source register
 // t = 2nd source register
-// c = a comment to be printed if TraceCode is TRUE
+// c = a comment
 // 
 void emitRO(char *op, int r, int s, int t, char *c, char *cc)
 {
@@ -66,7 +66,7 @@ void emitRO(char *op, int r, int s, int t, char *c)
 // r = target register
 // d = the offset
 // s = the base register
-// c = a comment to be printed if TraceCode is TRUE
+// c = a comment
 // 
 void emitRM(char *op, int r, int d, int s, char *c, char *cc)
 {
@@ -100,7 +100,7 @@ void emitGoto(int d, int s, char *c)
 // op = the opcode
 // r = target register
 // a = the absolute location in memory
-// c = a comment to be printed if TraceCode is TRUE
+// c = a comment
 // 
 void emitRMAbs(char *op, int r, int a, char *c, char *cc)
 {
@@ -191,3 +191,4 @@ void backPatchAJumpToHere(char *cmd, int reg, int addr, char *comment)
     emitRMAbs(cmd, reg, currloc, comment);  // cmd = JZR, JNZ
     emitBackup(currloc);            // restore addr
 }
+

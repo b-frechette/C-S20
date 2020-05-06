@@ -8,6 +8,7 @@
 #include "ourGetopt.h"
 #include "semantic.h"
 #include "yyerror.h"
+#include "codeGen.h"
 
 #define YYERROR_VERBOSE
 
@@ -16,6 +17,7 @@ int numErrors, numWarnings;
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
+FILE *code;
 extern int Goffset;
 
 /* descr: Recursively add sibling to end of the list
@@ -1094,6 +1096,22 @@ int main(int argc, char **argv)
         if(Pflg) 
         {
             semanticPrintTree(savedTree, 1, 0);
+        }
+
+        if(filerr == 1)
+        {
+            //Replaces c- with tm for file
+            oarg [strlen(oarg)- 2] = 't';
+            oarg [strlen(oarg)- 1] = 'm';
+            //TEMP - commented out so it doesn't overwrite my test files
+            //code = fopen(oarg, "w"); 
+            code = fopen("test.tm", "w");
+            if(code == NULL)
+            {
+                printf("Unable to open %s\n", oarg);
+            }
+            codeGen(savedTree);
+            fclose(code);
         }
 
     }

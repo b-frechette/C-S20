@@ -12,6 +12,7 @@ printtree.o
 symbolTable.o 
 frechette.tar
 errorChecklist
+codeGen.o
 
 tests
 test3
