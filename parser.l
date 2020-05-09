@@ -216,7 +216,7 @@ STRINGCONST \"(\\.|[^"\n])*\"
 \/                                  { return setValue(line, *yytext, yytext); }
 \%                                  { return setValue(line, *yytext, yytext); }
 \?                                  { return setValue(line, *yytext, yytext); }
-\.\.                                { return setValue(line, *yytext, yytext); }
+\.\.                                { return setValue(line, RANGE, yytext); }
 \+\=                                { return setValue(line, ADDASS, yytext); }
 \-\=                                { return setValue(line, SUBASS, yytext); }
 \*\=                                { return setValue(line, MULASS, yytext); }

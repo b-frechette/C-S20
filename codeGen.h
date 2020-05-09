@@ -3,4 +3,6 @@
 
 void codeGen(TreeNode *);
 
+void ioSetup(TreeNode * s);
+
 #endif

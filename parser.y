@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <cstring>
 #include "treeUtils.h"
 #include "scanType.h"
 #include "printtree.h"
@@ -102,7 +103,7 @@ TreeNode * savedTree;
 %token <tokenData> '/' 
 %token <tokenData> '?' 
 %token <tokenData> '%'
-%token <tokenData> '..'
+%token <tokenData> RANGE
 %token <tokenData> ADDASS
 %token <tokenData> SUBASS
 %token <tokenData> MULASS
@@ -470,7 +471,7 @@ unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
                         ;
 
 /**** QUESTION ****/
-iterationRange          : simpleExpression '..' simpleExpression
+iterationRange          : simpleExpression RANGE simpleExpression
                             {
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $1;
@@ -487,7 +488,7 @@ iterationRange          : simpleExpression '..' simpleExpression
                                 $$->child[2] = t;
                                 $$->lineno = $1->lineno;
                             }
-                        | simpleExpression '..' simpleExpression ':' simpleExpression
+                        | simpleExpression RANGE simpleExpression ':' simpleExpression
                             { 
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $1;
@@ -496,9 +497,9 @@ iterationRange          : simpleExpression '..' simpleExpression
                                 $$->op = 2;
                                 $$->lineno = $1->lineno;
                             }
-                        | simpleExpression '..' simpleExpression ':' error  
+                        | simpleExpression RANGE simpleExpression ':' error  
                             { $$ = NULL; }
-                        | simpleExpression '..' error                
+                        | simpleExpression RANGE error                
                             { $$ = NULL; }
                         ;
 
@@ -1008,7 +1009,6 @@ constant                : NUMCONST
                         ;
 
 %%
-
 int main(int argc, char **argv)
 {
     extern int opterr;
@@ -1101,14 +1101,15 @@ int main(int argc, char **argv)
         if(filerr == 1)
         {
             //Replaces c- with tm for file
-            oarg [strlen(oarg)- 2] = 't';
-            oarg [strlen(oarg)- 1] = 'm';
-            //TEMP - commented out so it doesn't overwrite my test files
-            //code = fopen(oarg, "w"); 
-            code = fopen("test.tm", "w");
+            char * codefile;
+            int fnlen = strcspn(oarg, ".");
+            codefile = (char *) calloc(fnlen+4, sizeof(char));
+            strncpy(codefile, oarg, fnlen);
+            strcat(codefile, ".tm");
+            code = fopen(codefile, "w");
             if(code == NULL)
             {
-                printf("Unable to open %s\n", oarg);
+                printf("Unable to open %s\n", codefile);
             }
             codeGen(savedTree);
             fclose(code);

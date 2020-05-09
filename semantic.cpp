@@ -25,6 +25,8 @@ void semantic(TreeNode *syntaxTree)
     ioSetup("inputc", Char, Void);
     ioSetup("outnl", Void, Void);
 
+    //st.print(pointerPrintAddr);
+
     insertNode(syntaxTree);
     st.applyToAll(checkUse);
     TreeNode *temp = st.lookupNode("main");
