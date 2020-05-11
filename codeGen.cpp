@@ -5,6 +5,7 @@
 
 extern SymbolTable st;
 extern int Goffset;
+int tmpOffset = 0;
 
 void ioSetup()
 {
@@ -80,21 +81,21 @@ void ioSetup()
     emitComment((char *)"\n*\n*\n*");
 }
 
-void getParams(TreeNode *s)
+void getParams(TreeNode *s, int offset)
 {
     if(s != NULL)
     {
         emitComment((char *)"PARAM");
         traverse(s);
-        emitRM((char *)"ST", 3, -4, 1, (char *)"Store Parameter");
-        getParams(s->sibling);
+        emitRM((char *)"ST", 3, offset, 1, (char *)"Store Parameter");
+        getParams(s->sibling, offset - 1);
     }
 }
 
 void traverse(TreeNode *s)
 {
     TreeNode *temp;
-    int savedLoc;
+    int savedLoc, offset;
 
     if (s != NULL)
     {
@@ -109,6 +110,7 @@ void traverse(TreeNode *s)
                     emitComment((char *)"FUNCTION", (char *)s->attr.name);
                     s->offset = emitSkip(0);
                     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
+                    tmpOffset += s->size;
                     traverse(s->child[1]);
                     emitComment((char *)"Add standard closing in case there is no return statement");
                     emitRM((char *)"LDC", 2, 0, 6, (char *)"Set return to 0");
@@ -162,9 +164,10 @@ void traverse(TreeNode *s)
                         // case 0: //void
                         //     break;
                         case 1: //int
-                            emitRM((char *)"LDC", 3, s->attr.value, 6, (char *)"Load integer constant");
+                            emitRM((char *)"LDC", 3, atoi(s->attr.name), 6, (char *)"Load integer constant");
                             break;
                         case 2: //bool
+                            emitRM((char *)"LDC", 3, s->attr.value, 6, (char *)"Load Boolean constant");
                             break;
                         case 3: //char
                             break;
@@ -175,6 +178,20 @@ void traverse(TreeNode *s)
                     break;
 
                 case IdK:
+                    switch(s->var)
+                    {
+                        case 1: //local
+                            emitRM((char *)"LD", 3, s->offset, 1, (char *)"Load variable");
+                            break;
+                        case 2: //global
+                            emitRM((char *)"LD", 3, s->offset, 0, (char *)"Load variable");
+                            break;
+                        case 4: //localStatic
+                            break;
+                        default:
+                            printf("Defaul case in the IdK\n");
+                            break;
+                    }
                     break;
 
                 case AssignK:
@@ -182,6 +199,21 @@ void traverse(TreeNode *s)
                     switch (s->op)
                     {
                         case 1: // =
+                            traverse(s->child[1]);
+                            switch(s->child[0]->var)
+                            {
+                                case 1: //local
+                                    emitRM((char *)"ST", 3, s->child[0]->offset, 1, (char *)"Store variable");
+                                    break;
+                                case 2: //global
+                                    emitRM((char *)"ST", 3, s->child[0]->offset, 0, (char *)"Store variable");
+                                    break;
+                                case 4: //localStatic
+                                    break;
+                                default:
+                                    printf("Defaul case in the IdK\n");
+                                    break;
+                            }
                             break;
                         case 2: // +=
                             break;
@@ -199,14 +231,15 @@ void traverse(TreeNode *s)
                     break;
 
                 case CallK:
+                    temp = st.lookupNode(s->attr.name);
                     savedLoc = emitSkip(0);
                     emitComment((char *)"CALL", (char *)s->attr.name);
-                    emitRM((char *)"ST", 1, -2,1, (char *)"Store fp in ghost frame for output");
-                    getParams(s->child[0]);
+                    emitRM((char *)"ST", 1, tmpOffset, 1, (char *)"Store fp in ghost frame for output");
+                    getParams(s->child[0], tmpOffset - 2);
                     emitComment((char *)"END PARAM", (char *)s->attr.name);
-                    emitRM((char *)"LDA", 1, -2, 1, (char *)"Load address of new frame");
+                    emitRM((char *)"LDA", 1, tmpOffset, 1, (char *)"Load address of new frame");
                     emitRM((char *)"LDA", 3, 1, 7, (char *)"Return address in ac");
-                    emitRM((char *)"LDA", 7, -savedLoc, 7, (char *)"CALL");
+                    emitRM((char *)"LDA", 7, savedLoc, 7, (char *)"CALL"); //Still needs correction
                     emitRM((char *)"LDA", 3, 0, 2, (char *)"Save the result in ac");
                     emitComment((char *)"END CALL", (char *)s->attr.name);
                     break;

@@ -150,7 +150,7 @@ void printTree(TreeNode *tree, int indent, int sibling)
                         }
                         break;
                     
-                    case Integer:
+                    case Boolean:
                         printf("Const: %d [line: %d]\n", tree->attr.value, tree->lineno);
                         break;
 

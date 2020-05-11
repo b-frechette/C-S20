@@ -7,6 +7,6 @@ void ioSetup(TreeNode * s);
 
 void traverse(TreeNode *s);
 
-void getParams(TreeNode * s);
+void getParams(TreeNode * s, int offset);
 
 #endif

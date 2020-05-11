@@ -976,8 +976,8 @@ argList                 : argList ',' expression
 constant                : NUMCONST  
                             { 
                                 $$ = newExpNode(ConstantK); 
-                                $$->attr.value = $1->numValue;
-                                //$$->attr.name = $1->tokenstr;
+                                //$$->attr.value = $1->numValue;
+                                $$->attr.name = $1->tokenstr;
                                 $$->expType = Integer;
                                 $$->lineno = $1->linenum;
                             }        
@@ -1002,7 +1002,7 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.value = $1->numValue;
-                                $$->attr.name = $1->tokenstr;
+                                //$$->attr.name = $1->tokenstr;
                                 $$->expType = Boolean;
                                 $$->lineno = $1->linenum; 
                             }            
