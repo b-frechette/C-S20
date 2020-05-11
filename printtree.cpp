@@ -149,6 +149,10 @@ void printTree(TreeNode *tree, int indent, int sibling)
                             printf("Const: \"%s\" [line: %d]\n", tree->attr.string, tree->lineno);
                         }
                         break;
+                    
+                    case Integer:
+                        printf("Const: %d [line: %d]\n", tree->attr.value, tree->lineno);
+                        break;
 
                     default:
                         printf("Const: %s [line: %d]\n", tree->attr.name, tree->lineno);

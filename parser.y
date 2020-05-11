@@ -976,8 +976,8 @@ argList                 : argList ',' expression
 constant                : NUMCONST  
                             { 
                                 $$ = newExpNode(ConstantK); 
-                                //$$->attr.value = $1->numValue;
-                                $$->attr.name = $1->tokenstr;
+                                $$->attr.value = $1->numValue;
+                                //$$->attr.name = $1->tokenstr;
                                 $$->expType = Integer;
                                 $$->lineno = $1->linenum;
                             }        
@@ -1116,7 +1116,7 @@ int main(int argc, char **argv)
         }
 
     }
-    printf("Offset for end of global space: %d\n", Goffset);
+    // printf("Offset for end of global space: %d\n", Goffset);
     printf("Number of warnings: %d\n", numWarnings);
     printf("Number of errors: %d\n", numErrors);
 
