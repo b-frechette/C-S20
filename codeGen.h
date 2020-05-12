@@ -5,7 +5,7 @@ void codeGen(TreeNode *);
 
 void ioSetup(TreeNode * s);
 
-void traverse(TreeNode *s);
+void traverse(TreeNode *s, int offset);
 
 void getParams(TreeNode * s, int offset);
 

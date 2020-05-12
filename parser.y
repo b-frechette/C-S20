@@ -913,6 +913,7 @@ mutable                 : ID
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
+                                $$->child[0]->isArray = true;
                                 $$->child[1] = $3;
                                 $$->op = 8;
                                 $$->attr.name = $2->tokenstr;
