@@ -11,6 +11,7 @@ void ioSetup()
 {
     //input
     emitComment((char *)"FUNCTION", (char *)"input");
+    ((TreeNode *)(st.lookup("input")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
     emitRO((char *)"IN", 2, 2, 2, (char *)"Grab int input");
     emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
@@ -20,6 +21,7 @@ void ioSetup()
 
     //output
     emitComment((char *)"FUNCTION", (char *)"output");
+    ((TreeNode *)(st.lookup("output")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
     emitRM((char *)"LD", 3, -2, 1, (char *)"Load parameter");
     emitRO((char *)"OUT", 3, 3, 3, (char *)"Output integer");
@@ -31,6 +33,7 @@ void ioSetup()
 
     //inputb
     emitComment((char *)"FUNCTION", (char *)"inputb");
+    ((TreeNode *)(st.lookup("inputb")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
     emitRO((char *)"IN", 2, 2, 2, (char *)"Grab bool input");
     emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
@@ -40,6 +43,7 @@ void ioSetup()
 
     //outputb
     emitComment((char *)"FUNCTION", (char *)"outpub");
+    ((TreeNode *)(st.lookup("outputb")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
     emitRM((char *)"LD", 3, -2, 1, (char *)"Load parameter");
     emitRO((char *)"OUT", 3, 3, 3, (char *)"Output bool");
@@ -51,6 +55,7 @@ void ioSetup()
 
     //inputc
     emitComment((char *)"FUNCTION", (char *)"inputc");
+    ((TreeNode *)(st.lookup("inputc")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
     emitRO((char *)"IN", 2, 2, 2, (char *)"Grab char input");
     emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
@@ -59,7 +64,8 @@ void ioSetup()
     emitComment((char *)"END FUNCITON", (char *)"inputc");
 
     //outputc
-    emitComment((char *)"FUNCTION", (char *)"outpuc");
+    emitComment((char *)"FUNCTION", (char *)"outputc");
+    ((TreeNode *)(st.lookup("outputc")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
     emitRM((char *)"LD", 3, -2, 1, (char *)"Load parameter");
     emitRO((char *)"OUT", 3, 3, 3, (char *)"Output char");
@@ -71,6 +77,7 @@ void ioSetup()
 
     //outnl
     emitComment((char *)"FUNCTION", (char *)"outnl");
+    ((TreeNode *)(st.lookup("outnl")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
     emitRO((char *)"OUTNL", 3, 3, 3, (char *)"Output a newline");
     emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
@@ -360,13 +367,15 @@ void traverse(TreeNode *s, int offset)
                 case CallK:
                     temp = st.lookupNode(s->attr.name);
                     savedLoc = emitSkip(0);
+                    printf("off: %d emit: %d\n", offset, ((TreeNode *)(st.lookup(s->attr.name)))->offset);
                     emitComment((char *)"CALL", (char *)s->attr.name);
                     emitRM((char *)"ST", 1, offset, 1, (char *)"Store fp in ghost frame for output");
                     getParams(s->child[0], offset - 2);
                     emitComment((char *)"END PARAM", (char *)s->attr.name);
                     emitRM((char *)"LDA", 1, offset, 1, (char *)"Load address of new frame");
                     emitRM((char *)"LDA", 3, 1, 7, (char *)"Return address in ac");
-                    emitRM((char *)"LDA", 7, savedLoc, 7, (char *)"CALL"); //Still needs correction
+                    //emitRM((char *)"LDA", 7, savedLoc, 7, (char *)"CALL"); //Still needs correction
+                    emitGotoAbs(temp->offset, (char *)"CALL");
                     emitRM((char *)"LDA", 3, 0, 2, (char *)"Save the result in ac");
                     emitComment((char *)"END CALL", (char *)s->attr.name);
                     break;
