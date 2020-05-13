@@ -39,7 +39,7 @@ void ioSetup()
     emitComment((char *)"FUNCTION", (char *)"inputb");
     ((TreeNode *)(st.lookup("inputb")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
-    emitRO((char *)"IN", 2, 2, 2, (char *)"Grab bool input");
+    emitRO((char *)"INB", 2, 2, 2, (char *)"Grab bool input");
     emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
     emitRM((char *)"LD", 1, 0, 1, (char *)"Adjust fp");
     emitRM((char *)"LDA", 7, 0, 3, (char *)"Return");
@@ -50,7 +50,7 @@ void ioSetup()
     ((TreeNode *)(st.lookup("outputb")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
     emitRM((char *)"LD", 3, -2, 1, (char *)"Load parameter");
-    emitRO((char *)"OUT", 3, 3, 3, (char *)"Output bool");
+    emitRO((char *)"OUTB", 3, 3, 3, (char *)"Output bool");
     emitRM((char *)"LDC", 2, 0, 6, (char *)"Set return to 0");
     emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
     emitRM((char *)"LD", 1, 0, 1, (char *)"Adjust fp");
@@ -61,7 +61,7 @@ void ioSetup()
     emitComment((char *)"FUNCTION", (char *)"inputc");
     ((TreeNode *)(st.lookup("inputc")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
-    emitRO((char *)"IN", 2, 2, 2, (char *)"Grab char input");
+    emitRO((char *)"INC", 2, 2, 2, (char *)"Grab char input");
     emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
     emitRM((char *)"LD", 1, 0, 1, (char *)"Adjust fp");
     emitRM((char *)"LDA", 7, 0, 3, (char *)"Return");
@@ -72,7 +72,7 @@ void ioSetup()
     ((TreeNode *)(st.lookup("outputc")))->offset = emitSkip(0);
     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
     emitRM((char *)"LD", 3, -2, 1, (char *)"Load parameter");
-    emitRO((char *)"OUT", 3, 3, 3, (char *)"Output char");
+    emitRO((char *)"OUTC", 3, 3, 3, (char *)"Output char");
     emitRM((char *)"LDC", 2, 0, 6, (char *)"Set return to 0");
     emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
     emitRM((char *)"LD", 1, 0, 1, (char *)"Adjust fp");
