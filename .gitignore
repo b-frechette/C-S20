@@ -19,3 +19,5 @@ test3
 .DS_STORE
 a.out
 yyerror.o
+
+emitcode.o

@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <cstring>
 #include "emitcode.h"
 #include "treeNodes.h"
 #include "symbolTable.h"
@@ -102,7 +106,7 @@ void getParams(TreeNode *s, int offset)
 void traverse(TreeNode *s, int offset)
 {
     TreeNode *temp;
-    int savedLoc;
+    int savedLoc, savedLoc2, savedLoc3;
 
     if (s != NULL)
     {
@@ -150,17 +154,11 @@ void traverse(TreeNode *s, int offset)
                     switch (s->op)
                     {
                         case 1: //OR
-                            traverse(s->child[0], offset);
-                            emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                            traverse(s->child[1], offset);
-                            emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+                            similarEmit(s, offset);
                             emitRO((char *)"OR", 3, 4, 3, (char *)"Op OR");
                             break;
                         case 2: //AND
-                            traverse(s->child[0], offset);
-                            emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                            traverse(s->child[1], offset);
-                            emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+                            similarEmit(s, offset);
                             emitRO((char *)"AND", 3, 4, 3, (char *)"Op AND");
                             break;
                         case 3: //NOT
@@ -172,65 +170,49 @@ void traverse(TreeNode *s, int offset)
                         case 4: //relop
                             if(strncmp(s->attr.name, "==", 2)== 0)
                             {
-                                traverse(s->child[0], offset);
-                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                                traverse(s->child[1], offset);
-                                emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+                                similarEmit(s, offset);
                                 emitRO((char *)"TEQ", 3, 4, 3, (char *)"Op ==");
                             }
                             else if(strncmp(s->attr.name, ">", 1)== 0)
                             {
-                                traverse(s->child[0], offset);
-                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                                traverse(s->child[1], offset);
-                                emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+                                similarEmit(s, offset);
                                 emitRO((char *)"TGT", 3, 4, 3, (char *)"Op >");
+                            }
+                            else if(strncmp(s->attr.name, "<", 1)== 0)
+                            {
+                                similarEmit(s, offset);
+                                emitRO((char *)"TLT", 3, 4, 3, (char *)"Op <");
                             }
                             break;
 
                         case 5: //sumop
                             if(strncmp(s->attr.name, "+", 1)== 0)
                             {
-                                traverse(s->child[0], offset);
-                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                                traverse(s->child[1], offset);
-                                emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+                                similarEmit(s, offset);
                                 emitRO((char *)"ADD", 3, 4, 3, (char *)"Op +");
                             }
                             else if(strncmp(s->attr.name, "-", 1)== 0)
                             {
-                                traverse(s->child[0], offset);
-                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                                traverse(s->child[1], offset);
-                                emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+                                similarEmit(s, offset);
                                 emitRO((char *)"SUB", 3, 4, 3, (char *)"Op -");
                             }
                             break;
                         case 6: //mulop
                             if(strncmp(s->attr.name, "*", 1)== 0)
                             {
-                                traverse(s->child[0], offset);
-                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                                traverse(s->child[1], offset);
-                                emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+                                similarEmit(s, offset);
                                 emitRO((char *)"MUL", 3, 4, 3, (char *)"Op *");
                             }
                             else if(strncmp(s->attr.name, "%", 1)== 0)
                             {
-                                traverse(s->child[0], offset);
-                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                                traverse(s->child[1], offset);
-                                emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+                                similarEmit(s, offset);
                                 emitRO((char *)"DIV", 5, 4, 3, (char *)"Op %");
                                 emitRO((char *)"MUL", 5, 5, 3, (char *)"");
                                 emitRO((char *)"SUB", 3, 4, 5, (char *)"");
                             }
                             else if(strncmp(s->attr.name, "/", 1)== 0)
                             {
-                                traverse(s->child[0], offset);
-                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                                traverse(s->child[1], offset);
-                                emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+                                similarEmit(s, offset);
                                 emitRO((char *)"DIV", 3, 4, 3, (char *)"Op /");
                             }
                             break;
@@ -249,10 +231,7 @@ void traverse(TreeNode *s, int offset)
                             }
                             break;
                         case 8: // [
-                            traverse(s->child[0], offset);
-                            emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
-                            traverse(s->child[1], offset);
-                            emitRM((char *)"ST", 4, offset, 1, (char *)"Load left into ac1");
+                            similarEmit(s, offset);
                             emitRO((char *)"SUB", 3, 4, 3, (char *)"Compute location from frame index");
                             emitRM((char *)"LD", 3, 0, 3, (char *)"Load array element");
                             break;
@@ -284,10 +263,10 @@ void traverse(TreeNode *s, int offset)
                 case IdK:
                     if(s->isArray)
                     {   
-                        emitRM((char *)"LDA", 3, s->offset, s->var == Local, (char *)"Load address of base of array");
+                        emitRM((char *)"LDA", 3, s->offset, s->var != Global, (char *)"Load address of base of array");
                     }
                     else
-                        emitRM((char *)"LD", 3, s->offset, s->var == Local, (char *)"Load variable");
+                        emitRM((char *)"LD", 3, s->offset, s->var != Global, (char *)"Load variable");
                     break;
 
                 case AssignK:
@@ -298,40 +277,108 @@ void traverse(TreeNode *s, int offset)
                             if(s->child[0]->op == 8)
                             {
                                 traverse(s->child[0]->child[1], offset);
-                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save index");
-                                traverse(s->child[1], offset);
-                                emitRM((char *)"LD", 4, offset, 1, (char *)"Restore index");
-                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, 1, (char *)"Load address of base of array");
+                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save index"); 
+                                traverse(s->child[1], offset - 1); //Check
+                                emitRM((char *)"LD", 4, offset, 1, (char *)"Restore index"); 
+                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, s->child[0]->child[0]->var != Global, (char *)"Load address of base of array");
                                 emitRO((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
                                 emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable");
                             }
                             else
                             {
                                 traverse(s->child[1], offset);
-                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var == Local, (char *)"Store variable");
+                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var != Global, (char *)"Store variable");
                             }
                             break;
                         case 2: // +=
-                            traverse(s->child[1], offset);
-                            emitRM((char *)"LD", 4, s->child[0]->offset, s->child[0]->var == Local, (char *)"Load lhs variable");
-                            emitRO((char *)"ADD", 3, 4, 3, (char *)"Op +=");
-                            emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var == Local, (char *)"Store variable");
+                            if(s->child[0]->op == 8)
+                            {
+                                traverse(s->child[0]->child[1], offset);
+                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save index"); 
+                                traverse(s->child[1], offset - 1); //Check
+                                emitRM((char *)"LD", 4, offset, 1, (char *)"Restore index"); 
+                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, s->child[0]->child[0]->var != Global, (char *)"Load address of base of array");
+                                emitRO((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
+                                emitRM((char *)"LD", 4, s->child[0]->offset, 5, (char *)"Load lhs variable");
+                                emitRO((char *)"ADD", 3, 4, 3, (char *)"Op +=");
+                                emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable");
+                            }
+                            else
+                            {
+                                traverse(s->child[1], offset);
+                                emitRM((char *)"LD", 4, s->child[0]->offset, s->child[0]->var != Global, (char *)"Load lhs variable");
+                                emitRO((char *)"ADD", 3, 4, 3, (char *)"Op +=");
+                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var != Global, (char *)"Store variable");
+                            }
                             break;
                         case 3: // -=
-                            traverse(s->child[1], offset);
-                            emitRM((char *)"LD", 4, s->child[0]->offset, s->child[0]->var == Local, (char *)"Load lhs variable");
-                            emitRO((char *)"SUB", 3, 4, 3, (char *)"Op -=");
-                            emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var == Local, (char *)"Store variable");
+                            if(s->child[0]->op == 8)
+                            {
+                                traverse(s->child[0]->child[1], offset);
+                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save index"); 
+                                traverse(s->child[1], offset - 1); //Check
+                                emitRM((char *)"LD", 4, offset, 1, (char *)"Restore index"); 
+                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, s->child[0]->child[0]->var != Global, (char *)"Load address of base of array");
+                                emitRO((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
+                                emitRM((char *)"LD", 4, s->child[0]->offset, 5, (char *)"Load lhs variable");
+                                emitRO((char *)"SUB", 3, 4, 3, (char *)"Op -=");
+                                emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable");
+                            }
+                            else
+                            {
+                                traverse(s->child[1], offset);
+                                emitRM((char *)"LD", 4, s->child[0]->offset, s->child[0]->var != Global, (char *)"Load lhs variable");
+                                emitRO((char *)"SUB", 3, 4, 3, (char *)"Op -=");
+                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var != Global, (char *)"Store variable");
+                            }
                             break;
                         case 4: // *=
+                            if(s->child[0]->op == 8)
+                            {
+                                traverse(s->child[0]->child[1], offset);
+                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save index"); 
+                                traverse(s->child[1], offset - 1); //Check
+                                emitRM((char *)"LD", 4, offset, 1, (char *)"Restore index"); 
+                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, s->child[0]->child[0]->var != Global, (char *)"Load address of base of array");
+                                emitRO((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
+                                emitRM((char *)"LD", 4, s->child[0]->offset, 5, (char *)"Load lhs variable");
+                                emitRO((char *)"MUL", 3, 4, 3, (char *)"Op *=");
+                                emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable");
+                            }
+                            else
+                            {
+                                traverse(s->child[1], offset);
+                                emitRM((char *)"LD", 4, s->child[0]->offset, s->child[0]->var != Global, (char *)"Load lhs variable");
+                                emitRO((char *)"MUL", 3, 4, 3, (char *)"Op *=");
+                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var != Global, (char *)"Store variable");
+                            }
                             break;
                         case 5: // /=
+                            if(s->child[0]->op == 8)
+                            {
+                                traverse(s->child[0]->child[1], offset);
+                                emitRM((char *)"ST", 3, offset, 1, (char *)"Save index"); 
+                                traverse(s->child[1], offset - 1); //Check
+                                emitRM((char *)"LD", 4, offset, 1, (char *)"Restore index"); 
+                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, s->child[0]->child[0]->var != Global, (char *)"Load address of base of array");
+                                emitRO((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
+                                emitRM((char *)"LD", 4, s->child[0]->offset, 5, (char *)"Load lhs variable");
+                                emitRO((char *)"DIV", 3, 4, 3, (char *)"Op /=");
+                                emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable");
+                            }
+                            else
+                            {
+                                traverse(s->child[1], offset);
+                                emitRM((char *)"LD", 4, s->child[0]->offset, s->child[0]->var != Global, (char *)"Load lhs variable");
+                                emitRO((char *)"DIV", 3, 4, 3, (char *)"Op /=");
+                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var != Global, (char *)"Store variable");
+                            }
                             break;
                         case 6: // ++
                             if(s->child[0]->op == 8)
                             {
                                 traverse(s->child[0]->child[1], offset);
-                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, 1, (char *)"Load address of base of array");
+                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, s->child[0]->child[0]->var != Global, (char *)"Load address of base of array");
                                 emitRO((char *)"SUB", 5, 5, 3, (char *)"Compute offset of value");
                                 emitRM((char *)"LD", 3, s->child[0]->offset, 5, (char *)"Load lhs variable");
                                 emitRO((char *)"LDA", 3, 1, 3, (char *)"Increment value");
@@ -339,16 +386,16 @@ void traverse(TreeNode *s, int offset)
                             }
                             else
                             {
-                                emitRM((char *)"LD", 3, s->child[0]->offset, s->child[0]->var == Local, (char *)"Load lhs variable");
+                                emitRM((char *)"LD", 3, s->child[0]->offset, s->child[0]->var != Global, (char *)"Load lhs variable");
                                 emitRO((char *)"LDA", 3, 1, 3, (char *)"Increment value");
-                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var == Local, (char *)"Store variable");
+                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var != Global, (char *)"Store variable");
                             }
                             break;
                         case 7: // --
                             if(s->child[0]->op == 8)
                             {
                                 traverse(s->child[0]->child[1], offset);
-                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, 1, (char *)"Load address of base of array");
+                                emitRM((char *)"LDA", 5, s->child[0]->child[0]->offset, s->child[0]->child[0]->var != Global, (char *)"Load address of base of array");
                                 emitRO((char *)"SUB", 5, 5, 3, (char *)"Compute offset of value");
                                 emitRM((char *)"LD", 3, s->child[0]->offset, 5, (char *)"Load lhs variable");
                                 emitRO((char *)"LDA", 3, -1, 3, (char *)"Decrement value");
@@ -356,9 +403,9 @@ void traverse(TreeNode *s, int offset)
                             }
                             else
                             {
-                                emitRM((char *)"LD", 3, s->child[0]->offset, s->child[0]->var == Local, (char *)"Load lhs variable");
+                                emitRM((char *)"LD", 3, s->child[0]->offset, s->child[0]->var != Global, (char *)"Load lhs variable");
                                 emitRO((char *)"LDA", 3, -1, 3, (char *)"Decrement value");
-                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var == Local, (char *)"Load lhs variable");
+                                emitRM((char *)"ST", 3, s->child[0]->offset, s->child[0]->var != Global, (char *)"Load lhs variable");
                             }
                             break;
                     }
@@ -366,15 +413,12 @@ void traverse(TreeNode *s, int offset)
 
                 case CallK:
                     temp = st.lookupNode(s->attr.name);
-                    savedLoc = emitSkip(0);
-                    printf("off: %d emit: %d\n", offset, ((TreeNode *)(st.lookup(s->attr.name)))->offset);
                     emitComment((char *)"CALL", (char *)s->attr.name);
                     emitRM((char *)"ST", 1, offset, 1, (char *)"Store fp in ghost frame for output");
                     getParams(s->child[0], offset - 2);
                     emitComment((char *)"END PARAM", (char *)s->attr.name);
                     emitRM((char *)"LDA", 1, offset, 1, (char *)"Load address of new frame");
                     emitRM((char *)"LDA", 3, 1, 7, (char *)"Return address in ac");
-                    //emitRM((char *)"LDA", 7, savedLoc, 7, (char *)"CALL"); //Still needs correction
                     emitGotoAbs(temp->offset, (char *)"CALL");
                     emitRM((char *)"LDA", 3, 0, 2, (char *)"Save the result in ac");
                     emitComment((char *)"END CALL", (char *)s->attr.name);
@@ -390,7 +434,26 @@ void traverse(TreeNode *s, int offset)
             {
                 case ElsifK:
                     break;
+
                 case IfK:
+                    emitComment((char *)"IF");
+                    traverse(s->child[0], offset);
+                    savedLoc = emitSkip(1);
+
+                    emitComment((char *)"THEN");
+                    traverse(s->child[1], offset);
+                    if(s->child[2] != NULL)
+                        savedLoc2 = emitSkip(1);
+                    backPatchAJumpToHere((char *)"JZR", 3, savedLoc, (char *)"Jump around the THEN if false [backpatch]");
+
+                    if(s->child[2] != NULL)
+                    {
+                        emitComment((char *)"ELSE");
+                        traverse(s->child[2], offset);
+                        backPatchAJumpToHere(savedLoc2, (char *)"Jump around the ELSE [backpatch]");
+                    }
+
+                    emitComment((char *)"END IF");
                     break;
 
                 case WhileK:
@@ -465,14 +528,38 @@ void codeGen(TreeNode *s)
     emitComment((char *)"INIT");
     emitRM((char *)"LD", 0, 0, 0, (char *)"Set the global pointer");
     emitRM((char *)"LDA", 1, Goffset, 0, (char *)"Set first frame at end of globals");
-    emitRM((char *)"ST", 1, 0, 1, (char *)"Store old fp (point to self)");
+    emitRM((char *)"ST", 1, 0, 1, (char *)"store old fp (point to self)");
     
     emitComment((char *)"INIT GLOBALS AND STATICS");
+    st.applyToAllGlobal(globalInit);
     emitComment((char *)"END INIT GLOBALS AND STATICS");
 
     emitRM((char *)"LDA", 3, 1, 7, (char *)"Return address in ac");
     //Sketch or logically sound fix?
-    emitRM((char *)"LDA", 7, temp->offset - (emitSkip(0)+1), 7, (char *)"Jump to main");
+    emitRM((char *)"LDA", 7, temp->offset - (emitSkip(0)+1), 7, (char *)"Jump to main"); //FIX THIS
     emitRO((char *)"HALT", 0, 0, 0, (char *)"DONE!");
     emitComment((char *)"END INIT");
+}
+
+void similarEmit(TreeNode *s, int offset)
+{
+    traverse(s->child[0], offset);
+    emitRM((char *)"ST", 3, offset, 1, (char *)"Save left side");
+    traverse(s->child[1], offset - 1);
+    emitRM((char *)"LD", 4, offset, 1, (char *)"Load left into ac1");
+}
+
+void globalInit(std::string sym, void* s)
+{
+    TreeNode *temp;
+    temp = st.lookupNode(sym.c_str());
+    
+    if(temp->nodekind == DeclK && temp->kind.decl == VarK)
+    {
+        if(temp->isArray)
+        {
+            emitRM((char *)"LDC", 3, temp->size - 1, 6, (char *)"load size of array");
+            emitRM((char *)"ST", 3, temp->offset + 1, 0, (char *)"save size of array");
+        }
+    }
 }
