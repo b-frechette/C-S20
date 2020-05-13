@@ -117,6 +117,11 @@ void traverse(TreeNode *s, int offset)
                 case VarK:
                     if(s->var == Local)
                     {
+                        if(s->child[0] != NULL)
+                        {
+                            traverse(s->child[0], offset);
+                            emitRM((char *)"ST", 3, s->offset, 1, (char *)"Store variable i");
+                        }
                         if(s->isArray)
                         {
                             emitRM((char *)"LDC", 3, s->size - 1, 6, (char *)"Load size of array");
@@ -125,11 +130,12 @@ void traverse(TreeNode *s, int offset)
                     }
                     break;
 
-                case FuncK:
+                case FuncK: //DR. HECKENDORN -> THERE IS A DISCREPANCY WITH SIZES ON ARRAYS PLS CHECK THIS
                     emitComment((char *)"FUNCTION", (char *)s->attr.name);
                     s->offset = emitSkip(0);
                     emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
                     offset += s->size;
+                    //printf("%s size: %d off: %d\n", s->attr.name, s->size, offset);
                     traverse(s->child[1], offset);
                     emitComment((char *)"Add standard closing in case there is no return statement");
                     emitRM((char *)"LDC", 2, 0, 6, (char *)"Set return to 0");
@@ -177,6 +183,16 @@ void traverse(TreeNode *s, int offset)
                             {
                                 similarEmit(s, offset);
                                 emitRO((char *)"TNE", 3, 4, 3, (char *)"Op !=");
+                            }
+                            else if(strncmp(s->attr.name, ">=", 2)== 0)
+                            {
+                                similarEmit(s, offset);
+                                emitRO((char *)"TGE", 3, 4, 3, (char *)"Op >=");
+                            }
+                            else if(strncmp(s->attr.name, ">=", 2)== 0)
+                            {
+                                similarEmit(s, offset);
+                                emitRO((char *)"TLE", 3, 4, 3, (char *)"Op <=");
                             }
                             else if(strncmp(s->attr.name, ">", 1)== 0)
                             {
@@ -233,6 +249,11 @@ void traverse(TreeNode *s, int offset)
                                 traverse(s->child[0], offset);
                                 emitRM((char *)"LDC", 4, 0, 6, (char *)"Load 0");
                                 emitRO((char *)"SUB", 3, 4, 3, (char *)"Op unary -");
+                            }
+                            else if(strncmp(s->attr.name, "*", 1)== 0)
+                            {
+                                traverse(s->child[0], offset);
+                                emitRM((char *)"LD", 3, 1, 3, (char *)"Load array size");
                             }
                             break;
                         case 8: // [
@@ -438,7 +459,7 @@ void traverse(TreeNode *s, int offset)
             switch (s->kind.stmt)
             {
                 case ElsifK:
-                    break;
+                    //break;
 
                 case IfK:
                     emitComment((char *)"IF");
@@ -480,9 +501,50 @@ void traverse(TreeNode *s, int offset)
                     break;
 
                 case LoopK:
+                    emitComment((char *)"LOOP");
+                    //RangeK
+                    traverse(s->child[1], offset);
+
+                    savedLoc = emitSkip(0);
+
+                    emitRM((char *)"LD", 4, s->child[0]->offset, 1, (char *)"Loop index");
+                    emitRM((char *)"LD", 5, s->child[0]->offset - 1, 1, (char *)"Ending value");
+                    emitRM((char *)"LD", 3, s->child[0]->offset - 2, 1, (char *)"Increment value");
+                    emitRO((char *)"SLT", 3, 4, 5, (char *)"Op <");
+                    emitRM((char *)"JNZ", 3, 1, 7, (char *)"Jump to loop body");
+
+                    tbreakLoc = breakLoc;
+                    breakLoc = emitSkip(1);
+
+                    //Do 
+                    traverse(s->child[2], offset - 3);
+
+                    emitComment((char *)"LOOP INC AND JMP");
+                    emitRM((char *)"LD", 3, s->child[0]->offset, 1, (char *)"Load index");
+                    emitRM((char *)"LD", 5, s->child[0]->offset - 2, 1, (char *)"Load increment");
+                    emitRO((char *)"ADD", 3, 3, 5, (char *)"Increment");
+                    emitRM((char *)"ST", 5, s->child[0]->offset, 1, (char *)"Store index to");
+
+                    emitGotoAbs(savedLoc, (char *)"Go to beginning of loop");
+                    backPatchAJumpToHere(breakLoc, (char *)"Jump past loop [backpatch]");
+                    breakLoc = tbreakLoc;
+                    emitComment((char *)"END LOOP");
                     break;
 
                 case LoopForeverK:
+                    emitComment((char *)"LOOP FOREVER");
+                    tbreakLoc = breakLoc;
+                    //savedLoc = emitSkip(0);
+                    emitRM((char *)"LDA", 7, 1, 7, (char *)"Jump to start of loop");
+                    savedLoc = emitSkip(0) + 1;
+
+                    breakLoc = emitSkip(1);
+                    traverse(s->child[1], offset);
+
+                    emitGotoAbs(savedLoc, (char *)"Go to beginning of loop");
+                    backPatchAJumpToHere(breakLoc, (char *)"Jump past look [backpatch]");
+                    breakLoc = tbreakLoc;
+                    emitComment((char *)"END LOOP FOREVER");
                     break;
 
                 case CompoundK:
@@ -496,8 +558,16 @@ void traverse(TreeNode *s, int offset)
                 case RangeK:
                     switch (s->op)
                     {
-                        //case 1:     ASSIGN simpleExpression RANGE simpleExpression
+                        case 1:     //ASSIGN simpleExpression RANGE simpleExpression
+                            //break;
                         case 2: //ASSIGN simpleExpression RANGE simpleExpression COLON simpleExpression
+                            emitComment((char *)"RANGE");
+                            traverse(s->child[0], offset);
+                            emitRM((char *)"ST", 3, offset, 1, (char *)"Save starting value in index variable");
+                            traverse(s->child[1], offset);
+                            emitRM((char *)"ST", 3, offset - 1, 1, (char *)"Save ending value");
+                            traverse(s->child[2], offset);
+                            emitRM((char *)"ST", 3, offset - 2, 1, (char *)"Save increment values");
                             break;
 
                         default:
@@ -528,6 +598,7 @@ void traverse(TreeNode *s, int offset)
         {
             printf("This shouldn't be happening\n");
         }
+        //printf("%d off: %d\n", s->lineno, offset);
 
         if(s->sibling != NULL)
         {
@@ -559,8 +630,7 @@ void codeGen(TreeNode *s)
     emitComment((char *)"END INIT GLOBALS AND STATICS");
 
     emitRM((char *)"LDA", 3, 1, 7, (char *)"Return address in ac");
-    //Sketch or logically sound fix?
-    emitRM((char *)"LDA", 7, temp->offset - (emitSkip(0)+1), 7, (char *)"Jump to main"); //FIX THIS
+    emitGotoAbs(temp->offset, (char *)"Jump to main");
     emitRO((char *)"HALT", 0, 0, 0, (char *)"DONE!");
     emitComment((char *)"END INIT");
 }

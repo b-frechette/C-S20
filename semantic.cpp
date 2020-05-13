@@ -125,7 +125,7 @@ ExpType insertNode(TreeNode *t)
                 }
 
                 if(t->isArray)
-                { t->size = CONSTANTSIZE + t->size; }
+                { t->size = CONSTANTSIZE + t->size;}
                 else
                 { t->size = CONSTANTSIZE; }
 
@@ -138,7 +138,9 @@ ExpType insertNode(TreeNode *t)
                     if(t->var == Local)
                     {
                         t->offset = Loffset;
+                        //printf("VAR %d off: %d\n", t->size, Loffset);
                         Loffset -= t->size;
+                        //printf("VAR %d off: %d\n", t->size, Loffset);
                     }
                     else if(t->var == LocalStatic || t->var == Global)
                     {
@@ -780,7 +782,7 @@ ExpType insertNode(TreeNode *t)
                         //compoundFlg = true;
                         t->child[2]->enteredScope = true;
                         // tmpLoffset = Loffset;
-                        // Loffset = -2;
+                        //Loffset = -2;
                     }
                 }
 
@@ -940,6 +942,7 @@ ExpType insertNode(TreeNode *t)
                 break;
          }
     }
+    //printf("%d off: %d\n", t->lineno, Loffset);
 
     //VALID
     for(i = 0; i < MAXCHILDREN; i++)
