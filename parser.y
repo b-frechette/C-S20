@@ -2,12 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <cstring>
 #include "treeUtils.h"
 #include "scanType.h"
 #include "printtree.h"
 #include "ourGetopt.h"
 #include "semantic.h"
 #include "yyerror.h"
+#include "codeGen.h"
 
 #define YYERROR_VERBOSE
 
@@ -16,6 +18,7 @@ int numErrors, numWarnings;
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
+FILE *code;
 extern int Goffset;
 
 /* descr: Recursively add sibling to end of the list
@@ -100,7 +103,7 @@ TreeNode * savedTree;
 %token <tokenData> '/' 
 %token <tokenData> '?' 
 %token <tokenData> '%'
-%token <tokenData> '..'
+%token <tokenData> RANGE
 %token <tokenData> ADDASS
 %token <tokenData> SUBASS
 %token <tokenData> MULASS
@@ -468,7 +471,7 @@ unmatchedelsif          : ELSIF simpleExpression THEN matched unmatchedelsif
                         ;
 
 /**** QUESTION ****/
-iterationRange          : simpleExpression '..' simpleExpression
+iterationRange          : simpleExpression RANGE simpleExpression
                             {
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $1;
@@ -485,7 +488,7 @@ iterationRange          : simpleExpression '..' simpleExpression
                                 $$->child[2] = t;
                                 $$->lineno = $1->lineno;
                             }
-                        | simpleExpression '..' simpleExpression ':' simpleExpression
+                        | simpleExpression RANGE simpleExpression ':' simpleExpression
                             { 
                                 $$ = newStmtNode(RangeK);
                                 $$->child[0] = $1;
@@ -494,9 +497,9 @@ iterationRange          : simpleExpression '..' simpleExpression
                                 $$->op = 2;
                                 $$->lineno = $1->lineno;
                             }
-                        | simpleExpression '..' simpleExpression ':' error  
+                        | simpleExpression RANGE simpleExpression ':' error  
                             { $$ = NULL; }
-                        | simpleExpression '..' error                
+                        | simpleExpression RANGE error                
                             { $$ = NULL; }
                         ;
 
@@ -910,6 +913,7 @@ mutable                 : ID
                             {
                                 $$ = newExpNode(OpK);
                                 $$->child[0] = $1;
+                                $$->child[0]->isArray = true;
                                 $$->child[1] = $3;
                                 $$->op = 8;
                                 $$->attr.name = $2->tokenstr;
@@ -999,14 +1003,13 @@ constant                : NUMCONST
                             { 
                                 $$ = newExpNode(ConstantK); 
                                 $$->attr.value = $1->numValue;
-                                $$->attr.name = $1->tokenstr;
+                                //$$->attr.name = $1->tokenstr;
                                 $$->expType = Boolean;
                                 $$->lineno = $1->linenum; 
                             }            
                         ;
 
 %%
-
 int main(int argc, char **argv)
 {
     extern int opterr;
@@ -1096,8 +1099,25 @@ int main(int argc, char **argv)
             semanticPrintTree(savedTree, 1, 0);
         }
 
+        if(filerr == 1)
+        {
+            //Replaces c- with tm for file
+            char * codefile;
+            int fnlen = strcspn(oarg, ".");
+            codefile = (char *) calloc(fnlen+4, sizeof(char));
+            strncpy(codefile, oarg, fnlen);
+            strcat(codefile, ".tm");
+            code = fopen(codefile, "w");
+            if(code == NULL)
+            {
+                printf("Unable to open %s\n", codefile);
+            }
+            codeGen(savedTree);
+            fclose(code);
+        }
+
     }
-    printf("Offset for end of global space: %d\n", Goffset);
+    // printf("Offset for end of global space: %d\n", Goffset);
     printf("Number of warnings: %d\n", numWarnings);
     printf("Number of errors: %d\n", numErrors);
 
