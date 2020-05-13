@@ -9,7 +9,7 @@
 
 extern SymbolTable st;
 extern int Goffset;
-//int tmpOffset = 0; Deprecated in favor of handling recursively RIP simplicity
+int breakLoc;
 
 void ioSetup()
 {
@@ -106,7 +106,7 @@ void getParams(TreeNode *s, int offset)
 void traverse(TreeNode *s, int offset)
 {
     TreeNode *temp;
-    int savedLoc, savedLoc2, savedLoc3;
+    int savedLoc, savedLoc2, savedLoc3, tbreakLoc;
 
     if (s != NULL)
     {
@@ -172,6 +172,11 @@ void traverse(TreeNode *s, int offset)
                             {
                                 similarEmit(s, offset);
                                 emitRO((char *)"TEQ", 3, 4, 3, (char *)"Op ==");
+                            }
+                            else if(strncmp(s->attr.name, "!=", 2)== 0)
+                            {
+                                similarEmit(s, offset);
+                                emitRO((char *)"TNE", 3, 4, 3, (char *)"Op !=");
                             }
                             else if(strncmp(s->attr.name, ">", 1)== 0)
                             {
@@ -457,6 +462,21 @@ void traverse(TreeNode *s, int offset)
                     break;
 
                 case WhileK:
+                    tbreakLoc = breakLoc;
+                    emitComment((char *)"WHILE");
+                    savedLoc = emitSkip(0);
+                    traverse(s->child[0], offset);
+                    savedLoc2 = emitSkip(2);
+                    breakLoc = savedLoc2 + 1;
+                    backPatchAJumpToHere((char *)"JNZ", 3, savedLoc2, (char *)"Jump to WHILE part [backpatch]");
+
+                    emitComment((char *)"DO");
+                    traverse(s->child[1], offset);
+                    emitGotoAbs(savedLoc, (char *)"Go to beginning of loop");
+                    backPatchAJumpToHere(savedLoc2 + 1, (char *)"Jump past loop [backpatch]");
+
+                    breakLoc = tbreakLoc;
+                    emitComment((char *)"END WHILE");
                     break;
 
                 case LoopK:
@@ -488,12 +508,16 @@ void traverse(TreeNode *s, int offset)
                 case ReturnK:
                     emitComment((char *)"RETURN");
                     traverse(s->child[0], offset);
+                    if(s->child[0] != NULL)
+                        emitRM((char *)"LDA", 2, 0, 3, (char *)"Copy result to rt register");
                     emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
                     emitRM((char *)"LD", 1, 0, 1, (char *)"Adjust fp");
                     emitRM((char *)"LDA", 7, 0, 3, (char *)"Return");
                     break;
 
                 case BreakK:
+                    emitComment((char *)"Break");
+                    emitGotoAbs(breakLoc, (char *)"Break");
                     break;
 
                 default:
